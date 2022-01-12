@@ -1,0 +1,6 @@
+repo = "https://github.com/project-oak/oak"
+commit_hash = "a9ad36dede15386a6a9fa98d46aeede3205e2b29"
+builder_image = "gcr.io/oak-ci/oak@sha256:ff9eafaf9f64d6549039fd1e7c5a9163206d60495d0d232971c57fa5a52e7878"
+command = ["./scripts/runner", "build-functions-server"]
+output_path = "./oak_functions/loader/bin/oak_functions_loader"
+expected_binary_sha256_hash = "9951f53ca22d9abdbbd664880586c4e2053087a5de891572458e84752ce1a8c1"
