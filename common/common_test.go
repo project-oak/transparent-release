@@ -22,7 +22,7 @@ import (
 	"github.com/project-oak/transparent-release/slsa"
 )
 
-var testdataPath = "../testdata/"
+const testdataPath = "../testdata/"
 
 func TestComputeBinarySha256Hash(t *testing.T) {
 	want := "020d6009cf9cfe95ff8da2f0c8302d27a70aae6b7fcd903588d275b9d7d9adc2"

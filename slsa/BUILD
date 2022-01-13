@@ -22,7 +22,7 @@ go_library(
     name = "slsa",
     srcs = ["slsa.go"],
     importpath = "github.com/project-oak/transparent-release/slsa",
-    )
+)
 
 go_test(
     name = "slsa_test",
