@@ -34,7 +34,7 @@ go_test(
     srcs = ["common_test.go"],
     data = [
         "//testdata:build.toml",
-        "//testdata/provenances:9951f53ca22d9abdbbd664880586c4e2053087a5de891572458e84752ce1a8c1.json",
+        "//testdata/provenances:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c.json",
     ],
     embed = [":common"],
     deps = [

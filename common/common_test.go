@@ -25,7 +25,7 @@ import (
 const testdataPath = "../testdata/"
 
 func TestComputeBinarySha256Hash(t *testing.T) {
-	want := "020d6009cf9cfe95ff8da2f0c8302d27a70aae6b7fcd903588d275b9d7d9adc2"
+	want := "56893dbba5667a305894b424c1fa58a0b51f994b117e62296fb6ee5986683856"
 	path := filepath.Join(testdataPath, "build.toml")
 	got, err := computeSha256Hash(path)
 	if err != nil {
@@ -49,7 +49,7 @@ func TestLoadBuildConfigFromFile(t *testing.T) {
 
 func TestLoadBuildConfigFromProvenance(t *testing.T) {
 	path := filepath.Join(testdataPath, "provenances",
-		"9951f53ca22d9abdbbd664880586c4e2053087a5de891572458e84752ce1a8c1.json")
+		"15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c.json")
 
 	provenance, err := slsa.ParseProvenanceFile(path)
 	if err != nil {
@@ -67,11 +67,11 @@ func checkBuildConfig(got *BuildConfig, t *testing.T) {
 
 	want := &BuildConfig{
 		Repo:                     "https://github.com/project-oak/oak",
-		CommitHash:               "a9ad36dede15386a6a9fa98d46aeede3205e2b29",
-		BuilderImage:             "gcr.io/oak-ci/oak@sha256:ff9eafaf9f64d6549039fd1e7c5a9163206d60495d0d232971c57fa5a52e7878",
+		CommitHash:               "0f2189703c57845e09d8ab89164a4041c0af0a62",
+		BuilderImage:             "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320",
 		Command:                  []string{"./scripts/runner", "build-functions-server"},
 		OutputPath:               "./oak_functions/loader/bin/oak_functions_loader",
-		ExpectedBinarySha256Hash: "9951f53ca22d9abdbbd664880586c4e2053087a5de891572458e84752ce1a8c1",
+		ExpectedBinarySha256Hash: "15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c",
 	}
 
 	if cmp.Diff(got, want) != "" {

@@ -64,7 +64,6 @@ type Parameters struct {
 	CommitHash     string `json:"commit_hash"`
 	BuilderImage   string `json:"builder_image"`
 	Command        []string
-	DockerRunFlags []string `json:"docker_run_flags"`
 }
 
 // ParseProvenanceFile parses a JSON file in the given path into a Provenance object.

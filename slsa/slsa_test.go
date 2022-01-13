@@ -20,7 +20,7 @@ import (
 
 func TestParseProvenanceFile(t *testing.T) {
 
-	path := "../testdata/provenances/9951f53ca22d9abdbbd664880586c4e2053087a5de891572458e84752ce1a8c1.json"
+	path := "../testdata/provenances/15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c.json"
 
 	provenance, err := ParseProvenanceFile(path)
 	if err != nil {
@@ -32,7 +32,7 @@ func TestParseProvenanceFile(t *testing.T) {
 		t.Errorf("invalid provenance subject name: got %s, want %s",
 			provenance.Subject[0].Name, wantSubjectName)
 	}
-	wantSubjectDigest := "9951f53ca22d9abdbbd664880586c4e2053087a5de891572458e84752ce1a8c1"
+	wantSubjectDigest := "15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c"
 	if provenance.Subject[0].Digest.Sha256 != wantSubjectDigest {
 		t.Errorf("invalid provenance subject digest: got %s, want %s",
 			provenance.Subject[0].Digest.Sha256, wantSubjectDigest)
@@ -54,10 +54,5 @@ func TestParseProvenanceFile(t *testing.T) {
 		parameters.Command[1] != wantCommand[1] {
 		t.Errorf("invalid command: got %v, want %v",
 			parameters.Command, wantCommand)
-	}
-
-	if len(parameters.DockerRunFlags) != 0 {
-		t.Errorf("invalid number of docker run flas: got %d, want %d",
-			len(parameters.DockerRunFlags), 0)
 	}
 }
