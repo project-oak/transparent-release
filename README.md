@@ -33,8 +33,8 @@ The following command can then be used to build the binary and generate the
 provenance file:
 
 ```bash
-$ blaze run //third_party/transparent_release/cmd/build:main -- \
-  -config <path-to-transparent_release>/testdata/build.toml \
+$ bazel run  //cmd/build:main -- \
+  -config <path-to-transparent-release>/testdata/build.toml \
 ```
 
 This involves fetching the sources from the Git repository specified in the
@@ -44,8 +44,8 @@ be built from the repo, only if the latest commit matches the one specified in
 the config file.
 
 ```bash
-$ blaze run //third_party/transparent_release/cmd/build:main  -- \
-  -config <path-to-transparent_release>/testdata/build.toml \
+$ bazel run  //cmd/build:main -- \
+  -config <path-to-transparent-release>/testdata/build.toml \
   -git_root_dir <path-to-git-repo-root>
 ```
 
@@ -54,11 +54,9 @@ $ blaze run //third_party/transparent_release/cmd/build:main  -- \
 **TODO: Do we need a command line tool for `verify`, for instance to be used by
 external verifiers?**
 
-
 We don't expect developers to run the verification logic manually, but to use it
 in their release processes to verify the binaries before release.
 **TODO: Add details based on our release process.**
-
 
 ## SLSA Provenance Predicate
 
