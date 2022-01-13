@@ -59,14 +59,6 @@ go_repository(
    version = "v0.5.6",
 )
 
-# go_repository(
-#     name = "com_github_phst_runfiles",
-#     importpath = "github.com/phst/runfiles",
-#     sum = "h1:B0CrzpfUkDAR73lrWPhLob7zvD5e5t70NVoJcig7JZ8=",
-#     version = "v0.0.0-20220103114429-bafe238f62cc",
-# )
-
-
 go_rules_dependencies()
 
 go_register_toolchains(version = "1.17.2")
