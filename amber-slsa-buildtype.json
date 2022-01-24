@@ -1,0 +1,137 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Amber SLSA buildType",
+  "description": "Describes a SLSA buildType, as defined in https://slsa.dev/provenance/v0.2.",
+  "type": "object",
+  "required": [
+    "buildType",
+    "buildConfig",
+    "materials"
+  ],
+  "not": {
+    "required": [
+      "invocation"
+    ]
+  },
+  "properties": {
+    "buildType": {
+      "const": "https://github.com/project-oak/transparent-release/amber-slsa-buildtype.json"
+    },
+    "buildConfig": {
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "Command passed to the builder image.",
+          "examples": [
+            "./scripts/runner build-functions-server"
+          ]
+        },
+        "outputPath": {
+          "type": "string",
+          "description": "The path, relative to the root of the git repository, where the artifact built by the command is expected to be found.",
+          "examples": [
+            "./oak_functions/loader/bin/oak_functions_loader"
+          ]
+        },
+        "expectedArtifactDigest": {
+          "type": "object",
+          "description": "Expected hash of the output artifact. Can be ommitted.",
+          "properties": {
+            "sha256": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "sha256"
+          ],
+          "additionalProperties": false,
+          "examples": [
+            {
+              "sha256": "15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c"
+            }
+          ]
+        }
+      },
+      "required": [
+        "command",
+        "outputPath"
+      ],
+      "additionalProperties": false
+    },
+    "materials": {
+      "type": "array",
+      "items": [
+        {
+          "title": "Docker Builder Image",
+          "type": "object",
+          "properties": {
+            "uri": {
+              "type": "string",
+              "description": "URI of a docker image on a registry",
+              "examples": [
+                "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320",
+                "index.docker.io/library/ubuntu:20.04"
+              ]
+            },
+            "digest": {
+              "type": "object",
+              "properties": {
+                "sha256": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "sha256"
+              ],
+              "additionalProperties": false,
+              "description": "The digest of the specific docker image",
+              "examples": [
+                {
+                  "sha256": "53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320"
+                }
+              ]
+            }
+          },
+          "required": [
+            "uri",
+            "digest"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "title": "Git Source Remote",
+          "type": "object",
+          "properties": {
+            "uri": {
+              "type": "string",
+              "description": "URI of a git remote",
+              "examples": [
+                "https://github.com/project-oak/oak.git"
+              ]
+            },
+            "digest": {
+              "type": "object",
+              "properties": {
+                "sha1": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "sha1"
+              ],
+              "additionalProperties": false,
+              "description": "The specific commit hash to checkout"
+            }
+          },
+          "required": [
+            "uri",
+            "digest"
+          ],
+          "additionalProperties": false
+        }
+      ],
+      "additionalItems": false
+    }
+  }
+}
