@@ -68,7 +68,7 @@
           "properties": {
             "uri": {
               "type": "string",
-              "description": "URI of a docker image on a registry",
+              "description": "URI of a Docker image on a registry",
               "examples": [
                 "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320",
                 "index.docker.io/library/ubuntu:20.04"
