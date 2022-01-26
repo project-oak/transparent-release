@@ -36,7 +36,7 @@
         },
         "expectedArtifactDigest": {
           "type": "object",
-          "description": "Expected hash of the output artifact. Can be ommitted.",
+          "description": "Expected hash of the output artifact. Optional.",
           "properties": {
             "sha256": {
               "type": "string"
