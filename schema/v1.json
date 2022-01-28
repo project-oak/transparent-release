@@ -9,6 +9,11 @@
     },
     "predicate": {
       "type": "object",
+      "required": [
+        "buildType",
+        "buildConfig",
+        "materials"
+      ],
       "properties": {
         "buildType": {
           "const": "https://github.com/project-oak/transparent-release/amber-slsa-buildtype/v1.json"
@@ -23,9 +28,6 @@
             "outputPath": {
               "type": "string",
               "description": "Path, relative to the root of the git repository, where the artifact built by the command is expected to be found."
-            },
-            "expectedArtifactDigest": {
-              "$ref": "#/$defs/digestSet"
             }
           },
           "required": [
@@ -92,6 +94,10 @@
       }
     }
   },
+  "required": [
+    "predicateType",
+    "predicate"
+  ],
   "$defs": {
     "digestSet": {
       "type": "object",
