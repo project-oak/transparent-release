@@ -45,6 +45,7 @@
               "properties": {
                 "uri": {
                   "type": "string",
+                  "format": "uri",
                   "description": "URI of a Docker image on a registry"
                 },
                 "digest": {
@@ -70,6 +71,7 @@
               "properties": {
                 "uri": {
                   "type": "string",
+                  "format": "uri",
                   "description": "URI of a git remote"
                 },
                 "digest": {
