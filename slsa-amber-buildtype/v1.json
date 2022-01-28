@@ -15,11 +15,11 @@
         },
         "outputPath": {
           "type": "string",
-          "description": "The path, relative to the root of the git repository, where the artifact built by the command is expected to be found."
+          "description": "Path, relative to the root of the git repository, where the artifact built by the command is expected to be found."
         },
         "expectedArtifactDigest": {
           "type": "object",
-          "description": "in-toto DigestSet, ref https://github.com/in-toto/attestation/blob/fd7a32c1e6102061a98e10111b0c612f7abcc5b8/spec/field_types.md#DigestSet",
+          "description": "in-toto DigestSet, ref: https://github.com/in-toto/attestation/blob/fd7a32c1e6102061a98e10111b0c612f7abcc5b8/spec/field_types.md#DigestSet",
           "properties": {
             "sha256": {
               "type": "string"
@@ -49,7 +49,7 @@
             },
             "digest": {
               "type": "object",
-              "description": "in-toto DigestSet, ref https://github.com/in-toto/attestation/blob/fd7a32c1e6102061a98e10111b0c612f7abcc5b8/spec/field_types.md#DigestSet",
+              "description": "in-toto DigestSet, ref: https://github.com/in-toto/attestation/blob/fd7a32c1e6102061a98e10111b0c612f7abcc5b8/spec/field_types.md#DigestSet",
               "properties": {
                 "sha256": {
                   "type": "string"
@@ -75,7 +75,7 @@
             },
             "digest": {
               "type": "object",
-              "description": "The specific commit hash to checkout. in-toto DigestSet, ref https://github.com/in-toto/attestation/blob/fd7a32c1e6102061a98e10111b0c612f7abcc5b8/spec/field_types.md#DigestSet",
+              "description": "The specific commit hash to checkout. in-toto DigestSet, ref: https://github.com/in-toto/attestation/blob/fd7a32c1e6102061a98e10111b0c612f7abcc5b8/spec/field_types.md#DigestSet",
               "properties": {
                 "sha1": {
                   "type": "string"
