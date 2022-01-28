@@ -2,98 +2,6 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Amber SLSA buildType",
   "description": "This schema describes the Amber SLSA buildType. It can be used to test whether a given SLSA predicate follows this buildType. It does not test compliance to the SLSA spec itself.",
-  "$defs": {
-    "buildType": {
-      "const": "https://github.com/project-oak/transparent-release/amber-slsa-buildtype/v1.json"
-    },
-    "buildConfig": {
-      "type": "object",
-      "properties": {
-        "command": {
-          "type": "string",
-          "description": "Command passed to the builder image."
-        },
-        "outputPath": {
-          "type": "string",
-          "description": "Path, relative to the root of the git repository, where the artifact built by the command is expected to be found."
-        },
-        "expectedArtifactDigest": {
-          "type": "object",
-          "description": "in-toto DigestSet, ref: https://github.com/in-toto/attestation/blob/fd7a32c1e6102061a98e10111b0c612f7abcc5b8/spec/field_types.md#DigestSet",
-          "properties": {
-            "sha256": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "sha256"
-          ]
-        }
-      },
-      "required": [
-        "command",
-        "outputPath"
-      ],
-      "additionalProperties": false
-    },
-    "materials": {
-      "type": "array",
-      "items": [
-        {
-          "title": "Docker Builder Image",
-          "type": "object",
-          "properties": {
-            "uri": {
-              "type": "string",
-              "description": "URI of a Docker image on a registry"
-            },
-            "digest": {
-              "type": "object",
-              "description": "in-toto DigestSet, ref: https://github.com/in-toto/attestation/blob/fd7a32c1e6102061a98e10111b0c612f7abcc5b8/spec/field_types.md#DigestSet",
-              "properties": {
-                "sha256": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "sha256"
-              ]
-            }
-          },
-          "required": [
-            "uri",
-            "digest"
-          ]
-        },
-        {
-          "title": "Git Source Remote",
-          "type": "object",
-          "properties": {
-            "uri": {
-              "type": "string",
-              "description": "URI of a git remote"
-            },
-            "digest": {
-              "type": "object",
-              "description": "The specific commit hash to checkout. in-toto DigestSet, ref: https://github.com/in-toto/attestation/blob/fd7a32c1e6102061a98e10111b0c612f7abcc5b8/spec/field_types.md#DigestSet",
-              "properties": {
-                "sha1": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "sha1"
-              ]
-            }
-          },
-          "required": [
-            "uri",
-            "digest"
-          ]
-        }
-      ]
-    }
-  },
   "type": "object",
   "properties": {
     "predicateType": {
@@ -103,15 +11,95 @@
       "type": "object",
       "properties": {
         "buildType": {
-          "$ref": "#/$defs/buildType"
+          "const": "https://github.com/project-oak/transparent-release/amber-slsa-buildtype/v1.json"
         },
         "buildConfig": {
-          "$ref": "#/$defs/buildType"
+          "type": "object",
+          "properties": {
+            "command": {
+              "type": "string",
+              "description": "Command passed to the builder image."
+            },
+            "outputPath": {
+              "type": "string",
+              "description": "Path, relative to the root of the git repository, where the artifact built by the command is expected to be found."
+            },
+            "expectedArtifactDigest": {
+              "$ref": "#/$defs/digestSet"
+            }
+          },
+          "required": [
+            "command",
+            "outputPath"
+          ],
+          "additionalProperties": false
         },
         "materials": {
-          "$ref": "#/$defs/buildType"
+          "type": "array",
+          "items": [
+            {
+              "title": "Docker Builder Image",
+              "type": "object",
+              "properties": {
+                "uri": {
+                  "type": "string",
+                  "description": "URI of a Docker image on a registry"
+                },
+                "digest": {
+                  "$ref": "#/$defs/digestSet"
+                }
+              },
+              "required": [
+                "uri",
+                "digest"
+              ],
+              "examples": [
+                {
+                  "uri": "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320",
+                  "digest": {
+                    "sha256": "53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320"
+                  }
+                }
+              ]
+            },
+            {
+              "title": "Git Source Remote",
+              "type": "object",
+              "properties": {
+                "uri": {
+                  "type": "string",
+                  "description": "URI of a git remote"
+                },
+                "digest": {
+                  "$ref": "#/$defs/digestSet"
+                }
+              },
+              "required": [
+                "uri",
+                "digest"
+              ],
+              "examples": [
+                {
+                  "uri": "https://github.com/project-oak/oak.git",
+                  "digest": {
+                    "sha1": "3dca7f2f8fab96c4fff7bf086a2736657fed2db5"
+                  }
+                }
+              ]
+            }
+          ]
         }
       }
+    }
+  },
+  "$defs": {
+    "digestSet": {
+      "type": "object",
+      "description": "in-toto DigestSet, ref: https://github.com/in-toto/attestation/blob/fd7a32c1e6102061a98e10111b0c612f7abcc5b8/spec/field_types.md#DigestSet",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "minProperties": 1
     }
   }
 }
