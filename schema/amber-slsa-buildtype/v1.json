@@ -16,7 +16,7 @@
       ],
       "properties": {
         "buildType": {
-          "const": "https://github.com/project-oak/transparent-release/schemas/amber-slsa-buildtype/v1.json"
+          "const": "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1.json"
         },
         "buildConfig": {
           "type": "object",
