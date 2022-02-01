@@ -25,7 +25,7 @@ import (
 const testdataPath = "../testdata/"
 
 func TestComputeBinarySha256Hash(t *testing.T) {
-	want := "56893dbba5667a305894b424c1fa58a0b51f994b117e62296fb6ee5986683856"
+	want := "e6317d3f37c04ef12b8c0bb7cf28e71b0afa0be8da881871115a439d093c2b38"
 	path := filepath.Join(testdataPath, "build.toml")
 	got, err := computeSha256Hash(path)
 	if err != nil {
