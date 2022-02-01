@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	cmp "github.com/google/go-cmp/cmp"
-	"github.com/project-oak/transparent-release/slsa"
 )
 
 const testdataPath = "../testdata/"
@@ -44,22 +43,6 @@ func TestLoadBuildConfigFromFile(t *testing.T) {
 		t.Fatalf("couldn't load build file: %v", err)
 	}
 
-	checkBuildConfig(config, t)
-}
-
-func TestLoadBuildConfigFromProvenance(t *testing.T) {
-	path := filepath.Join(testdataPath, "provenances",
-		"15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c.json")
-
-	provenance, err := slsa.ParseProvenanceFile(path)
-	if err != nil {
-		t.Fatalf("couldn't parse the provenance file: %v", err)
-	}
-
-	config, err := LoadBuildConfigFromProvenance(provenance)
-	if err != nil {
-		t.Fatalf("couldn't load BuildConfig from provenance: %v", err)
-	}
 	checkBuildConfig(config, t)
 }
 

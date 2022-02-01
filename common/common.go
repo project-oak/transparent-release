@@ -28,7 +28,6 @@ import (
 	"strings"
 
 	toml "github.com/pelletier/go-toml"
-	"github.com/project-oak/transparent-release/slsa"
 )
 
 // BuildConfig is a struct wrapping arguments for building a binary from source.
@@ -69,25 +68,6 @@ func LoadBuildConfigFromFile(path string) (*BuildConfig, error) {
 	config := BuildConfig{}
 	if err := tomlTree.Unmarshal(&config); err != nil {
 		return nil, fmt.Errorf("couldn't ubmarshal toml file: %v", err)
-	}
-
-	return &config, nil
-}
-
-// LoadBuildConfigFromProvenance loads build configuration from a SLSA Provenance object.
-func LoadBuildConfigFromProvenance(provenance *slsa.Provenance) (*BuildConfig, error) {
-	if len(provenance.Subject) != 1 {
-		return nil, fmt.Errorf("the provenance must have exactly one Subject, got %d", len(provenance.Subject))
-	}
-
-	proParams := provenance.Predicate.Invocation.Parameters
-	config := BuildConfig{
-		Repo:                     proParams.Repository,
-		CommitHash:               proParams.CommitHash,
-		BuilderImage:             proParams.BuilderImage,
-		Command:                  proParams.Command,
-		OutputPath:               provenance.Subject[0].Name,
-		ExpectedBinarySha256Hash: provenance.Subject[0].Digest.Sha256,
 	}
 
 	return &config, nil

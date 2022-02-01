@@ -22,8 +22,7 @@ go_library(
     name = "common",
     srcs = ["common.go"],
     deps = [
-        "@com_github_pelletier_toml//:go_default_library",
-        "//slsa:slsa",
+        "@com_github_pelletier_toml//:go_default_library"
     ],
     importpath = "github.com/project-oak/transparent-release/common",
 )
@@ -33,12 +32,10 @@ go_test(
     size = "small",
     srcs = ["common_test.go"],
     data = [
-        "//testdata:build.toml",
-        "//testdata/provenances:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c.json",
+        "//testdata:build.toml"
     ],
     embed = [":common"],
     deps = [
-        "@com_github_google_go_cmp//cmp:go_default_library",
-        "//slsa:slsa",
+        "@com_github_google_go_cmp//cmp:go_default_library"
     ],
 )
