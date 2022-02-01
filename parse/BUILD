@@ -19,8 +19,11 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 package(default_visibility = ["//:__subpackages__"])
 
 go_library(
-    name = "build",
-    srcs = ["build.go"],
-    deps = ["//common:common", "//parse:parse"],
-    importpath = "github.com/project-oak/transparent-release/build",
+    name = "parse",
+    srcs = ["parse.go"],
+    importpath = "github.com/project-oak/transparent-release/parse",
+    deps = ["@com_github_xeipuuv_gojsonschema//:go_default_library"],
+    data = [
+        "//schema/amber-slsa-buildtype:v1.json"
+    ],
 )

@@ -14,13 +14,10 @@
 # limitations under the License.
 #
 
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
-
 package(default_visibility = ["//:__subpackages__"])
 
-go_library(
-    name = "build",
-    srcs = ["build.go"],
-    deps = ["//common:common", "//parse:parse"],
-    importpath = "github.com/project-oak/transparent-release/build",
-)
+licenses(["notice"])
+
+exports_files([
+    "v1.json",
+])

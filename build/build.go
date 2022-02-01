@@ -21,6 +21,7 @@ import (
 	"os"
 
 	"github.com/project-oak/transparent-release/common"
+	"github.com/project-oak/transparent-release/parse"
 )
 
 // Build automates the steps for building a binary from a Git repository, and
@@ -36,10 +37,22 @@ import (
 // returns an error. Otherwise, it generates a SLSA provenance file based on
 // the given build config.
 func Build(buildFilePath, gitRootDir string) error {
-
-	buildConfig, err := common.LoadBuildConfigFromFile(buildFilePath)
+	statement, err := parse.ParseStatementFile(buildFilePath)
 	if err != nil {
-		return fmt.Errorf("couldn't load build file %q: %v", buildFilePath, err)
+		return err
+	}
+
+	repoURL := statement.Predicate.Materials[1].URI
+	commitHash := statement.Predicate.Materials[1].Digest["sha1"]
+	builderImage := statement.Predicate.Materials[0].URI
+
+	if len(statement.Subject) != 1 {
+		return fmt.Errorf("Expected to find exactly one subject, found %v", statement.Subject)
+	}
+
+	expectedSha256Hash := statement.Subject[0].Digest["sha256"]
+	if len(expectedSha256Hash) != 64 {
+		return fmt.Errorf("Expected to find a hexadecimal 65 characters long sha256 subject hash, found %v", expectedSha256Hash)
 	}
 
 	if gitRootDir != "" {
@@ -48,10 +61,10 @@ func Build(buildFilePath, gitRootDir string) error {
 		}
 	} else {
 		// Fetch sources from the repo.
-		log.Printf("No gitRootDir specified. Fetching sources from %s.", buildConfig.Repo)
-		repoInfo, err := common.FetchSourcesFromRepo(buildConfig.Repo, buildConfig.CommitHash)
+		log.Printf("No gitRootDir specified. Fetching sources from %s.", repoURL)
+		repoInfo, err := common.FetchSourcesFromRepo(repoURL, commitHash)
 		if err != nil {
-			return fmt.Errorf("couldn't fetch sources from %s: %v", buildConfig.Repo, err)
+			return fmt.Errorf("couldn't fetch sources from %s: %v", repoURL, err)
 		}
 		log.Printf("Fetched the repo into %q. See %q for any error logs.", repoInfo.RepoRoot, repoInfo.Logs)
 	}
@@ -60,18 +73,27 @@ func Build(buildFilePath, gitRootDir string) error {
 	if err != nil {
 		return fmt.Errorf("couldn't get current working directory: %v", err)
 	}
-	log.Printf("Building the binary in %q.", cwd)
+	log.Printf("Building the artifact in %q.", cwd)
 
-	if err := buildConfig.VerifyCommit(); err != nil {
+	if err := common.VerifyCommit(commitHash); err != nil {
 		return fmt.Errorf("Git commit hashes do not match: %v", err)
 	}
 
-	if err := buildConfig.Build(); err != nil {
-		return fmt.Errorf("couldn't build the binary: %v", err)
+	if err := common.Build(statement.Predicate.BuildConfig.Command, statement.Predicate.BuildConfig.OutputPath, builderImage); err != nil {
+		return fmt.Errorf("couldn't build the artifact: %v", err)
+	}
+	log.Printf("Finished building the artifact.")
+
+	sha256Hash, err := common.ComputeSha256Hash(statement.Predicate.BuildConfig.OutputPath)
+	if err != nil {
+		return err
+	}
+	log.Printf("Build product with sha256 hash of %v found at %s", sha256Hash, statement.Predicate.BuildConfig.OutputPath)
+
+	if sha256Hash != expectedSha256Hash {
+		return fmt.Errorf("the hash of the generated binary does not match the expected SHA256 hash; got %s, want %v",
+			sha256Hash, expectedSha256Hash)
 	}
 
-	if err := buildConfig.GenerateProvenanceFile(); err != nil {
-		return fmt.Errorf("failed to generate the provenance file: %v", err)
-	}
 	return nil
 }

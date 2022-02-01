@@ -26,28 +26,7 @@ import (
 	"os/exec"
 	"path"
 	"strings"
-
-	toml "github.com/pelletier/go-toml"
 )
-
-// BuildConfig is a struct wrapping arguments for building a binary from source.
-type BuildConfig struct {
-	// URL of a public Git repository. Required for generating the provenance file.
-	Repo string `toml:"repo"`
-	// The GitHub commit hash to build the binary from. Required for checking
-	// that the binary is being release from the correct source.
-	// TODO(razieh): It might be better to instead use Git tree hash.
-	CommitHash string `toml:"commit_hash"`
-	// URI identifying the Docker image to use for building the binary.
-	BuilderImage string `toml:"builder_image"`
-	// List of commands to pass to the docker run command.
-	Command string `toml:"command"`
-	// The path, relative to the root of the git repository, where the binary
-	// built by the `docker run` command is expected to be found.
-	OutputPath string `toml:"output_path"`
-	// Expected SHA256 hash of the output binary. Could be empty.
-	ExpectedBinarySha256Hash string `toml:"expected_binary_sha256_hash"`
-}
 
 // RepoCheckoutInfo contains info about the location of a locally checked out
 // repository.
@@ -58,30 +37,15 @@ type RepoCheckoutInfo struct {
 	Logs string
 }
 
-// LoadBuildConfigFromFile loads build configuration from a toml file in the given path and returns an instance of BuildConfig.
-func LoadBuildConfigFromFile(path string) (*BuildConfig, error) {
-	tomlTree, err := toml.LoadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("couldn't load toml file: %v", err)
-	}
-
-	config := BuildConfig{}
-	if err := tomlTree.Unmarshal(&config); err != nil {
-		return nil, fmt.Errorf("couldn't ubmarshal toml file: %v", err)
-	}
-
-	return &config, nil
-}
-
 // Build executes a command for building a binary. The command is created from
 // the arguments in this object.
-func (b *BuildConfig) Build() error {
+func Build(command, outputPath, builderImage string) error {
 	// TODO(razieh): Add a validate method, and/or a new type for a ValidatedBuildConfig.
 
 	// Check that the OutputPath is empty, so that we don't accidentally release
 	// the wrong binary in case the build silently fails for whatever reason.
-	if _, err := os.Stat(b.OutputPath); !os.IsNotExist(err) {
-		return fmt.Errorf("the specified output path (%s) is not empty", b.OutputPath)
+	if _, err := os.Stat(outputPath); !os.IsNotExist(err) {
+		return fmt.Errorf("the specified output path (%s) is not empty", outputPath)
 	}
 
 	// TODO(razieh): The build must be hermetic. Consider disabling the network
@@ -108,8 +72,8 @@ func (b *BuildConfig) Build() error {
 	var args []string
 	args = append(args, "run")
 	args = append(args, defaultDockerRunFlags...)
-	args = append(args, b.BuilderImage)
-	args = append(args, b.Command)
+	args = append(args, builderImage)
+	args = append(args, command)
 	cmd := exec.Command("docker", args...)
 
 	stderr, err := cmd.StderrPipe()
@@ -134,9 +98,9 @@ func (b *BuildConfig) Build() error {
 	}
 
 	// Verify that a file is built in the output path; return an error otherwise.
-	if _, err := os.Stat(b.OutputPath); err != nil {
+	if _, err := os.Stat(outputPath); err != nil {
 		return fmt.Errorf("missing expected output file in %s, see %s for error logs",
-			b.OutputPath, tmpfileName)
+			outputPath, tmpfileName)
 	}
 
 	return nil
@@ -144,7 +108,7 @@ func (b *BuildConfig) Build() error {
 
 // VerifyCommit checks that code is running in a Git repository at the Git
 // commit hash equal to `CommitHash` in this BuildConfig.
-func (b *BuildConfig) VerifyCommit() error {
+func VerifyCommit(commitHash string) error {
 	cmd := exec.Command("git", "rev-parse", "--verify", "HEAD")
 	lastCommitIDBytes, err := cmd.Output()
 	if err != nil {
@@ -152,60 +116,9 @@ func (b *BuildConfig) VerifyCommit() error {
 	}
 	lastCommitID := strings.TrimSpace(string(lastCommitIDBytes))
 
-	if lastCommitID != b.CommitHash {
-		return fmt.Errorf("the last commit hash (%q) does not match the given commit hash (%q)", lastCommitID, b.CommitHash)
+	if lastCommitID != commitHash {
+		return fmt.Errorf("the last commit hash (%q) does not match the given commit hash (%q)", lastCommitID, commitHash)
 	}
-	return nil
-}
-
-// ComputeBinarySha256Hash computes the SHA256 hash of the file in the
-// `OutputPath` of this BuildConfig.
-func (b *BuildConfig) ComputeBinarySha256Hash() (string, error) {
-	binarySha256Hash, err := computeSha256Hash(b.OutputPath)
-	if err != nil {
-		return "", fmt.Errorf("couldn't compute SHA256 hash of %q: %v", b.OutputPath, err)
-	}
-
-	return binarySha256Hash, nil
-
-}
-
-// VerifyBinarySha256Hash computes the SHA256 hash of the binary built by this
-// BuildConfig, and checks that this hash is equal to `ExpectedSha256Hash` in
-// this BuildConfig. Returns an error if the hashes are not equal.
-func (b *BuildConfig) VerifyBinarySha256Hash() error {
-	binarySha256Hash, err := b.ComputeBinarySha256Hash()
-	if err != nil {
-		return err
-	}
-
-	if b.ExpectedBinarySha256Hash == "" || b.ExpectedBinarySha256Hash != binarySha256Hash {
-		return fmt.Errorf("the hash of the generated binary does not match the expected SHA256 hash; got %s, want %v",
-			binarySha256Hash, b.ExpectedBinarySha256Hash)
-	}
-
-	return nil
-}
-
-// GenerateProvenanceFile generates the provenance file. If
-// `ExpectedBinarySha256Hash` is non-empty, the provenance file is generated
-// only if the SHA256 hash of the generated binary is equal to
-// `ExpectedBinarySha256Hash`.
-func (b *BuildConfig) GenerateProvenanceFile() error {
-	// TODO(b/210658815): Instead of only checking the hash, generate the provenance file.
-
-	binarySha256Hash, err := b.ComputeBinarySha256Hash()
-	if err != nil {
-		return err
-	}
-
-	log.Printf("The hash of the binary is: %s", binarySha256Hash)
-
-	if b.ExpectedBinarySha256Hash != "" && b.ExpectedBinarySha256Hash != binarySha256Hash {
-		return fmt.Errorf("the hash of the output binary does not match the expected binary hash; got %s, want %v",
-			binarySha256Hash, b.ExpectedBinarySha256Hash)
-	}
-
 	return nil
 }
 
@@ -293,7 +206,7 @@ func toStringSlice(slice []interface{}) []string {
 	return ss
 }
 
-func computeSha256Hash(path string) (string, error) {
+func ComputeSha256Hash(path string) (string, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return "", fmt.Errorf("couldn't read file %q: %v", path, err)
