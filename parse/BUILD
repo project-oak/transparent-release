@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 package(default_visibility = ["//:__subpackages__"])
 
@@ -25,5 +25,19 @@ go_library(
     deps = ["@com_github_xeipuuv_gojsonschema//:go_default_library"],
     data = [
         "//schema/amber-slsa-buildtype:v1.json"
+    ],
+)
+
+go_test(
+    name = "parse_test",
+    size = "small",
+    srcs = ["parse_test.go"],
+    data = [
+        "//schema/amber-slsa-buildtype:v1.json",
+        "//schema/amber-slsa-buildtype:v1-example-statement.json"
+    ],
+    embed = [":parse"],
+    deps = [
+        "@com_github_google_go_cmp//cmp:go_default_library"
     ],
 )

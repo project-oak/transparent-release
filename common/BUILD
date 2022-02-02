@@ -32,10 +32,7 @@ go_test(
     size = "small",
     srcs = ["common_test.go"],
     data = [
-        "//testdata:build.toml"
+        "//schema/amber-slsa-buildtype:v1.json",
     ],
     embed = [":common"],
-    deps = [
-        "@com_github_google_go_cmp//cmp:go_default_library"
-    ],
 )

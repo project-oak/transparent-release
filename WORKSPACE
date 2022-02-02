@@ -53,13 +53,6 @@ go_repository(
 )
 
 go_repository(
-    name = "com_github_google_go_cmp",
-    importpath = "github.com/google/go-cmp",
-    sum = "h1:BKbKCqvP6I+rmFHt06ZmyQtvB8xAkWdhFyr0ZUNZcxQ=",
-    version = "v0.5.6",
-)
-
-go_repository(
     name = "com_github_xeipuuv_gojsonschema",
     importpath = "github.com/xeipuuv/gojsonschema",
     sum = "h1:LhYJRs+L4fBtjZUfuSZIKGeVu0QRy8e5Xi7D17UxZ74=",
