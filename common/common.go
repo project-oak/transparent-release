@@ -41,8 +41,11 @@ type BuildConfig struct {
 	CommitHash string `toml:"commit_hash"`
 	// URI identifying the Docker image to use for building the binary.
 	BuilderImage string `toml:"builder_image"`
-	// List of commands to pass to the docker run command.
-	Command string `toml:"command"`
+	// Command to pass to the `docker run` command. The command is taken as an
+	// array instead of a single string to avoid unnecessary parsing. See
+	// https://docs.docker.com/engine/reference/builder/#cmd and 
+	// https://man7.org/linux/man-pages/man3/exec.3.html for more details. 
+	Command []string `toml:"command"`
 	// The path, relative to the root of the git repository, where the binary
 	// built by the `docker run` command is expected to be found.
 	OutputPath string `toml:"output_path"`
@@ -129,7 +132,7 @@ func (b *BuildConfig) Build() error {
 	args = append(args, "run")
 	args = append(args, defaultDockerRunFlags...)
 	args = append(args, b.BuilderImage)
-	args = append(args, b.Command)
+	args = append(args, b.Command...)
 	cmd := exec.Command("docker", args...)
 
 	stderr, err := cmd.StderrPipe()
@@ -261,7 +264,7 @@ func FetchSourcesFromRepo(repoURL, commitHash string) (*RepoCheckoutInfo, error)
 	if _, err := os.Stat(targetDir); !os.IsNotExist(err) {
 		// If target dir already exists remove it and its content.
 		if err := os.RemoveAll(targetDir); err != nil {
-			return nil, fmt.Errorf("couldn't remove pre-exisitng files in %s: %v", targetDir, err)
+			return nil, fmt.Errorf("couldn't remove pre-existing files in %s: %v", targetDir, err)
 		}
 	}
 

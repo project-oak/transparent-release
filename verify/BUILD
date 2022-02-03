@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 package(default_visibility = ["//:__subpackages__"])
 
@@ -26,4 +26,14 @@ go_library(
         "//slsa:slsa",
     ],
         importpath = "github.com/project-oak/transparent-release/verify",
+)
+
+go_test(
+    name = "verify_test",
+    size = "large",
+    srcs = ["verify_test.go"],
+    data = [
+        "//testdata/provenances:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c.json",
+    ],
+    embed = [":verify"],
 )

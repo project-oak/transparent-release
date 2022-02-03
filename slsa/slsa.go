@@ -63,7 +63,7 @@ type Parameters struct {
 	Repository     string
 	CommitHash     string `json:"commit_hash"`
 	BuilderImage   string `json:"builder_image"`
-	Command        string
+	Command        []string
 }
 
 // ParseProvenanceFile parses a JSON file in the given path into a Provenance object.
