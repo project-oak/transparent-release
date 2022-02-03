@@ -261,7 +261,7 @@ func FetchSourcesFromRepo(repoURL, commitHash string) (*RepoCheckoutInfo, error)
 	if _, err := os.Stat(targetDir); !os.IsNotExist(err) {
 		// If target dir already exists remove it and its content.
 		if err := os.RemoveAll(targetDir); err != nil {
-			return nil, fmt.Errorf("couldn't remove pre-exisitng files in %s: %v", targetDir, err)
+			return nil, fmt.Errorf("couldn't remove pre-existing files in %s: %v", targetDir, err)
 		}
 	}
 
