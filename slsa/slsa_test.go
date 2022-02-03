@@ -45,8 +45,13 @@ func TestParseProvenanceFile(t *testing.T) {
 			parameters.Repository, wantRepo)
 	}
 
-	wantCommand := "./scripts/runner build-functions-server"
-	if parameters.Command != wantCommand {
+	wantCommand := [2]string{"./scripts/runner", "build-functions-server"}
+	if len(parameters.Command) != 2 {
+		t.Errorf("invalid command size: got %v, want %v",
+			len(parameters.Command), 2)
+	}
+	if parameters.Command[0] != wantCommand[0] ||
+		parameters.Command[1] != wantCommand[1] {
 		t.Errorf("invalid command: got %v, want %v",
 			parameters.Command, wantCommand)
 	}

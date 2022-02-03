@@ -23,7 +23,7 @@
            "repository": "https://github.com/project-oak/oak",
            "commit_hash": "0f2189703c57845e09d8ab89164a4041c0af0a62",
            "builder_image": "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320",
-           "command": "./scripts/runner build-functions-server"
+           "command": ["./scripts/runner", "build-functions-server"]
          }
       },
       "metadata":{

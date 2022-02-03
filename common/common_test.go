@@ -25,7 +25,7 @@ import (
 const testdataPath = "../testdata/"
 
 func TestComputeBinarySha256Hash(t *testing.T) {
-	want := "e6317d3f37c04ef12b8c0bb7cf28e71b0afa0be8da881871115a439d093c2b38"
+	want := "56893dbba5667a305894b424c1fa58a0b51f994b117e62296fb6ee5986683856"
 	path := filepath.Join(testdataPath, "build.toml")
 	got, err := computeSha256Hash(path)
 	if err != nil {
@@ -69,7 +69,7 @@ func checkBuildConfig(got *BuildConfig, t *testing.T) {
 		Repo:                     "https://github.com/project-oak/oak",
 		CommitHash:               "0f2189703c57845e09d8ab89164a4041c0af0a62",
 		BuilderImage:             "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320",
-		Command:                  "./scripts/runner build-functions-server",
+		Command:                  []string{"./scripts/runner", "build-functions-server"},
 		OutputPath:               "./oak_functions/loader/bin/oak_functions_loader",
 		ExpectedBinarySha256Hash: "15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c",
 	}

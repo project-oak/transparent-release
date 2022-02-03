@@ -42,7 +42,7 @@ type BuildConfig struct {
 	// URI identifying the Docker image to use for building the binary.
 	BuilderImage string `toml:"builder_image"`
 	// List of commands to pass to the docker run command.
-	Command string `toml:"command"`
+	Command []string `toml:"command"`
 	// The path, relative to the root of the git repository, where the binary
 	// built by the `docker run` command is expected to be found.
 	OutputPath string `toml:"output_path"`
@@ -129,7 +129,7 @@ func (b *BuildConfig) Build() error {
 	args = append(args, "run")
 	args = append(args, defaultDockerRunFlags...)
 	args = append(args, b.BuilderImage)
-	args = append(args, b.Command)
+	args = append(args, b.Command...)
 	cmd := exec.Command("docker", args...)
 
 	stderr, err := cmd.StderrPipe()
