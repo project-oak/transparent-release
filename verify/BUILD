@@ -30,8 +30,7 @@ go_library(
 
 go_test(
     name = "verify_test",
-    size = "small",
-    timeout = "long",
+    size = "large",
     srcs = ["verify_test.go"],
     data = [
         "//testdata/provenances:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c.json",
