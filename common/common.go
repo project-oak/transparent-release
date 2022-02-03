@@ -41,7 +41,10 @@ type BuildConfig struct {
 	CommitHash string `toml:"commit_hash"`
 	// URI identifying the Docker image to use for building the binary.
 	BuilderImage string `toml:"builder_image"`
-	// List of commands to pass to the docker run command.
+	// Command to pass to the `docker run` command. The command is taken as an
+	// array instead of a single string to avoid unnecessary parsing. See
+	// https://docs.docker.com/engine/reference/builder/#cmd and 
+	// https://man7.org/linux/man-pages/man3/exec.3.html for more details. 
 	Command []string `toml:"command"`
 	// The path, relative to the root of the git repository, where the binary
 	// built by the `docker run` command is expected to be found.
