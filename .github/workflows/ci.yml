@@ -13,7 +13,6 @@ on:
 jobs:
   build-all:
     runs-on: ubuntu-20.04
-    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v1
 
