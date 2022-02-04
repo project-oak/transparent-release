@@ -22,8 +22,11 @@
           "type": "object",
           "properties": {
             "command": {
-              "type": "string",
-              "description": "Command passed to the builder image."
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Args passed to the builder image."
             },
             "outputPath": {
               "type": "string",

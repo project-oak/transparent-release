@@ -15,7 +15,10 @@
     },
     "buildType": "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1.json",
     "buildConfig": {
-      "command": "./scripts/runner build-functions-server",
+      "command": [
+        "./scripts/runner",
+        "build-functions-server"
+      ],
       "outputPath": "./oak_functions/loader/bin/oak_functions_loader"
     },
     "materials": [
