@@ -15,11 +15,16 @@
 package verify
 
 import (
+	slsa "github.com/project-oak/transparent-release/slsa"
+	"os"
 	"testing"
 )
 
 func TestVerifyProvenanceFile(t *testing.T) {
-	path := "../testdata/provenances/15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c.json"
+	// In the case of running tests bazel exposes data dependencies not in the
+	// current dir, but in the parent. Hence we need to move one level up.
+	os.Chdir("../")
+	path := slsa.SchemaExamplePath
 
 	if err := Verify(path, ""); err != nil {
 		t.Fatalf("couldn't verify the provenance file: %v", err)

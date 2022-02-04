@@ -43,8 +43,8 @@ type BuildConfig struct {
 	BuilderImage string `toml:"builder_image"`
 	// Command to pass to the `docker run` command. The command is taken as an
 	// array instead of a single string to avoid unnecessary parsing. See
-	// https://docs.docker.com/engine/reference/builder/#cmd and 
-	// https://man7.org/linux/man-pages/man3/exec.3.html for more details. 
+	// https://docs.docker.com/engine/reference/builder/#cmd and
+	// https://man7.org/linux/man-pages/man3/exec.3.html for more details.
 	Command []string `toml:"command"`
 	// The path, relative to the root of the git repository, where the binary
 	// built by the `docker run` command is expected to be found.
@@ -83,14 +83,13 @@ func LoadBuildConfigFromProvenance(provenance *slsa.Provenance) (*BuildConfig, e
 		return nil, fmt.Errorf("the provenance must have exactly one Subject, got %d", len(provenance.Subject))
 	}
 
-	proParams := provenance.Predicate.Invocation.Parameters
 	config := BuildConfig{
-		Repo:                     proParams.Repository,
-		CommitHash:               proParams.CommitHash,
-		BuilderImage:             proParams.BuilderImage,
-		Command:                  proParams.Command,
-		OutputPath:               provenance.Subject[0].Name,
-		ExpectedBinarySha256Hash: provenance.Subject[0].Digest.Sha256,
+		Repo:                     provenance.Predicate.Materials[1].URI,
+		CommitHash:               provenance.Predicate.Materials[1].Digest["sha1"],
+		BuilderImage:             provenance.Predicate.Materials[0].URI,
+		Command:                  provenance.Predicate.BuildConfig.Command,
+		OutputPath:               provenance.Predicate.BuildConfig.OutputPath,
+		ExpectedBinarySha256Hash: provenance.Subject[0].Digest["sha256"],
 	}
 
 	return &config, nil
