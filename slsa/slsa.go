@@ -60,10 +60,10 @@ type Material struct {
 const SchemaPath = "schema/amber-slsa-buildtype/v1.json"
 const SchemaExamplePath = "schema/amber-slsa-buildtype/v1-example-statement.json"
 
-func validateJson(provenanceFile []byte) *gojsonschema.Result {
+func validateJson(provenanceFile []byte) (*gojsonschema.Result, error) {
 	schemaFile, err := ioutil.ReadFile(SchemaPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	schemaLoader := gojsonschema.NewStringLoader(string(schemaFile))
@@ -71,10 +71,10 @@ func validateJson(provenanceFile []byte) *gojsonschema.Result {
 
 	result, err := gojsonschema.Validate(schemaLoader, provenanceLoader)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return result
+	return result, nil
 }
 
 // Reads a JSON file from a given path, validates it against the Amber buildType
