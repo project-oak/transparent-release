@@ -29,8 +29,8 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-// Struct to parse the Amber SLSA buildType. See the corresponding JSON key,
-// and it's description in the JSON schema for details on each key.
+// Struct to parse the Amber SLSA buildType. See the corresponding JSON key and,
+// its description in the JSON Amber buildType schema for details on each key.
 type Provenance struct {
 	Type          string    `json:"_type"`
 	Subject       []Subject `json:"subject"`
