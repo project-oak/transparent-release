@@ -41,4 +41,7 @@ func TestSlsaExampleProvenance(t *testing.T) {
 	assert("commitHash", provenance.Predicate.Materials[1].Digest["sha1"], "0f2189703c57845e09d8ab89164a4041c0af0a62")
 	assert("builderImage", provenance.Predicate.Materials[0].URI, "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
 	assert("expectedSha256Hash", provenance.Subject[0].Digest["sha256"], "15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c")
+	assert("outputPath", provenance.Predicate.BuildConfig.OutputPath, "./oak_functions/loader/bin/oak_functions_loader")
+	assert("command[0]", provenance.Predicate.BuildConfig.Command[0], "./scripts/runner")
+	assert("command[1]", provenance.Predicate.BuildConfig.Command[1], "build-functions-server")
 }
