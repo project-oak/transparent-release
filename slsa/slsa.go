@@ -92,7 +92,7 @@ func validateJson(provenanceFile []byte) error {
 func ParseProvenanceFile(path string) (*Provenance, error) {
 	provenanceFile, readErr := ioutil.ReadFile(path)
 	if readErr != nil {
-		return nil, fmt.Errorf("could not read the provided provenance file: %v", readErr)
+		return nil, fmt.Errorf("could not read the provenance file: %v", readErr)
 	}
 
 	var provenance Provenance
@@ -104,7 +104,7 @@ func ParseProvenanceFile(path string) (*Provenance, error) {
 
 	unmarshalErr := json.Unmarshal(provenanceFile, &provenance)
 	if unmarshalErr != nil {
-		return nil, fmt.Errorf("failed to unmarshal provenanceFile:\n%v", unmarshalErr)
+		return nil, fmt.Errorf("could unmarshal the provenance file:\n%v", unmarshalErr)
 	}
 
 	return &provenance, nil
