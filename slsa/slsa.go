@@ -23,7 +23,6 @@ package slsa
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 
@@ -61,7 +60,7 @@ const SchemaExamplePath = "schema/amber-slsa-buildtype/v1-example-statement.json
 func validateJson(provenanceFile []byte) *gojsonschema.Result {
 	schemaFile, err := ioutil.ReadFile(SchemaPath)
 	if err != nil {
-		fmt.Print(err)
+		return err
 	}
 
 	schemaLoader := gojsonschema.NewStringLoader(string(schemaFile))
@@ -69,33 +68,35 @@ func validateJson(provenanceFile []byte) *gojsonschema.Result {
 
 	result, err := gojsonschema.Validate(schemaLoader, provenanceLoader)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 
 	return result
 }
 
 func ParseProvenanceFile(path string) (*Provenance, error) {
-	provenanceFile, err := ioutil.ReadFile(path)
-	if err != nil {
-		fmt.Println("Could not read the provided provenance file. See error:\n", err)
+	provenanceFile, readErr := ioutil.ReadFile(path)
+	if readErr != nil {
+		return nil, fmt.Errorf("could not read the provided provenance file: %v", readErr)
 	}
 
 	var provenance Provenance
 
 	result := validateJson(provenanceFile)
 	if !result.Valid() {
-		fmt.Printf("The provided provenance file is not valid. See errors:\n")
 		var buffer bytes.Buffer
 		for _, err := range result.Errors() {
 			buffer.WriteString("- %s\n")
 			buffer.WriteString(err.String())
 		}
 
-		return nil, errors.New(buffer.String())
+		return nil, fmt.Errorf("The provided provenance file is not valid. See errors:\n%v", buffer.String())
 	}
 
-	json.Unmarshal(provenanceFile, &provenance)
+	unmarshalErr := json.Unmarshal(provenanceFile, &provenance)
+	if unmarshalErr != nil {
+		return nil, fmt.Errorf("failed to unmarshal provenanceFile:\n%v", unmarshalErr)
+	}
 
 	return &provenance, nil
 }
