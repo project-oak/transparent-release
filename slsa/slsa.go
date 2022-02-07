@@ -60,10 +60,10 @@ type Material struct {
 const SchemaPath = "schema/amber-slsa-buildtype/v1.json"
 const SchemaExamplePath = "schema/amber-slsa-buildtype/v1-example-statement.json"
 
-func validateJson(provenanceFile []byte) (*gojsonschema.Result, error) {
+func validateJson(provenanceFile []byte) error {
 	schemaFile, err := ioutil.ReadFile(SchemaPath)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	schemaLoader := gojsonschema.NewStringLoader(string(schemaFile))
@@ -71,10 +71,20 @@ func validateJson(provenanceFile []byte) (*gojsonschema.Result, error) {
 
 	result, err := gojsonschema.Validate(schemaLoader, provenanceLoader)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return result, nil
+	if !result.Valid() {
+		var buffer bytes.Buffer
+		for _, err := range result.Errors() {
+			buffer.WriteString("- %s\n")
+			buffer.WriteString(err.String())
+		}
+
+		return fmt.Errorf("The provided provenance file is not valid. See errors:\n%v", buffer.String())
+	}
+
+	return nil
 }
 
 // Reads a JSON file from a given path, validates it against the Amber buildType
@@ -87,15 +97,9 @@ func ParseProvenanceFile(path string) (*Provenance, error) {
 
 	var provenance Provenance
 
-	result := validateJson(provenanceFile)
-	if !result.Valid() {
-		var buffer bytes.Buffer
-		for _, err := range result.Errors() {
-			buffer.WriteString("- %s\n")
-			buffer.WriteString(err.String())
-		}
-
-		return nil, fmt.Errorf("The provided provenance file is not valid. See errors:\n%v", buffer.String())
+	err := validateJson(provenanceFile)
+	if err != nil {
+		return nil, err
 	}
 
 	unmarshalErr := json.Unmarshal(provenanceFile, &provenance)
