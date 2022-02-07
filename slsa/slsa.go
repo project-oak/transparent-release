@@ -29,6 +29,8 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
+// Struct to parse the Amber SLSA buildType. See the corresponding JSON key,
+// and it's description in the JSON schema for details on each key.
 type Provenance struct {
 	Type          string    `json:"_type"`
 	Subject       []Subject `json:"subject"`
@@ -54,6 +56,7 @@ type Material struct {
 	Digest Digest `json:"digest,omitempty"`
 }
 
+// Paths to the Amber SLSA buildType schema used by this module
 const SchemaPath = "schema/amber-slsa-buildtype/v1.json"
 const SchemaExamplePath = "schema/amber-slsa-buildtype/v1-example-statement.json"
 
@@ -74,6 +77,8 @@ func validateJson(provenanceFile []byte) *gojsonschema.Result {
 	return result
 }
 
+// Reads a JSON file from a given path, validates it against the Amber buildType
+// schema, parses it into an instance of the Provenance struct.
 func ParseProvenanceFile(path string) (*Provenance, error) {
 	provenanceFile, readErr := ioutil.ReadFile(path)
 	if readErr != nil {
