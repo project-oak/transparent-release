@@ -66,6 +66,7 @@ go_repository(
    version = "v1.2.0",
 )
 
+# Indirect dependency of com_github_xeipuuv_gojsonschema
 go_repository(
    name = "com_github_xeipuuv_gojsonreference",
    importpath = "github.com/xeipuuv/gojsonreference",
@@ -73,6 +74,7 @@ go_repository(
    version = "v0.0.0-20180127040603-bd5ef7bd5415",
 )
 
+# Indirect dependency of com_github_xeipuuv_gojsonschema
 go_repository(
    name = "com_github_xeipuuv_gojsonpointer",
    importpath = "github.com/xeipuuv/gojsonpointer",
