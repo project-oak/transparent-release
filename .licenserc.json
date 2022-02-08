@@ -1,0 +1,4 @@
+{
+    "**/*.go": "// Copyright 2022 The Project Oak Authors",
+    "**/BUILD": "# Copyright 2022 The Project Oak Authors"
+}

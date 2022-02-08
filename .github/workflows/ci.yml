@@ -34,3 +34,10 @@ jobs:
       - name: Build
         run: |
           "${GITHUB_WORKSPACE}/bin/bazel" build //...
+
+  check-license-lines:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: Check License Lines
+        uses: kt3k/license_checker@v1.0.6
