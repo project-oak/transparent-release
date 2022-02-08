@@ -29,28 +29,42 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-// Struct to parse the Amber SLSA buildType. See the corresponding JSON key and,
-// its description in the JSON Amber buildType schema for details on each key.
+// Struct to parse the an in-toto statement of the Amber SLSA buildType.
 type Provenance struct {
 	Type          string    `json:"_type"`
 	Subject       []Subject `json:"subject"`
 	PredicateType string    `json:"predicateType"`
 	Predicate     Predicate `json:"predicate"`
 }
+
+// Struct to parse the Subject of the SLSA buildType. See the corresponding JSON
+// key in the Amber buildType schema.
 type Subject struct {
 	Name   string `json:"name"`
 	Digest Digest `json:"digest"`
 }
+
+// Struct to parse a Digest in the SLSA buildType. See the corresponding JSON
+// key in the Amber buildType schema.
 type Digest map[string]string
+
+// Struct to parse the Predicate in the SLSA buildType. See the corresponding
+// JSON key in the Amber buildType schema.
 type Predicate struct {
 	BuildType   string      `json:"buildType"`
 	BuildConfig BuildConfig `json:"buildConfig"`
 	Materials   []Material  `json:"materials"`
 }
+
+// Struct to parse the BuildConfig in the SLSA buildType. See the corresponding
+// JSON key in the Amber buildType schema.
 type BuildConfig struct {
 	Command    []string `json:"command"`
 	OutputPath string   `json:"outputPath"`
 }
+
+// Struct to parse Materials in the SLSA buildType. See the corresponding
+// JSON key in the Amber buildType schema.
 type Material struct {
 	URI    string `json:"uri"`
 	Digest Digest `json:"digest,omitempty"`
