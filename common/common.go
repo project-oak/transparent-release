@@ -83,13 +83,47 @@ func LoadBuildConfigFromProvenance(provenance *slsa.Provenance) (*BuildConfig, e
 		return nil, fmt.Errorf("the provenance must have exactly one Subject, got %d", len(provenance.Subject))
 	}
 
+	expectedBinarySha256Hash := provenance.Subject[0].Digest["sha256"]
+	if len(provenance.Subject) != 1 {
+		return nil, fmt.Errorf("the provenance's subject digest must specify a sha256 hash, got %d", expectedBinarySha256Hash)
+	}
+
+	if len(provenance.Predicate.Materials) != 2 {
+		return nil, fmt.Errorf("the provenance must have exactly two Materials, got %d", len(provenance.Predicate.Materials))
+	}
+
+	builderImage := provenance.Predicate.Materials[0].Digest.URI
+	if builderImage == nil {
+		return nil, fmt.Errorf("the provenance's first material must specify a URI, got %d", builderImage)
+	}
+
+	repo := provenance.Predicate.Materials[1].Digest.URI
+	if repo == nil {
+		return nil, fmt.Errorf("the provenance's second material must specify a URI, got %d", repo)
+	}
+
+	commitHash := provenance.Predicate.Materials[1].Digest["sha1"]
+	if commitHash == nil {
+		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %d", commitHash)
+	}
+
+	command := provenance.Predicate.BuildConfig.Command
+	if command == nil {
+		return nil, fmt.Errorf("the provenance's buildConfig must specify a command, got %d", command)
+	}
+
+	outputPath := provenance.Predicate.BuildConfig.OutputPath
+	if outputPath == nil {
+		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %d", outputPath)
+	}
+
 	config := BuildConfig{
 		Repo:                     provenance.Predicate.Materials[1].URI,
-		CommitHash:               provenance.Predicate.Materials[1].Digest["sha1"],
-		BuilderImage:             provenance.Predicate.Materials[0].URI,
-		Command:                  provenance.Predicate.BuildConfig.Command,
-		OutputPath:               provenance.Predicate.BuildConfig.OutputPath,
-		ExpectedBinarySha256Hash: provenance.Subject[0].Digest["sha256"],
+		CommitHash:               commitHash,
+		BuilderImage:             builderImage,
+		Command:                  command,
+		OutputPath:               outputPath,
+		ExpectedBinarySha256Hash: expectedBinarySha256Hash,
 	}
 
 	return &config, nil
