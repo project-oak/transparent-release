@@ -92,12 +92,12 @@ func LoadBuildConfigFromProvenance(provenance *slsa.Provenance) (*BuildConfig, e
 		return nil, fmt.Errorf("the provenance must have exactly two Materials, got %d", len(provenance.Predicate.Materials))
 	}
 
-	builderImage := provenance.Predicate.Materials[0].Digest.URI
+	builderImage := provenance.Predicate.Materials[0].URI
 	if builderImage == nil {
 		return nil, fmt.Errorf("the provenance's first material must specify a URI, got %d", builderImage)
 	}
 
-	repo := provenance.Predicate.Materials[1].Digest.URI
+	repo := provenance.Predicate.Materials[1].URI
 	if repo == nil {
 		return nil, fmt.Errorf("the provenance's second material must specify a URI, got %d", repo)
 	}
