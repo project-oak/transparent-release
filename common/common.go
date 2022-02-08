@@ -93,27 +93,27 @@ func LoadBuildConfigFromProvenance(provenance *slsa.Provenance) (*BuildConfig, e
 	}
 
 	builderImage := provenance.Predicate.Materials[0].URI
-	if builderImage == nil {
+	if builderImage == "" {
 		return nil, fmt.Errorf("the provenance's first material must specify a URI, got %d", builderImage)
 	}
 
 	repo := provenance.Predicate.Materials[1].URI
-	if repo == nil {
+	if repo == "" {
 		return nil, fmt.Errorf("the provenance's second material must specify a URI, got %d", repo)
 	}
 
 	commitHash := provenance.Predicate.Materials[1].Digest["sha1"]
-	if commitHash == nil {
+	if commitHash == "" {
 		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %d", commitHash)
 	}
 
 	command := provenance.Predicate.BuildConfig.Command
-	if command == nil {
+	if command[0] == "" {
 		return nil, fmt.Errorf("the provenance's buildConfig must specify a command, got %d", command)
 	}
 
 	outputPath := provenance.Predicate.BuildConfig.OutputPath
-	if outputPath == nil {
+	if outputPath == "" {
 		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %d", outputPath)
 	}
 
