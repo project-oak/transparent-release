@@ -1,0 +1,28 @@
+{
+    "definitions": {},
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Amber Endorsement v0.1",
+    "type": "object",
+    "required": [
+      "validityPeriod"
+    ],
+    "properties": {
+      "validityPeriod": {
+        "type": "object",
+        "required": [
+          "releaseTime"
+        ],
+        "properties": {
+          "releaseTime": {
+            "type": "string",
+            "description": "Timestamp in RFC 3339 format"
+          },
+          "expiryTime": {
+            "type": "string",
+            "description": "Timestamp in RFC 3339 format"
+          }
+        }
+      }
+    }
+  }
+  
