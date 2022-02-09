@@ -12,70 +12,113 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package slsa provides functionality for parsing SLSA provenance files.
+// Package slsa provides functionality for parsing SLSA provenance files of the
+// Amber buildType.
 //
 // This package provides a utility function for loading and parsing a
 // JSON-formatted SLSA provenance file into an instance of Provenance.
-//
-// Note that the structs in this package do not implement the entire SLSA
-// provenance schema (https://slsa.dev/provenance/v0.2), but only the parts
-// that are relevant to Oak's verifiable release process.
+
 package slsa
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+
+	"github.com/xeipuuv/gojsonschema"
 )
 
-// Provenance implements the SLSA provenance v0.2 schema
-// (https://slsa.dev/provenance/v0.2), and defines the semantics of the
-// `buildType`, `materials` and `invocation.parameters` from SLSA in the
-// context of Oak's verifiable release process.
+// Struct to parse the an in-toto statement of the Amber SLSA buildType.
 type Provenance struct {
-	Subject   []Subject `json:"subject"`
-	Predicate Predicate `json:"predicate"`
+	Type          string    `json:"_type"`
+	Subject       []Subject `json:"subject"`
+	PredicateType string    `json:"predicateType"`
+	Predicate     Predicate `json:"predicate"`
 }
 
-// Subject represents a subject in SLSA provenance v0.2.
+// Struct to parse the Subject of the SLSA buildType. See the corresponding JSON
+// key in the Amber buildType schema.
 type Subject struct {
-	Name   string
-	Digest Digest
+	Name   string `json:"name"`
+	Digest Digest `json:"digest"`
 }
 
-// Digest represents an artifact's digest in SLSA provenance v0.2.
-type Digest struct {
-	Sha256 string `json:"sha256"`
-}
+// Struct to parse a Digest in the SLSA buildType. See the corresponding JSON
+// key in the Amber buildType schema.
+type Digest map[string]string
 
-// Predicate represents a predicate in SLSA provenance v0.2.
+// Struct to parse the Predicate in the SLSA buildType. See the corresponding
+// JSON key in the Amber buildType schema.
 type Predicate struct {
-	Invocation Invocation `json:"invocation"`
+	BuildType   string      `json:"buildType"`
+	BuildConfig BuildConfig `json:"buildConfig"`
+	Materials   []Material  `json:"materials"`
 }
 
-// Invocation represents an invocation in SLSA provenance v0.2.
-type Invocation struct {
-	Parameters Parameters `json:"parameters"`
+// Struct to parse the BuildConfig in the SLSA buildType. See the corresponding
+// JSON key in the Amber buildType schema.
+type BuildConfig struct {
+	Command    []string `json:"command"`
+	OutputPath string   `json:"outputPath"`
 }
 
-// Parameters represents invocation parameters in a SLSA provenance file.
-type Parameters struct {
-	Repository     string
-	CommitHash     string `json:"commit_hash"`
-	BuilderImage   string `json:"builder_image"`
-	Command        []string
+// Struct to parse Materials in the SLSA buildType. See the corresponding
+// JSON key in the Amber buildType schema.
+type Material struct {
+	URI    string `json:"uri"`
+	Digest Digest `json:"digest,omitempty"`
 }
 
-// ParseProvenanceFile parses a JSON file in the given path into a Provenance object.
-func ParseProvenanceFile(path string) (*Provenance, error) {
-	var provenance Provenance
-	content, err := ioutil.ReadFile(path)
+// Paths to the Amber SLSA buildType schema used by this module
+const SchemaPath = "schema/amber-slsa-buildtype/v1.json"
+const SchemaExamplePath = "schema/amber-slsa-buildtype/v1-example-statement.json"
+
+func validateJson(provenanceFile []byte) error {
+	schemaFile, err := ioutil.ReadFile(SchemaPath)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't read provenance file %s: %v", path, err)
+		return err
 	}
 
-	if err := json.Unmarshal(content, &provenance); err != nil {
-		return nil, fmt.Errorf("couldn't parse JSON content: %v", err)
+	schemaLoader := gojsonschema.NewStringLoader(string(schemaFile))
+	provenanceLoader := gojsonschema.NewStringLoader(string(provenanceFile))
+
+	result, err := gojsonschema.Validate(schemaLoader, provenanceLoader)
+	if err != nil {
+		return err
+	}
+
+	if !result.Valid() {
+		var buffer bytes.Buffer
+		for _, err := range result.Errors() {
+			buffer.WriteString("- %s\n")
+			buffer.WriteString(err.String())
+		}
+
+		return fmt.Errorf("The provided provenance file is not valid. See errors:\n%v", buffer.String())
+	}
+
+	return nil
+}
+
+// Reads a JSON file from a given path, validates it against the Amber buildType
+// schema, parses it into an instance of the Provenance struct.
+func ParseProvenanceFile(path string) (*Provenance, error) {
+	provenanceFile, readErr := ioutil.ReadFile(path)
+	if readErr != nil {
+		return nil, fmt.Errorf("could not read the provenance file: %v", readErr)
+	}
+
+	var provenance Provenance
+
+	err := validateJson(provenanceFile)
+	if err != nil {
+		return nil, err
+	}
+
+	unmarshalErr := json.Unmarshal(provenanceFile, &provenance)
+	if unmarshalErr != nil {
+		return nil, fmt.Errorf("could unmarshal the provenance file:\n%v", unmarshalErr)
 	}
 
 	return &provenance, nil

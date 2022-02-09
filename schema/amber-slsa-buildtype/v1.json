@@ -22,8 +22,11 @@
           "type": "object",
           "properties": {
             "command": {
-              "type": "string",
-              "description": "Command passed to the builder image."
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "The command that the docker image is invoked with. It should be specified in the exec form, as documented in https://docs.docker.com/engine/reference/builder/#COMMAND"
             },
             "outputPath": {
               "type": "string",
@@ -45,7 +48,6 @@
               "properties": {
                 "uri": {
                   "type": "string",
-                  "format": "uri",
                   "description": "URI of a Docker image on a registry"
                 },
                 "digest": {
@@ -71,7 +73,6 @@
               "properties": {
                 "uri": {
                   "type": "string",
-                  "format": "uri",
                   "description": "URI of a git remote"
                 },
                 "digest": {

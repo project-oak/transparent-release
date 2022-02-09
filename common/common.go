@@ -43,8 +43,8 @@ type BuildConfig struct {
 	BuilderImage string `toml:"builder_image"`
 	// Command to pass to the `docker run` command. The command is taken as an
 	// array instead of a single string to avoid unnecessary parsing. See
-	// https://docs.docker.com/engine/reference/builder/#cmd and 
-	// https://man7.org/linux/man-pages/man3/exec.3.html for more details. 
+	// https://docs.docker.com/engine/reference/builder/#cmd and
+	// https://man7.org/linux/man-pages/man3/exec.3.html for more details.
 	Command []string `toml:"command"`
 	// The path, relative to the root of the git repository, where the binary
 	// built by the `docker run` command is expected to be found.
@@ -83,14 +83,47 @@ func LoadBuildConfigFromProvenance(provenance *slsa.Provenance) (*BuildConfig, e
 		return nil, fmt.Errorf("the provenance must have exactly one Subject, got %d", len(provenance.Subject))
 	}
 
-	proParams := provenance.Predicate.Invocation.Parameters
+	expectedBinarySha256Hash := provenance.Subject[0].Digest["sha256"]
+	if len(provenance.Subject) != 1 {
+		return nil, fmt.Errorf("the provenance's subject digest must specify a sha256 hash, got %d", expectedBinarySha256Hash)
+	}
+
+	if len(provenance.Predicate.Materials) != 2 {
+		return nil, fmt.Errorf("the provenance must have exactly two Materials, got %d", len(provenance.Predicate.Materials))
+	}
+
+	builderImage := provenance.Predicate.Materials[0].URI
+	if builderImage == "" {
+		return nil, fmt.Errorf("the provenance's first material must specify a URI, got %d", builderImage)
+	}
+
+	repo := provenance.Predicate.Materials[1].URI
+	if repo == "" {
+		return nil, fmt.Errorf("the provenance's second material must specify a URI, got %d", repo)
+	}
+
+	commitHash := provenance.Predicate.Materials[1].Digest["sha1"]
+	if commitHash == "" {
+		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %d", commitHash)
+	}
+
+	command := provenance.Predicate.BuildConfig.Command
+	if command[0] == "" {
+		return nil, fmt.Errorf("the provenance's buildConfig must specify a command, got %d", command)
+	}
+
+	outputPath := provenance.Predicate.BuildConfig.OutputPath
+	if outputPath == "" {
+		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %d", outputPath)
+	}
+
 	config := BuildConfig{
-		Repo:                     proParams.Repository,
-		CommitHash:               proParams.CommitHash,
-		BuilderImage:             proParams.BuilderImage,
-		Command:                  proParams.Command,
-		OutputPath:               provenance.Subject[0].Name,
-		ExpectedBinarySha256Hash: provenance.Subject[0].Digest.Sha256,
+		Repo:                     provenance.Predicate.Materials[1].URI,
+		CommitHash:               commitHash,
+		BuilderImage:             builderImage,
+		Command:                  command,
+		OutputPath:               outputPath,
+		ExpectedBinarySha256Hash: expectedBinarySha256Hash,
 	}
 
 	return &config, nil
