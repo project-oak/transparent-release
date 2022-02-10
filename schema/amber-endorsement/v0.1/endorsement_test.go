@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// TODO(#23): Move this to the `amber` package.
 package schema
 
 import (
