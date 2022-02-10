@@ -55,8 +55,8 @@ A SLSA provenance of the Amber build type can be verified with the following
 command:
 
 ```bash
-$ bazel run  //cmd/build:main -- \
-  -config <path-to-transparent-release>/testdata/build.toml \
+$ bazel run  //cmd/verify:main -- \
+  -config <path-to-transparent-release>/schema/amber-slsa-buildtype/v1-example-statement.json
 ```
 
 This fetches the sources from the Git repository specified in the
@@ -67,8 +67,8 @@ binary will be built from the repo, only if the latest commit matches the one
 specified in the config file.
 
 ```bash
-$ bazel run  //cmd/build:main -- \
-  -config <path-to-transparent-release>/testdata/build.toml \
+$ bazel run  //cmd/verify:main -- \
+  -config <path-to-transparent-release>/schema/amber-slsa-buildtype/v1-example-statement.json \
   -git_root_dir <path-to-git-repo-root>
 ```
 
