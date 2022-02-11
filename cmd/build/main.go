@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package main contains a command-line tool for building binaries.
+// Package main contains a command-line tool for verifying Amber provenance files.
 package main
 
 import (

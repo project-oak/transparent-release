@@ -60,7 +60,7 @@ $ bazel run  //cmd/verify:main -- \
 ```
 
 This fetches the sources from the Git repository specified in the
-SLSA statement file, re-runns the build, and verifies that it yields the
+SLSA statement file, re-runs the build, and verifies that it yields the
 expected hash. It is also possible to perform the release from an already
 existing local repository, by specifying `-git_root_dir`. In this case, the
 binary will be built from the repo, only if the latest commit matches the one
