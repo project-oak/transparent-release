@@ -12,24 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package main contains a command-line tool for verifying Amber provenance files.
+// Package main contains a command-line tool for building binaries.
 package main
 
 import (
 	"flag"
 	"log"
 
-	"github.com/project-oak/transparent-release/build"
+	"github.com/project-oak/transparent-release/verify"
 )
 
 func main() {
 	buildConfigPathPtr := flag.String("config", "",
-		"Required - Path to a toml file containing the build configs.")
+		"Required - Path to SLSA provenance file of the Amber build type.")
 	gitRootDirPtr := flag.String("git_root_dir", "",
 		"Optional - Root of the Git repository. If not specified, sources are fetched from the repo specified in the config file.")
 	flag.Parse()
 
-	if err := build.Build(*buildConfigPathPtr, *gitRootDirPtr); err != nil {
-		log.Fatalf("error when building the binary: %v", err)
+	if err := verify.Verify(*buildConfigPathPtr, *gitRootDirPtr); err != nil {
+		log.Fatalf("error when verifyfing the provenance: %v", err)
 	}
 }
