@@ -33,8 +33,8 @@ go_test(
     size = "large",
     srcs = ["verify_test.go"],
     data = [
-        "//schema/amber-slsa-buildtype:v1.json",
-        "//schema/amber-slsa-buildtype:v1-example-statement.json"
+        "//schema/amber-slsa-buildtype/v1:provenance.json",
+        "//schema/amber-slsa-buildtype/v1:example.json"
     ],
     embed = [":verify"],
 )
