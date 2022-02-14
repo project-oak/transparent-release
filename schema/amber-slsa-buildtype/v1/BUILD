@@ -14,24 +14,11 @@
 # limitations under the License.
 #
 
-load("@io_bazel_rules_go//go:def.bzl", "go_test")
-
 package(default_visibility = ["//:__subpackages__"])
 
 licenses(["notice"])
 
 exports_files([
-    "example.json",
-    "statement.json"
+    "provenance.json",
+    "example.json"
 ])
-
-go_test(
-    name = "endorsement_test",
-    size = "small",
-    srcs = ["endorsement_test.go"],
-    data = [
-        "//schema/amber-endorsement/v0.1:example.json",
-        "//schema/amber-endorsement/v0.1:statement.json"
-    ],
-    deps = ["@com_github_xeipuuv_gojsonschema//:go_default_library"],
-)

@@ -36,7 +36,7 @@
       }
     },
     "predicateType": {
-      "const": "https://github.com/project-oak/transparent-release/schema/amber-endorsement/v0.1/predicate.json"
+      "const": "https://github.com/project-oak/transparent-release/schema/amber-endorsement/v1/predicate.json"
     },
     "predicate": {
       "type": "object",

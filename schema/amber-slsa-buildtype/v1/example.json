@@ -13,7 +13,7 @@
     "builder": {
       "id": "https://github.com/project-oak/transparent-release"
     },
-    "buildType": "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1.json",
+    "buildType": "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json",
     "buildConfig": {
       "command": [
         "./scripts/runner",

@@ -8,7 +8,7 @@
       }
     }
   ],
-  "predicateType": "https://github.com/project-oak/transparent-release/schema/amber-endorsement/v0.1/predicate.json",
+  "predicateType": "https://github.com/project-oak/transparent-release/schema/amber-endorsement/v1/predicate.json",
   "predicate": {
     "validityPeriod": {
       "releaseTime": "2022-02-01T10:20:50.32Z",

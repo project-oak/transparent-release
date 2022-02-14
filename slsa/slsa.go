@@ -71,8 +71,8 @@ type Material struct {
 }
 
 // Paths to the Amber SLSA buildType schema used by this module
-const SchemaPath = "schema/amber-slsa-buildtype/v1.json"
-const SchemaExamplePath = "schema/amber-slsa-buildtype/v1-example-statement.json"
+const SchemaPath = "schema/amber-slsa-buildtype/v1/provenance.json"
+const SchemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
 
 func validateJson(provenanceFile []byte) error {
 	schemaFile, err := ioutil.ReadFile(SchemaPath)
