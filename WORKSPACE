@@ -94,6 +94,7 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 # This fetches the authorization logic compiler binary
 http_file(
     name = "auth-logic-compiler",
+    executable = True,
     downloaded_file_path = "auth-logic-compiler",
     urls = ["https://github.com/google-research/raksha/releases/download/v0.1/auth-logic-prototype"],
     sha256 = "3bb91e12d026c2483253a6e3af9c500836511bb2c008e233807438b8b72b7a0b"

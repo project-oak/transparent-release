@@ -46,7 +46,6 @@ genrule(
   srcs = ["simple.auth_logic"],
   tools = ["@auth-logic-compiler//file"],
   cmd = """
-    chmod a+x $(location @auth-logic-compiler//file)
     export INPUT_DIR=$$(dirname $(location simple.auth_logic))
     ./$(location @auth-logic-compiler//file) simple.auth_logic $$INPUT_DIR $(RULEDIR)
   """,
