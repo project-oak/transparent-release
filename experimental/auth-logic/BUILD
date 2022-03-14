@@ -40,3 +40,15 @@ go_test(
       "simple.auth_logic"
     ],
 )
+
+genrule(
+  name = "simple_auth_logic_compiler",
+  srcs = ["simple.auth_logic"],
+  tools = ["@auth-logic-compiler//file"],
+  cmd = """
+    chmod a+x $(location @auth-logic-compiler//file)
+    export INPUT_DIR=$$(dirname $(location simple.auth_logic))
+    ./$(location @auth-logic-compiler//file) simple.auth_logic $$INPUT_DIR $(RULEDIR)
+  """,
+  outs = ["simple.auth_logic.dl", "demo_working.csv", "demo_disappointing.csv"]
+)
