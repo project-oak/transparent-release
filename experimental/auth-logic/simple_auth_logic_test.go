@@ -18,16 +18,18 @@ import(
 )
 
 func TestSimpleAuthLogic(t *testing.T) {
-	
   assert := func(name string, want, got bool) {
 		if want != got {
       t.Fatalf("Query \"%v\" failed. want %t got %t", name, want, got)
 		}
 	}
 
-  actual_query_values := runAuthLogicCompiler("simple.auth_logic")
+  // As long as the CSVs for the queries are in the data field for
+  // the bazel rule that invokes this, the CSVs will all be
+  // in the working directory when this test is run.
+  actual_query_values := emitOutputQueries(".")
   if(actual_query_values == nil) {
-    t.Fatalf("The auth logic compiler encountered an error in %s",
+    t.Fatalf("Could parse query results for %s",
       "simple.auth_logic")
   }
 

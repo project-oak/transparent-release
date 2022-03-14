@@ -15,22 +15,10 @@
 package auth_logic
 
 import (
-  "fmt"
-  "os"
-  "os/exec"
   "io/ioutil"
   "strings"
   "path/filepath"
 )
-
-func processCommand(cmd *exec.Cmd) {
-  _, err := cmd.Output()
-
-  if err != nil {
-      fmt.Println(err)
-      return
-  }
-}
 
 // This function returns the results of queries in the authorization logic 
 // program as a map from the names of the queries to a boolean value which is 
@@ -48,19 +36,12 @@ func processCommand(cmd *exec.Cmd) {
 func emitOutputQueries(outputDirectoryName string) map[string]bool {
   ret := make(map[string]bool)
   items , _ := ioutil.ReadDir(outputDirectoryName)
-  fmt.Println("items")
-  fmt.Println(items)
   for _, item := range items {
     filename := item.Name()
-    fmt.Println("filename")
-    fmt.Println(filename)
     if(strings.HasSuffix(filename, ".csv")) {
       contents, _ := ioutil.ReadFile(filepath.Join(
         outputDirectoryName,filename))
       queryName := strings.ReplaceAll(filename, ".csv", "")
-      fmt.Println("contents")
-      fmt.Println(contents)
-      fmt.Println("queryName")
       // Because the ouput CSVs either contain "dummy_var" if they
       // can be proved or contain nothing if they cannot, the
       // query is true if and only if the CSV has more than zero bytes
@@ -71,40 +52,6 @@ func emitOutputQueries(outputDirectoryName string) map[string]bool {
       }
     }
   }
-  fmt.Println("about to return map:")
-  fmt.Println(ret)
   return ret
 }
 
-func runAuthLogicCompiler(inputFilename string) map[string]bool {
-  path, _ := os.Getwd()
-
-  fmt.Println("Working directory is:")
-  fmt.Println(path)
-
-  fmt.Println("tree:")
-  result, _ := exec.Command("tree",".").Output()
-  fmt.Printf("%s\n",result)
-
-  // Make directory for the .dl and .csv outputs from souffle
-  outDir := "./experimental/auth-logic/" + inputFilename + "-outputs"
-  // The -p flag only makes the directory if it does not exist
-  // (if the directory exists and the flag is omitted, an error is thrown)
-  err := os.MkdirAll(outDir, 0777)
-  if (err != nil) {
-      fmt.Println(err)
-      return nil
-  }
-
-  // Run the authorization logic compiler on the input file
-  authLogic := "./external/auth-logic-compiler/file/auth-logic-compiler"
-  inDir := "./experimental/auth-logic/"
-  processCommand(exec.Command(authLogic, inputFilename, inDir, outDir))
-
-  // Emit all the files in the output dir
-  return emitOutputQueries(outDir)
-}
-
-func main() {
-  _ = runAuthLogicCompiler("simple.auth_logic")
-}

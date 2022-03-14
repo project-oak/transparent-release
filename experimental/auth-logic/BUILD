@@ -36,8 +36,8 @@ go_test(
     srcs = ["simple_auth_logic_test.go"],
     embed = [":run_auth_logic"],
     data = [
-      "@auth-logic-compiler//file",
-      "simple.auth_logic"
+      "demo_working.csv",
+      "demo_disappointing.csv",
     ],
 )
 
