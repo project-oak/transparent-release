@@ -33,14 +33,20 @@ import (
 // "dummy_var". These predicates are declared as
 // [outputs](https://souffle-lang.github.io/execute) which causes a CSV to be 
 // emitted.
-func emitOutputQueries(outputDirectoryName string) map[string]bool {
+func emitOutputQueries(outputDirectoryName string) (map[string]bool, error) {
   ret := make(map[string]bool)
-  items , _ := ioutil.ReadDir(outputDirectoryName)
+  items , err := ioutil.ReadDir(outputDirectoryName)
+  if (err != nil) {
+    return nil, err
+  }
   for _, item := range items {
     filename := item.Name()
     if(strings.HasSuffix(filename, ".csv")) {
-      contents, _ := ioutil.ReadFile(filepath.Join(
+      contents, err := ioutil.ReadFile(filepath.Join(
         outputDirectoryName,filename))
+      if (err != nil) {
+        return nil, err
+      }
       queryName := strings.ReplaceAll(filename, ".csv", "")
       // Because the ouput CSVs either contain "dummy_var" if they
       // can be proved or contain nothing if they cannot, the
@@ -52,6 +58,6 @@ func emitOutputQueries(outputDirectoryName string) map[string]bool {
       }
     }
   }
-  return ret
+  return ret, err
 }
 

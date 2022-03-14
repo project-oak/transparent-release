@@ -27,19 +27,19 @@ func TestSimpleAuthLogic(t *testing.T) {
   // As long as the CSVs for the queries are in the data field for
   // the bazel rule that invokes this, the CSVs will all be
   // in the working directory when this test is run.
-  actual_query_values := emitOutputQueries(".")
-  if(actual_query_values == nil) {
-    t.Fatalf("Could parse query results for %s",
+  actualQueryValues, err := emitOutputQueries(".")
+  if(actualQueryValues == nil || err != nil) {
+    t.Fatalf("Could not parse query results for %s",
       "simple.auth_logic")
   }
 
-  var expected_query_values = map[string]bool {
+  var expectedQueryValues = map[string]bool {
     "demo_working": true,
     "demo_disappointing": false,
   }
 
-  for query, expected := range expected_query_values {
-    assert(query, expected, actual_query_values[query]);
+  for query, expected := range expectedQueryValues {
+    assert(query, expected, actualQueryValues[query]);
   }
 
 }

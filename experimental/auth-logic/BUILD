@@ -19,10 +19,10 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test", "go_binary")
 package(default_visibility = ["//:__subpackages__"])
 
 go_library(
-  name = "run_auth_logic",
+  name = "auth_logic_interface",
   importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
   srcs = [
-    "run_auth_logic.go",
+    "auth_logic_interface.go",
   ],
   data = [
     "@auth-logic-compiler//file",
@@ -34,7 +34,7 @@ go_test(
     name = "simple_auth_logic_test",
     size = "small",
     srcs = ["simple_auth_logic_test.go"],
-    embed = [":run_auth_logic"],
+    embed = [":auth_logic_interface"],
     data = [
       "demo_working.csv",
       "demo_disappointing.csv",
