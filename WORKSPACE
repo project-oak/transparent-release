@@ -96,6 +96,6 @@ http_file(
     name = "auth-logic-compiler",
     executable = True,
     downloaded_file_path = "auth-logic-compiler",
-    urls = ["https://github.com/google-research/raksha/releases/download/v0.1/auth-logic-prototype"],
-    sha256 = "3bb91e12d026c2483253a6e3af9c500836511bb2c008e233807438b8b72b7a0b"
+    urls = ["https://github.com/google-research/raksha/releases/download/v0.1-Linux/auth-logic-prototype"],
+    sha256 = "5411214e44007dffddcc12876f04f3b6a0c4d205db58ade3c70b1861adad12e6"
 )
