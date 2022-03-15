@@ -44,8 +44,12 @@ go_test(
 genrule(
   name = "simple_auth_logic_compiler",
   srcs = ["simple.auth_logic"],
-  tools = ["@auth-logic-compiler//file"],
+  tools = [
+    "@auth-logic-compiler//file",
+    "@souffle"
+  ],
   cmd = """
+    export SOUFFLE_BIN=$(location @souffle)
     export INPUT_DIR=$$(dirname $(location simple.auth_logic))
     ./$(location @auth-logic-compiler//file) simple.auth_logic $$INPUT_DIR $(RULEDIR)
   """,
