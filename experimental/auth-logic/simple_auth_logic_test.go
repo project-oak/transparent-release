@@ -13,33 +13,33 @@
 // limitations under the License.
 package auth_logic
 
-import(
-  "testing"
+import (
+	"testing"
 )
 
 func TestSimpleAuthLogic(t *testing.T) {
-  assert := func(name string, want, got bool) {
+	assert := func(name string, want, got bool) {
 		if want != got {
-      t.Fatalf("Query \"%v\" failed. want %t got %t", name, want, got)
+			t.Fatalf("Query %q failed. want %t got %t", name, want, got)
 		}
 	}
 
-  // As long as the CSVs for the queries are in the data field for
-  // the bazel rule that invokes this, the CSVs will all be
-  // in the working directory when this test is run.
-  actualQueryValues, err := emitOutputQueries(".")
-  if(actualQueryValues == nil || err != nil) {
-    t.Fatalf("Could not parse query results for %s",
-      "simple.auth_logic")
-  }
+	// As long as the CSVs for the queries are in the data field for
+	// the bazel rule that invokes this, the CSVs will all be
+	// in the working directory when this test is run.
+	actualQueryValues, err := emitOutputQueries(".")
+	if actualQueryValues == nil || err != nil {
+		t.Fatalf("Could not parse query results for %s",
+			"simple.auth_logic")
+	}
 
-  var expectedQueryValues = map[string]bool {
-    "demo_working": true,
-    "demo_disappointing": false,
-  }
+	var expectedQueryValues = map[string]bool{
+		"demo_working":       true,
+		"demo_disappointing": false,
+	}
 
-  for query, expected := range expectedQueryValues {
-    assert(query, expected, actualQueryValues[query]);
-  }
+	for query, expected := range expectedQueryValues {
+		assert(query, expected, actualQueryValues[query])
+	}
 
 }
