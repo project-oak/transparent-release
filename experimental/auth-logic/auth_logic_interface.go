@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package auth_logic
+
+// Package authlogic contains logic and tests for interfacing with the 
+// authorization logic compiler
+package authlogic
 
 import (
 	"io/ioutil"
@@ -26,7 +29,7 @@ import (
 // current output interface from authorization logic which is quite likely to
 // change in the future. At present, the authorization logic compiler emits a
 // CSV file named after each query; the CSV file contains just "dummy_var" if
-// the query can be proven and it is empty if it is false. The authorization
+// the query can be proven and it is empty otherwise. The authorization
 // logic compiler is implemented by translation into souffle -- though this is
 // also likely to change. In the generated souffle code, queries are translated
 // into predicates with the same name as the query and with one argument,

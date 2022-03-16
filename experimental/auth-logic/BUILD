@@ -26,7 +26,6 @@ go_library(
   ],
   data = [
     "@auth-logic-compiler//file",
-    "simple.auth_logic"
   ],
 )
 
@@ -41,8 +40,11 @@ go_test(
     ],
 )
 
+# This rule runs the authorizaiton logic compiler on "simple.auth_logic"
+# as an input and produces the resulting souffle code and CSVs containing the 
+# results of queries. These outputs are used by "simple_auth_logic_test"
 genrule(
-  name = "simple_auth_logic_compiler",
+  name = "compile_simple_auth_logic",
   srcs = ["simple.auth_logic"],
   tools = [
     "@auth-logic-compiler//file",

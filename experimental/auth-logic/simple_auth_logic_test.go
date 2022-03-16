@@ -11,7 +11,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package auth_logic
+
+// Package authlogic contains logic and tests for interfacing with the 
+// authorization logic compiler
+package authlogic
 
 import (
 	"testing"
