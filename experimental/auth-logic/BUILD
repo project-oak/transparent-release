@@ -48,10 +48,10 @@ genrule(
   srcs = ["simple.auth_logic"],
   tools = [
     "@auth-logic-compiler//file",
-    "@souffle"
+    "@souffle-bin//file"
   ],
   cmd = """
-    export SOUFFLE_BIN=$(location @souffle)
+    export SOUFFLE_BIN=$(location @souffle-bin//file)
     export INPUT_DIR=$$(dirname $(location simple.auth_logic))
     ./$(location @auth-logic-compiler//file) simple.auth_logic $$INPUT_DIR $(RULEDIR)
   """,
