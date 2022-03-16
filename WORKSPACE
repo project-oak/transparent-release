@@ -151,7 +151,7 @@ bison_register_toolchains()
 
 http_archive(
     name = "org_sourceware_libffi",
-    build_file = "@//third_party:libffi.BUILD",
+    build_file = "@//experimental/auth-logic:libffi.BUILD",
     sha256 = "653ffdfc67fbb865f39c7e5df2a071c0beb17206ebfb0a9ecb18a18f63f6b263",
     strip_prefix = "libffi-3.3-rc2",
     urls = ["https://github.com/libffi/libffi/releases/download/v3.3-rc2/libffi-3.3-rc2.tar.gz"],
@@ -159,10 +159,10 @@ http_archive(
 
 http_archive(
     name = "souffle",
-    build_file = "@//third_party/souffle:BUILD.souffle",
+    build_file = "@//experimental/auth-logic/souffle:BUILD.souffle",
     patch_args = ["-p0"],
     patches = [
-        "@//third_party/souffle:remove_config.patch",
+        "@//experimental/auth-logic/souffle:remove_config.patch",
     ],
     sha256 = "34b5723afb9f0b57172c984c8bb87cf1b57140d192d15d4786bc4f1fdc3ecbf2",
     strip_prefix = "souffle-2.1",
