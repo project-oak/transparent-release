@@ -87,3 +87,24 @@ go_rules_dependencies()
 go_register_toolchains(version = "1.17.2")
 
 gazelle_dependencies()
+
+# The http_file rule is needed to fetch the authorization logic compiler binary
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+
+# This fetches the authorization logic compiler binary
+http_file(
+    name = "auth-logic-compiler",
+    executable = True,
+    downloaded_file_path = "auth-logic-compiler",
+    urls = ["https://github.com/google-research/raksha/releases/download/v0.1-Linux/auth-logic-prototype"],
+    sha256 = "8bb55f427d937cde812074855b13fdacbbf04954704360c48d05e67e19ae747a"
+)
+
+# This fetches a pre-built souffle binary from the Raksha repository
+http_file(
+  name = "souffle-bin",
+  executable = True,
+  downloaded_file_path = "souffle-bin",
+  urls = ["https://github.com/google-research/raksha/releases/download/v0.1-Linux/souffle-bin"],
+  sha256 = "4bb5c1d5c18107cec4d40409ce3831304d6b9aad2e9e4f46270105a9152dc7c3"
+)
