@@ -28,8 +28,10 @@ jobs:
           mkdir -p "${GITHUB_WORKSPACE}/bin/"
           mv bazelisk-linux-amd64 "${GITHUB_WORKSPACE}/bin/bazel"
           chmod +x "${GITHUB_WORKSPACE}/bin/bazel"
-      - name: Install mcpp #mcpp is a dependency of Souffle
-        run: sudo apt-get install -y mcpp 
+      - name: Install souffle deps #install dependencies of Souffle
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mcpp libstdc++6 libc6-dev libc6
       - name: Test
         run: |
           "${GITHUB_WORKSPACE}/bin/bazel" test --test_output=streamed //...
