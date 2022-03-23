@@ -106,5 +106,5 @@ http_file(
   executable = True,
   downloaded_file_path = "souffle-bin",
   urls = ["https://github.com/google-research/raksha/releases/download/v0.1-Linux/souffle-bin"],
-  sha256 = "4bb5c1d5c18107cec4d40409ce3831304d6b9aad2e9e4f46270105a9152dc7c3"
+  sha256 = "8e36156acdd5b1cf3225a865d75c8a4ff201ffa922ae1533201fd40aca0e9c2f",
 )
