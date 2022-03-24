@@ -40,6 +40,22 @@ go_test(
     ],
 )
 
+go_library(
+  name = "wrapper_interface",
+  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
+  srcs = [
+    "wrapper_interface.go",
+  ],
+)
+
+
+go_test(
+  name = "wrapper_interface_test",
+  size = "small",
+  srcs = ["wrapper_interface_test.go"],
+  embed = [":wrapper_interface"],
+)
+
 # This rule runs the authorizaiton logic compiler on "simple.auth_logic"
 # as an input and produces the resulting souffle code and CSVs containing the 
 # results of queries. These outputs are used by "simple_auth_logic_test"
