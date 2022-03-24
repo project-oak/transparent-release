@@ -16,21 +16,23 @@ package authlogic
 import (
 	"fmt"
 	"os/exec"
-  "strings"
+	"strings"
 )
 
 // This file contains a wrapper that produces the current
-// time as the number of seconds since [the unix 
+// time as the number of seconds since [the unix
 // epoch](https://en.wikipedia.org/wiki/Unix_time). This wrapper
 // works by running the command `date +%s` on the local machine.
 
-type UnixEpochTime struct {}
+type UnixEpochTime struct{}
 
 func (time UnixEpochTime) Wrap() UnattributedStatement {
-  cmd := exec.Command("date", "+\\%s")
-  stdout, err := cmd.Output()
-  if err != nil { panic(err) }
-  sanitizedOutput := strings.TrimLeft(
-    strings.TrimRight(string(stdout), "\r\n"), "\\")
-  return UnattributedStatement{fmt.Sprintf("RealTimeIs(%v).", sanitizedOutput)}
+	cmd := exec.Command("date", "+\\%s")
+	stdout, err := cmd.Output()
+	if err != nil {
+		panic(err)
+	}
+	sanitizedOutput := strings.TrimLeft(
+		strings.TrimRight(string(stdout), "\r\n"), "\\")
+	return UnattributedStatement{fmt.Sprintf("RealTimeIs(%v).", sanitizedOutput)}
 }
