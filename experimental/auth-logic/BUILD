@@ -48,12 +48,26 @@ go_library(
   ],
 )
 
-
 go_test(
   name = "wrapper_interface_test",
   size = "small",
   srcs = ["wrapper_interface_test.go"],
   embed = [":wrapper_interface"],
+)
+
+go_library(
+  name = "unix_epoch_time_wrapper",
+  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
+  srcs = [
+    "unix_epoch_time_wrapper.go"
+  ],
+)
+
+go_test(
+  name = "unix_epoch_time_wrapper_test",
+  size = "small",
+  srcs = ["unix_epoch_time_wrapper_test.go"],
+  embed = [":wrapper_interface", ":unix_epoch_time_wrapper"],
 )
 
 # This rule runs the authorizaiton logic compiler on "simple.auth_logic"
