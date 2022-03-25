@@ -51,7 +51,7 @@ func TestUnixEpochTimeWrapper(t *testing.T) {
 	handleErr(readErr)
 	fileReadString := string(fileReadBytes)
 
-	timeTestRegex := regexp.MustCompile("UnixEpochTime says { RealTimeIs\\(([0-9]+)\\). }")
+	timeTestRegex := regexp.MustCompile("UnixEpochTime says {\nRealTimeIs\\(([0-9]+)\\).\n}")
 	match := timeTestRegex.FindStringSubmatch(fileReadString)
 	if len(match) != 2 {
 		t.Errorf("Result of time wrapper did not have valid format. Got: %v.",

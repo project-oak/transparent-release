@@ -23,8 +23,7 @@ import (
 
 // This file contains a wrapper that produces the current
 // time as the number of seconds since [the unix
-// epoch](https://en.wikipedia.org/wiki/Unix_time). This wrapper
-// works by running the command `date +%s` on the local machine.
+// epoch](https://en.wikipedia.org/wiki/Unix_time).
 
 type UnixEpochTime struct{}
 

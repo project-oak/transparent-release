@@ -61,7 +61,7 @@ type AuthLogicStatement struct {
 
 // This method produces a string from an AuthLogicStatement
 func (authLogic AuthLogicStatement) String() string {
-	return fmt.Sprintf("%v says { %v }", authLogic.Speaker, authLogic.Statement)
+	return fmt.Sprintf("%v says {\n%v\n}", authLogic.Speaker, authLogic.Statement)
 }
 
 // This interface defines a way of emitting authorization logic statements

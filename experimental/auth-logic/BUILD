@@ -71,6 +71,21 @@ go_test(
   embed = [":unix_epoch_time_wrapper"],
 )
 
+go_library(
+  name = "verifier_wrapper",
+  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
+  srcs = ["verifier_wrapper.go"],
+  embed = [":wrapper_interface"]
+)
+
+go_test(
+  name = "verifier_wrapper_test",
+  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
+  srcs = ["verifier_wrapper_test.go"],
+  embed = [":verifier_wrapper"]
+)
+
+
 # This rule runs the authorizaiton logic compiler on "simple.auth_logic"
 # as an input and produces the resulting souffle code and CSVs containing the 
 # results of queries. These outputs are used by "simple_auth_logic_test"
