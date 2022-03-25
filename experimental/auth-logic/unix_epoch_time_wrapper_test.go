@@ -47,21 +47,21 @@ func TestUnixEpochTimeWrapper(t *testing.T) {
 	timeTestRegex := regexp.MustCompile("UnixEpochTime says { RealTimeIs\\(([0-9]+)\\). }")
 	match := timeTestRegex.FindStringSubmatch(fileReadString)
 	if len(match) != 2 {
-		t.Fatalf("Result of time wrapper did not have valid format. Got: %v.",
+		t.Errorf("Result of time wrapper did not have valid format. Got: %v.",
 			fileReadString)
 	}
 
 	timeValue, conversionErr := strconv.Atoi(match[1])
 	handleErr(conversionErr)
 
-	// This constant is the unix epoch seconds for some time on
-	// March 24, 2022
-	if timeValue < 1648146779 {
-		t.Fatalf("The emitted current time %v, was some time before March 24, 2022")
+  const march24th2022 = 1648146779
+	if timeValue < march24th2022 {
+		t.Errorf("The emitted current time %v, already happened", timeValue)
 	}
 
-	if timeValue > 33197947200 {
-		t.Fatalf("The emitted current time %v, was some time after January 1, 3022")
+  const january1st3022 = 33197947200 
+	if timeValue > january1st3022 {
+		t.Errorf("The emitted current time %v, is far into the future", timeValue)
 	}
 
 }

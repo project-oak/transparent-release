@@ -11,12 +11,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+// Package authlogic contains logic and tests for interfacing with the
+// authorization logic compiler
 package authlogic
 
 import (
 	"fmt"
-	"os/exec"
-	"strings"
+  "time"
+	// "os/exec"
+	// "strings"
 )
 
 // This file contains a wrapper that produces the current
@@ -26,13 +30,7 @@ import (
 
 type UnixEpochTime struct{}
 
-func (time UnixEpochTime) Wrap() UnattributedStatement {
-	cmd := exec.Command("date", "+\\%s")
-	stdout, err := cmd.Output()
-	if err != nil {
-		panic(err)
-	}
-	sanitizedOutput := strings.TrimLeft(
-		strings.TrimRight(string(stdout), "\r\n"), "\\")
-	return UnattributedStatement{fmt.Sprintf("RealTimeIs(%v).", sanitizedOutput)}
+func (timeWrapper UnixEpochTime) EmitStatement() UnattributedStatement {
+  epochTime := time.Now().Unix()	
+  return UnattributedStatement{fmt.Sprintf("RealTimeIs(%v).", epochTime)}
 }

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package authlogic contains code for interfacing with the authorization logic
-// compiler.
+// Package authlogic contains logic and tests for interfacing with the
+// authorization logic compiler
 package authlogic
 
 import (
