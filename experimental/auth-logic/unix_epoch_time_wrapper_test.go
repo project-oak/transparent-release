@@ -54,12 +54,12 @@ func TestUnixEpochTimeWrapper(t *testing.T) {
 	timeValue, conversionErr := strconv.Atoi(match[1])
 	handleErr(conversionErr)
 
-  const march24th2022 = 1648146779
+	const march24th2022 = 1648146779
 	if timeValue < march24th2022 {
 		t.Errorf("The emitted current time %v, already happened", timeValue)
 	}
 
-  const january1st3022 = 33197947200 
+	const january1st3022 = 33197947200
 	if timeValue > january1st3022 {
 		t.Errorf("The emitted current time %v, is far into the future", timeValue)
 	}

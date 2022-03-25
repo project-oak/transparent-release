@@ -18,7 +18,7 @@ package authlogic
 
 import (
 	"fmt"
-  "time"
+	"time"
 	// "os/exec"
 	// "strings"
 )
@@ -31,6 +31,6 @@ import (
 type UnixEpochTime struct{}
 
 func (timeWrapper UnixEpochTime) EmitStatement() UnattributedStatement {
-  epochTime := time.Now().Unix()	
-  return UnattributedStatement{fmt.Sprintf("RealTimeIs(%v).", epochTime)}
+	epochTime := time.Now().Unix()
+	return UnattributedStatement{fmt.Sprintf("RealTimeIs(%v).", epochTime)}
 }
