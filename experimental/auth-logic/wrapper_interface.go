@@ -11,6 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+// Package authlogic contains code for interfacing with the authorization logic
+// compiler.
 package authlogic
 
 import (
@@ -34,24 +37,30 @@ type UnattributedStatement struct {
 	Contents string
 }
 
+// This method gets a string for an UnattributedStatement.
 func (statement UnattributedStatement) String() string {
 	return statement.Contents
 }
 
+// This struct represents an authorization logic principal.
 type Principal struct {
 	Contents string
 }
 
+// This method gets a string for a Principal.
 func (principal Principal) String() string {
 	return principal.Contents
 }
 
-type AuthLogic struct {
+// This struct represents an authorization logic statement (which is
+// a Principal stating an UnattributedStatement).
+type AuthLogicStatement struct {
 	Speaker   Principal
 	Statement UnattributedStatement
 }
 
-func (authLogic AuthLogic) String() string {
+// This method produces a string from an AuthLogicStatement
+func (authLogic AuthLogicStatement) String() string {
 	return fmt.Sprintf("%v says { %v }", authLogic.Speaker, authLogic.Statement)
 }
 
@@ -60,7 +69,7 @@ func (authLogic AuthLogic) String() string {
 // method by parsing a file in a particular format or checking the system clock
 // before emitting an authorization logic statement.
 type Wrapper interface {
-	Wrap() UnattributedStatement
+	EmitStatement() UnattributedStatement
 }
 
 // This interface defines a way of granting principal names to wrappers. This
@@ -69,19 +78,19 @@ type Wrapper interface {
 // while allowing the consumer of the wrapper to independently decide how
 // to attach an identity to it (by defining `IdentifiableWrapper`)
 // For example, one definition could be to give a constant pre-defined name.
-// Another definition could be to take the hash of the Wrap function.
-// Yet another way could be to compute a hash covering both the Wrap
+// Another definition could be to take the hash of the EmitStatement function.
+// Yet another way could be to compute a hash covering both the EmitStatement
 // function and the value of the object implementing this interface.
 type IdentifiableWrapper interface {
 	Wrapper
 	Identify() Principal
 }
 
-func wrapAttributed(wrapper IdentifiableWrapper) AuthLogic {
-	return AuthLogic{wrapper.Identify(), wrapper.Wrap()}
+func wrapAttributed(wrapper IdentifiableWrapper) AuthLogicStatement {
+	return AuthLogicStatement{wrapper.Identify(), wrapper.EmitStatement()}
 }
 
-func emitAuthLogicToFile(authLogic AuthLogic, filepath string) error {
+func emitAuthLogicToFile(authLogic AuthLogicStatement, filepath string) error {
 	f, createErr := os.Create(filepath)
 	if createErr != nil {
 		return createErr
@@ -91,6 +100,7 @@ func emitAuthLogicToFile(authLogic AuthLogic, filepath string) error {
 	return writeErr
 }
 
+// Emit the authorization logic from an IdentifiableWrapper to a file
 func EmitWrapperStatement(wrapper IdentifiableWrapper, filepath string) error {
 	return emitAuthLogicToFile(wrapAttributed(wrapper), filepath)
 }
