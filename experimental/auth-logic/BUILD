@@ -61,13 +61,14 @@ go_library(
   srcs = [
     "unix_epoch_time_wrapper.go"
   ],
+  embed = [":wrapper_interface"],
 )
 
 go_test(
   name = "unix_epoch_time_wrapper_test",
   size = "small",
   srcs = ["unix_epoch_time_wrapper_test.go"],
-  embed = [":wrapper_interface", ":unix_epoch_time_wrapper"],
+  embed = [":unix_epoch_time_wrapper"],
 )
 
 # This rule runs the authorizaiton logic compiler on "simple.auth_logic"
