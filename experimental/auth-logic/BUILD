@@ -88,6 +88,25 @@ go_test(
   ]
 )
 
+go_library(
+  name = "provenance_wrapper",
+  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
+  srcs = ["provenance_wrapper.go"],
+  deps = ["//slsa:slsa"],
+  embed = [":wrapper_interface"]
+)
+
+go_test(
+  name = "provenance_wrapper_test",
+  size = "small",
+  srcs = ["provenance_wrapper_test.go"],
+  data = [
+      "//schema/amber-slsa-buildtype/v1:provenance.json",
+      "//schema/amber-slsa-buildtype/v1:example.json"
+  ],
+  deps = ["//slsa:slsa"],
+  embed = [":provenance_wrapper"]
+)
 
 # This rule runs the authorizaiton logic compiler on "simple.auth_logic"
 # as an input and produces the resulting souffle code and CSVs containing the 
