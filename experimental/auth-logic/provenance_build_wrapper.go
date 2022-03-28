@@ -58,7 +58,7 @@ func (pbw provenanceBuildWrapper) EmitStatement() UnattributedStatement {
   return UnattributedStatement{
     fmt.Sprintf("\"%v::Binary\" has_provenance(\"%v::Provenance\").\n",
       applicationName, applicationName) +
-    fmt.Sprintf("\"%v::Binary\" has_measured_hash(%v).\n",
+    fmt.Sprintf("\"%v::Binary\" has_measured_hash(%v).",
       applicationName, measuredBinaryHash)}
 
 }
