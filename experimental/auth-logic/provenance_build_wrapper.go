@@ -32,23 +32,33 @@ func (pbw provenanceBuildWrapper) EmitStatement() UnattributedStatement {
 		}
   }
 
+  // Unmarshal a provenance struct from the JSON file
   provenance, provenanceParseErr := slsa.ParseProvenanceFile(pbw.provenanceFilePath)
   handleErr(provenanceParseErr)
 	
   applicationName := provenance.Subject[0].Name
 
+  // Generate a BuildConfig struct from the provenance file
   buildConfig, loadBuildErr := common.LoadBuildConfigFromProvenance(provenance)
   handleErr(loadBuildErr)
 
+  // Fetch the repository sources from the repository referenced in the
+  // BuildConfig struct.
+  _, repoFetchErr := common.FetchSourcesFromRepo(buildConfig.Repo, buildConfig.CommitHash)
+  handleErr(repoFetchErr)
+
+  // Build the binary from the fetched sources.
   buildErr := buildConfig.Build()
   handleErr(buildErr)
 
+  // Measure the hash of the binary.
   measuredBinaryHash, hashErr := buildConfig.ComputeBinarySha256Hash()
   handleErr(hashErr)
 
   return UnattributedStatement{
-    fmt.Sprintf("%v::Binary has_provenance(%v::Provenance).\n",
+    fmt.Sprintf("\"%v::Binary\" has_provenance(\"%v::Provenance\").\n",
       applicationName, applicationName) +
-    fmt.Sprintf("%v::Binary has_measured_hash(%v).\n", measuredBinaryHash)}
+    fmt.Sprintf("\"%v::Binary\" has_measured_hash(%v).\n",
+      applicationName, measuredBinaryHash)}
 
 }
