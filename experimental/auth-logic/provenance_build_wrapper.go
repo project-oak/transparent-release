@@ -19,46 +19,46 @@ package authlogic
 import (
 	"fmt"
 
-	"github.com/project-oak/transparent-release/slsa"
 	"github.com/project-oak/transparent-release/common"
+	"github.com/project-oak/transparent-release/slsa"
 )
 
-type provenanceBuildWrapper struct {provenanceFilePath string}
+type provenanceBuildWrapper struct{ provenanceFilePath string }
 
 func (pbw provenanceBuildWrapper) EmitStatement() UnattributedStatement {
-  handleErr := func(err error) {
+	handleErr := func(err error) {
 		if err != nil {
 			panic(err)
 		}
-  }
+	}
 
-  // Unmarshal a provenance struct from the JSON file
-  provenance, provenanceParseErr := slsa.ParseProvenanceFile(pbw.provenanceFilePath)
-  handleErr(provenanceParseErr)
-	
-  applicationName := provenance.Subject[0].Name
+	// Unmarshal a provenance struct from the JSON file
+	provenance, provenanceParseErr := slsa.ParseProvenanceFile(pbw.provenanceFilePath)
+	handleErr(provenanceParseErr)
 
-  // Generate a BuildConfig struct from the provenance file
-  buildConfig, loadBuildErr := common.LoadBuildConfigFromProvenance(provenance)
-  handleErr(loadBuildErr)
+	applicationName := provenance.Subject[0].Name
 
-  // Fetch the repository sources from the repository referenced in the
-  // BuildConfig struct.
-  _, repoFetchErr := common.FetchSourcesFromRepo(buildConfig.Repo, buildConfig.CommitHash)
-  handleErr(repoFetchErr)
+	// Generate a BuildConfig struct from the provenance file
+	buildConfig, loadBuildErr := common.LoadBuildConfigFromProvenance(provenance)
+	handleErr(loadBuildErr)
 
-  // Build the binary from the fetched sources.
-  buildErr := buildConfig.Build()
-  handleErr(buildErr)
+	// Fetch the repository sources from the repository referenced in the
+	// BuildConfig struct.
+	_, repoFetchErr := common.FetchSourcesFromRepo(buildConfig.Repo, buildConfig.CommitHash)
+	handleErr(repoFetchErr)
 
-  // Measure the hash of the binary.
-  measuredBinaryHash, hashErr := buildConfig.ComputeBinarySha256Hash()
-  handleErr(hashErr)
+	// Build the binary from the fetched sources.
+	buildErr := buildConfig.Build()
+	handleErr(buildErr)
 
-  return UnattributedStatement{
-    fmt.Sprintf("\"%v::Binary\" has_provenance(\"%v::Provenance\").\n",
-      applicationName, applicationName) +
-    fmt.Sprintf("\"%v::Binary\" has_measured_hash(%v).",
-      applicationName, measuredBinaryHash)}
+	// Measure the hash of the binary.
+	measuredBinaryHash, hashErr := buildConfig.ComputeBinarySha256Hash()
+	handleErr(hashErr)
+
+	return UnattributedStatement{
+		fmt.Sprintf("\"%v::Binary\" has_provenance(\"%v::Provenance\").\n",
+			applicationName, applicationName) +
+			fmt.Sprintf("\"%v::Binary\" has_measured_hash(%v).",
+				applicationName, measuredBinaryHash)}
 
 }

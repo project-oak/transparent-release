@@ -19,7 +19,7 @@ package authlogic
 import (
 	"fmt"
 	"os"
-  "testing"
+	"testing"
 
 	"github.com/project-oak/transparent-release/slsa"
 )
@@ -35,23 +35,23 @@ func (p provenanceBuildWrapper) Identify() Principal {
 }
 
 func TestProvenanceBuildWrapper(t *testing.T) {
-  want := `"oak_functions_loader::ProvenanceBuilder" says {
+	want := `"oak_functions_loader::ProvenanceBuilder" says {
 "oak_functions_loader::Binary" has_provenance("oak_functions_loader::Provenance").
 "oak_functions_loader::Binary" has_measured_hash(15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c).
 
 }`
 
-  // When running tests, bazel exposes data dependencies relative to
+	// When running tests, bazel exposes data dependencies relative to
 	// the directory structure of the WORKSPACE, so we need to change
 	// to the root directory of the transparent-release project to
 	// be able to read the SLSA files.
 	os.Chdir("../../")
 
 	testProvenance := provenanceBuildWrapper{slsa.SchemaExamplePath}
-  got := wrapAttributed(testProvenance).String()
+	got := wrapAttributed(testProvenance).String()
 
-  if got != want {
+	if got != want {
 		t.Errorf("got:\n%v\nwant:\n%v\n", got, want)
-  }
+	}
 
 }
