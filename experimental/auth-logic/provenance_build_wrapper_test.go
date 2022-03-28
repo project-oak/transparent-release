@@ -38,7 +38,6 @@ func TestProvenanceBuildWrapper(t *testing.T) {
 	want := `"oak_functions_loader::ProvenanceBuilder" says {
 "oak_functions_loader::Binary" has_provenance("oak_functions_loader::Provenance").
 "oak_functions_loader::Binary" has_measured_hash(15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c).
-
 }`
 
 	// When running tests, bazel exposes data dependencies relative to
