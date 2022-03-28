@@ -23,23 +23,22 @@ import (
 func TestVerifierWrapper(t *testing.T) {
 	want :=
 		`"OakFunctionsLoader::Verifier" says {
-"OakFunctionsLoader::EndorsementFile" canSay expected_hash("OakFunctionsLoader::ProvenanceFile", any_hash).
+"OakFunctionsLoader::EndorsementFile" canSay "OakFunctionsLoader::Binary" has_expected_hash_from(any_hash, "OakFunctionsLoader::EndorsementFile").
 
-"OakFunctionsLoader::EndorsementFile" canSay expected_hash("OakFunctionsLoader::Binary", any_hash).
+"OakFunctionsLoader::Provenance" canSay "OakFunctionsLoader::Binary" has_expected_hash_from(any_hash, "OakFunctionsLoader::Provenance").
 
 "ProvenanceFileBuilder" canSay any_principal hasProvenance(any_provenance).
 
-"Sha256Wrapper" canSay measured_hash(some_object, some_hash).
+"Sha256Wrapper" canSay some_object has_measured_hash(some_hash).
 
 "RekorLogCheck" canSay some_object canActAs "ValidRekorEntry".
 
 "OakFunctionsLoader::Binary" canActas "OakFunctionsLoader" :-
-    "OakFunctionsLoader::Binary" hasProvenance("OakFunctionsLoader::ProvenanceFile"),
+    "OakFunctionsLoader::Binary" hasProvenance("OakFunctionsLoader::Provenance"),
     "OakFunctionsLoader::EndorsementFile" canActAs "ValidRekorEntry",
-    expected_hash("OakFunctionsLoader::Binary", binary_hash),
-    measured_hash("OakFunctionsLoader::Binary", binary_hash),
-    expected_hash("OakFunctionsLoader::ProvenanceFile", provenance_hash),
-    measured_hash("OakFunctionsLoader::ProvenanceFile", provenance_hash).
+    "OakFunctionsLoader::Binary" has_expected_hash_from(binary_hash, "OakFunctionsLoader::EndorsementFile"),
+    "OakFunctionsLoader::Binary" has_expected_hash_from(binary_hash, "OakFunctionsLoader::Provenance"),
+    "OakFunctionsLoader::Binary" has_measured_hash(binary_hash).
 
 }`
 

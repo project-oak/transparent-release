@@ -25,23 +25,33 @@ type verifierWrapper struct{ appName string }
 
 func (v verifierWrapper) EmitStatement() UnattributedStatement {
 	endorsementPrincipal := fmt.Sprintf("\"%v::EndorsementFile\"", v.appName)
-	provenancePrincipal := fmt.Sprintf("\"%v::ProvenanceFile\"", v.appName)
+	provenancePrincipal := fmt.Sprintf("\"%v::Provenance\"", v.appName)
 	binaryPrincipal := fmt.Sprintf("\"%v::Binary\"", v.appName)
 	appPrincipal := fmt.Sprintf("\"%v\"", v.appName)
 
-	provenanceHashDelegation :=
-		fmt.Sprintf("%v canSay expected_hash(%v, any_hash).\n",
-			endorsementPrincipal, provenancePrincipal)
+  // The verifier needs to import expected hashes from both the endorsement
+  // and provenance files. If we use the same predicate to represent both of 
+  // these statements in this SecPal-based syntax for authorization logic, we 
+  // will lose track of who originated each statement. For example, if we just 
+  // used `Binary has_expected_hash(<hash>)` and the verifier delegates this 
+  // predicate to both the endorsement file and the provenance file, we cannot 
+  // write a policy that looks for the same predicate from both. To work around
+  // this we had a second argument to the predicate to track the original
+  // speaker.
 
-	binaryHashDelegation :=
-		fmt.Sprintf("%v canSay expected_hash(%v, any_hash).\n",
-			endorsementPrincipal, binaryPrincipal)
+	endorsementHashDelegation :=
+		fmt.Sprintf("%v canSay %v has_expected_hash_from(any_hash, %v).\n",
+			endorsementPrincipal, binaryPrincipal, endorsementPrincipal)
+
+	provenanceHashDelegation :=
+		fmt.Sprintf("%v canSay %v has_expected_hash_from(any_hash, %v).\n",
+			provenancePrincipal, binaryPrincipal, provenancePrincipal)
 
 	provenanceDelegation :=
 		"\"ProvenanceFileBuilder\" canSay any_principal hasProvenance(any_provenance).\n"
 
 	hashMeasurementDelegation :=
-		"\"Sha256Wrapper\" canSay measured_hash(some_object, some_hash).\n"
+		"\"Sha256Wrapper\" canSay some_object has_measured_hash(some_hash).\n"
 
 	rekorLogCheckDelegation :=
 		"\"RekorLogCheck\" canSay some_object canActAs \"ValidRekorEntry\".\n"
@@ -52,14 +62,13 @@ func (v verifierWrapper) EmitStatement() UnattributedStatement {
 		binaryPrincipal + " canActas " + appPrincipal + " :-\n" +
 			tab + binaryPrincipal + " hasProvenance(" + provenancePrincipal + "),\n" +
 			tab + endorsementPrincipal + " canActAs \"ValidRekorEntry\",\n" +
-			tab + "expected_hash(" + binaryPrincipal + ", binary_hash),\n" +
-			tab + "measured_hash(" + binaryPrincipal + ", binary_hash),\n" +
-			tab + "expected_hash(" + provenancePrincipal + ", provenance_hash),\n" +
-			tab + "measured_hash(" + provenancePrincipal + ", provenance_hash).\n"
+			tab + binaryPrincipal + " has_expected_hash_from(binary_hash, " + endorsementPrincipal + "),\n" +
+			tab + binaryPrincipal + " has_expected_hash_from(binary_hash, " + provenancePrincipal + "),\n" +
+			tab + binaryPrincipal + " has_measured_hash(binary_hash).\n"
 
 	return UnattributedStatement{strings.Join([]string{
+		endorsementHashDelegation,
 		provenanceHashDelegation,
-		binaryHashDelegation,
 		provenanceDelegation,
 		hashMeasurementDelegation,
 		rekorLogCheckDelegation,
