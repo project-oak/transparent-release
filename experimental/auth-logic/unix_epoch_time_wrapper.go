@@ -19,8 +19,6 @@ package authlogic
 import (
 	"fmt"
 	"time"
-	// "os/exec"
-	// "strings"
 )
 
 // This file contains a wrapper that produces the current
