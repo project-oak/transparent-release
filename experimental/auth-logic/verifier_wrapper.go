@@ -66,7 +66,7 @@ func (v verifierWrapper) EmitStatement() UnattributedStatement {
 			"\t" + binaryPrincipal + " has_expected_hash_from(binary_hash, " + provenancePrincipal + "),\n" +
 			"\t" + binaryPrincipal + " has_measured_hash(binary_hash).\n"
 
-	return UnattributedStatement{strings.Join([]string{
+	return UnattributedStatement{Contents: strings.Join([]string{
 		endorsementHashDelegation,
 		provenanceHashDelegation,
 		provenanceDelegation,
@@ -76,5 +76,5 @@ func (v verifierWrapper) EmitStatement() UnattributedStatement {
 }
 
 func (v verifierWrapper) Identify() Principal {
-	return Principal{fmt.Sprintf(`"%s::Verifier"`, v.appName)}
+  return Principal{Contents: fmt.Sprintf(`"%s::Verifier"`, v.appName)}
 }

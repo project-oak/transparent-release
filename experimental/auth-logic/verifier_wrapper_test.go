@@ -25,7 +25,7 @@ import (
 const testFilePath = "test_data/verifier_wrapper_expected.auth_logic"
 
 func TestVerifierWrapper(t *testing.T) {
-	testVerifier := verifierWrapper{"OakFunctionsLoader"}
+	testVerifier := verifierWrapper{appName: "OakFunctionsLoader"}
 	got := wrapAttributed(testVerifier).String()
 
 	wantFileBytes, err := os.ReadFile(testFilePath)
