@@ -17,37 +17,25 @@
 package authlogic
 
 import (
+	"os"
+	"strings"
 	"testing"
 )
 
+const testFilePath = "test_data/verifier_wrapper_expected.auth_logic"
+
 func TestVerifierWrapper(t *testing.T) {
-	want :=
-		`"OakFunctionsLoader::Verifier" says {
-"OakFunctionsLoader::EndorsementFile" canSay "OakFunctionsLoader::Binary" has_expected_hash_from(any_hash, "OakFunctionsLoader::EndorsementFile").
-
-"OakFunctionsLoader::Provenance" canSay "OakFunctionsLoader::Binary" has_expected_hash_from(any_hash, "OakFunctionsLoader::Provenance").
-
-"ProvenanceFileBuilder" canSay any_principal hasProvenance(any_provenance).
-
-"Sha256Wrapper" canSay some_object has_measured_hash(some_hash).
-
-"RekorLogCheck" canSay some_object canActAs "ValidRekorEntry".
-
-"OakFunctionsLoader::Binary" canActas "OakFunctionsLoader" :-
-    "OakFunctionsLoader::Binary" hasProvenance("OakFunctionsLoader::Provenance"),
-    "OakFunctionsLoader::EndorsementFile" canActAs "ValidRekorEntry",
-    "OakFunctionsLoader::Binary" has_expected_hash_from(binary_hash, "OakFunctionsLoader::EndorsementFile"),
-    "OakFunctionsLoader::Binary" has_expected_hash_from(binary_hash, "OakFunctionsLoader::Provenance"),
-    "OakFunctionsLoader::Binary" has_measured_hash(binary_hash).
-
-}`
-
 	testVerifier := verifierWrapper{"OakFunctionsLoader"}
-
 	got := wrapAttributed(testVerifier).String()
 
+	wantFileBytes, err := os.ReadFile(testFilePath)
+	if err != nil {
+		panic(err)
+	}
+	want := strings.TrimSuffix(string(wantFileBytes), "\n")
+
 	if got != want {
-		t.Errorf("got:\n%v\nwant:\n%v\n", got, want)
+		t.Errorf("got:\n%v\nwant:\n%v", got, want)
 	}
 
 }

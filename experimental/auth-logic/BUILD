@@ -82,7 +82,10 @@ go_test(
   name = "verifier_wrapper_test",
   importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
   srcs = ["verifier_wrapper_test.go"],
-  embed = [":verifier_wrapper"]
+  embed = [":verifier_wrapper"],
+  data = [
+    "//experimental/auth-logic/test_data:verifier_wrapper_expected.auth_logic"
+  ]
 )
 
 
