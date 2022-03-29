@@ -17,42 +17,25 @@
 package authlogic
 
 import (
-	"fmt"
-	"io/ioutil"
+	"os"
+	"strings"
 	"testing"
 )
 
-type intPair struct {
-	x int
-	y int
-}
+const testFilePath = "test_data/verifier_wrapper_expected.auth_logic"
 
-// Wrapper for pair of ints
-func (p intPair) EmitStatement() UnattributedStatement {
-	return UnattributedStatement{fmt.Sprintf("sum(%v, %v, %v).", p.x, p.y, p.x+p.y)}
-}
+func TestVerifierWrapper(t *testing.T) {
+	testVerifier := verifierWrapper{"OakFunctionsLoader"}
+	got := wrapAttributed(testVerifier).String()
 
-func (p intPair) Identify() Principal {
-	return Principal{"Summer"}
-}
-
-func TestEmitWrapperStatement(t *testing.T) {
-	handleErr := func(err error) {
-		if err != nil {
-			t.Fatalf("test generated error %v", err)
-			panic(err)
-		}
+	wantFileBytes, err := os.ReadFile(testFilePath)
+	if err != nil {
+		panic(err)
 	}
+	want := strings.TrimSuffix(string(wantFileBytes), "\n")
 
-	writeErr := EmitWrapperStatement(intPair{2, 3}, "wrapped_sum.auth_logic")
-	handleErr(writeErr)
-
-	want := "Summer says {\nsum(2, 3, 5).\n}"
-	resultBytes, readErr := ioutil.ReadFile("wrapped_sum.auth_logic")
-	handleErr(readErr)
-
-	got := string(resultBytes)
 	if got != want {
-		t.Fatalf("got %v want %v", got, want)
+		t.Errorf("got:\n%v\nwant:\n%v", got, want)
 	}
+
 }
