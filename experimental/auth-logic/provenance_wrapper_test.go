@@ -31,11 +31,13 @@ func (p provenanceWrapper) Identify() Principal {
 	}
 
 	applicationName := provenance.Subject[0].Name
-	return Principal{fmt.Sprintf("%v::Provenance", applicationName)}
+	return Principal{Contents: fmt.Sprintf(`"%s::Provenance"`, applicationName)}
 }
 
 func TestProvenanceWrapper(t *testing.T) {
-	want := "oak_functions_loader::Provenance says {\nexpected_hash(oak_functions_loader::Binary, 15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c).\n}"
+	want := `"oak_functions_loader::Provenance" says {
+expected_hash("oak_functions_loader::Binary", sha256:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c).
+}`
 
 	// When running tests, bazel exposes data dependencies relative to
 	// the directory structure of the WORKSPACE, so we need to change
@@ -43,11 +45,11 @@ func TestProvenanceWrapper(t *testing.T) {
 	// be able to read the SLSA files.
 	os.Chdir("../../")
 
-	testProvenance := provenanceWrapper{slsa.SchemaExamplePath}
+	testProvenance := provenanceWrapper{filePath: slsa.SchemaExamplePath}
 	got := wrapAttributed(testProvenance).String()
 
 	if got != want {
-		t.Errorf("got:\n%v\nwant:\n%v\n", got, want)
+		t.Errorf("got:\n%s\nwant:\n%s\n", got, want)
 	}
 
 }

@@ -24,14 +24,14 @@ import (
 )
 
 const (
-  // This is March 24, 2022
-  pastDate = 1648146779
-  // This is January 1, 3022
+	// This is March 24, 2022
+	pastDate = 1648146779
+	// This is January 1, 3022
 	futureDate = 33197947200
 )
 
 func (time UnixEpochTime) Identify() Principal {
-	return Principal{"UnixEpochTime"}
+	return Principal{Contents: "UnixEpochTime"}
 }
 
 func TestUnixEpochTimeWrapper(t *testing.T) {

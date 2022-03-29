@@ -16,7 +16,11 @@
 // authorization logic compiler
 package authlogic
 
+// This file contains a wrapper for provenance files. It produces a statement
+// about the expected hash for the binary.
+
 import (
+	"errors"
 	"fmt"
 
 	"github.com/project-oak/transparent-release/slsa"
@@ -25,15 +29,28 @@ import (
 type provenanceWrapper struct{ filePath string }
 
 func (p provenanceWrapper) EmitStatement() UnattributedStatement {
+	// TODO(#40) return the errors produced here instead once the
+	// wrapper interface has been fixed.
 	provenance, provenanceErr := slsa.ParseProvenanceFile(p.filePath)
 	if provenanceErr != nil {
 		panic(provenanceErr)
 	}
 
+	if len(provenance.Subject) < 1 {
+		noSubjectError := errors.New("Provenance file missing subject")
+		panic(noSubjectError)
+	}
+
 	applicationName := provenance.Subject[0].Name
-	expectedHash := provenance.Subject[0].Digest["sha256"]
+	expectedHash, hashOk := provenance.Subject[0].Digest["sha256"]
+
+	if !hashOk {
+		noExpectedHashErr := errors.New("Provenance file did not give an expected hash")
+		panic(noExpectedHashErr)
+	}
 
 	return UnattributedStatement{
-		fmt.Sprintf("expected_hash(%v::Binary, %v).", applicationName, expectedHash),
+    Contents: fmt.Sprintf(`expected_hash("%s::Binary", sha256:%s).`, applicationName,
+			expectedHash),
 	}
 }
