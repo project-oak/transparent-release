@@ -32,7 +32,7 @@ func (pbw provenanceBuildWrapper) EmitStatement() UnattributedStatement {
 		}
 	}
 
-	// Unmarshal a provenance struct from the JSON file
+	// Unmarshal a provenance struct from the JSON file.
 	provenance, provenanceParseErr := slsa.ParseProvenanceFile(pbw.provenanceFilePath)
 	handleErr(provenanceParseErr)
 
