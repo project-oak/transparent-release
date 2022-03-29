@@ -21,6 +21,14 @@ import (
 	"strings"
 )
 
+const (
+	endorsementHashDelegationInner = "%s canSay %s has_expected_hash_from(any_hash, %s).\n"
+	provenanceHashDelegationInner  = "%s canSay %s has_expected_hash_from(any_hash, %s).\n"
+	provenanceDelegation           = "\"ProvenanceFileBuilder\" canSay any_principal hasProvenance(any_provenance).\n"
+	hashMeasurementDelegation      = "\"Sha256Wrapper\" canSay some_object has_measured_hash(some_hash).\n"
+	rekorLogCheckDelegation        = "\"RekorLogCheck\" canSay some_object canActAs \"ValidRekorEntry\".\n"
+)
+
 type verifierWrapper struct{ appName string }
 
 // This produces the policy code for checking if a binary can act as an
@@ -43,21 +51,12 @@ func (v verifierWrapper) EmitStatement() UnattributedStatement {
 	// speaker.
 
 	endorsementHashDelegation :=
-		fmt.Sprintf("%s canSay %s has_expected_hash_from(any_hash, %s).\n",
+		fmt.Sprintf(endorsementHashDelegationInner,
 			endorsementPrincipal, binaryPrincipal, endorsementPrincipal)
 
 	provenanceHashDelegation :=
-		fmt.Sprintf("%s canSay %s has_expected_hash_from(any_hash, %s).\n",
+		fmt.Sprintf(provenanceHashDelegationInner,
 			provenancePrincipal, binaryPrincipal, provenancePrincipal)
-
-	provenanceDelegation :=
-		"\"ProvenanceFileBuilder\" canSay any_principal hasProvenance(any_provenance).\n"
-
-	hashMeasurementDelegation :=
-		"\"Sha256Wrapper\" canSay some_object has_measured_hash(some_hash).\n"
-
-	rekorLogCheckDelegation :=
-		"\"RekorLogCheck\" canSay some_object canActAs \"ValidRekorEntry\".\n"
 
 	binaryIdentificationRule :=
 		binaryPrincipal + " canActas " + appPrincipal + " :-\n" +
