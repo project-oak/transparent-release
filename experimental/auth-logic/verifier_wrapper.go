@@ -77,5 +77,5 @@ func (v verifierWrapper) EmitStatement() UnattributedStatement {
 }
 
 func (v verifierWrapper) Identify() Principal {
-	return Principal{fmt.Sprintf("\"%v::Verifier\"", v.appName)}
+	return Principal{fmt.Sprintf(`"%s::Verifier"`, v.appName)}
 }
