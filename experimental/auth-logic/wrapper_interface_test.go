@@ -28,8 +28,9 @@ type intPair struct {
 }
 
 // Wrapper for pair of ints
-func (p intPair) EmitStatement() UnattributedStatement {
-	return UnattributedStatement{fmt.Sprintf("sum(%v, %v, %v).", p.x, p.y, p.x+p.y)}
+func (p intPair) EmitStatement() (UnattributedStatement, error) {
+  contents := fmt.Sprintf("sum(%v, %v, %v).", p.x, p.y, p.x+p.y)
+  return UnattributedStatement{Contents: contents}, nil
 }
 
 func (p intPair) Identify() Principal {
@@ -44,7 +45,10 @@ func TestEmitWrapperStatement(t *testing.T) {
 		}
 	}
 
-	writeErr := EmitWrapperStatement(intPair{2, 3}, "wrapped_sum.auth_logic")
+  statement, emitErr := EmitStatementAs(Principal{"Summer"}, intPair{2, 3})
+  handleErr(emitErr)
+
+	writeErr := EmitAuthLogicToFile(statement, "wrapped_sum.auth_logic")
 	handleErr(writeErr)
 
 	want := "Summer says {\nsum(2, 3, 5).\n}"

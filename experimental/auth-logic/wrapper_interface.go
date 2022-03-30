@@ -18,7 +18,7 @@ package authlogic
 
 import (
 	"fmt"
-	"os"
+  "os"
 )
 
 // This struct represents an authorization logic statement (or sequence of
@@ -37,6 +37,10 @@ type UnattributedStatement struct {
 	Contents string
 }
 
+// This is an empty unattributed statement. It is defined as a var rather
+// than a constant because golang does not have support for const structs
+var NilUnattributedStatement = UnattributedStatement{Contents:""}
+
 // This method gets a string for an UnattributedStatement.
 func (statement UnattributedStatement) String() string {
 	return statement.Contents
@@ -46,6 +50,8 @@ func (statement UnattributedStatement) String() string {
 type Principal struct {
 	Contents string
 }
+
+var NilPrincipal = Principal{Contents:""}
 
 // This method gets a string for a Principal.
 func (principal Principal) String() string {
@@ -59,6 +65,10 @@ type AuthLogicStatement struct {
 	Statement UnattributedStatement
 }
 
+var NilAuthLogicStatement = AuthLogicStatement{
+  Speaker: NilPrincipal, 
+  Statement: NilUnattributedStatement}
+
 // This method produces a string from an AuthLogicStatement
 func (authLogic AuthLogicStatement) String() string {
 	return fmt.Sprintf("%v says {\n%v\n}", authLogic.Speaker, authLogic.Statement)
@@ -67,30 +77,21 @@ func (authLogic AuthLogicStatement) String() string {
 // This interface defines a way of emitting authorization logic statements
 // that are not attributed to any principal. A wrapper might implement this
 // method by parsing a file in a particular format or checking the system clock
-// before emitting an authorization logic statement.
+// before emitting an authorization logic statement. These do not include 
+// speakers.
 type Wrapper interface {
-	EmitStatement() UnattributedStatement
+	EmitStatement() (UnattributedStatement, error)
 }
 
-// This interface defines a way of granting principal names to wrappers. This
-// is defined separately from `Wrapper` to allow one piece of software to
-// define how to emit authorization logic from a source (by defining `Wrapper`)
-// while allowing the consumer of the wrapper to independently decide how
-// to attach an identity to it (by defining `IdentifiableWrapper`)
-// For example, one definition could be to give a constant pre-defined name.
-// Another definition could be to take the hash of the EmitStatement function.
-// Yet another way could be to compute a hash covering both the EmitStatement
-// function and the value of the object implementing this interface.
-type IdentifiableWrapper interface {
-	Wrapper
-	Identify() Principal
+func EmitStatementAs(principal Principal, wrapper Wrapper) (AuthLogicStatement, error) {
+  statement, statementErr := wrapper.EmitStatement()
+  if statementErr != nil {
+    return NilAuthLogicStatement, statementErr
+  }
+  return AuthLogicStatement{Speaker: principal, Statement: statement}, statementErr
 }
 
-func wrapAttributed(wrapper IdentifiableWrapper) AuthLogicStatement {
-	return AuthLogicStatement{wrapper.Identify(), wrapper.EmitStatement()}
-}
-
-func emitAuthLogicToFile(authLogic AuthLogicStatement, filepath string) error {
+func EmitAuthLogicToFile(authLogic AuthLogicStatement, filepath string) error {
 	f, createErr := os.Create(filepath)
 	if createErr != nil {
 		return createErr
@@ -98,9 +99,4 @@ func emitAuthLogicToFile(authLogic AuthLogicStatement, filepath string) error {
 	defer f.Close()
 	_, writeErr := f.WriteString(authLogic.String())
 	return writeErr
-}
-
-// Emit the authorization logic from an IdentifiableWrapper to a file
-func EmitWrapperStatement(wrapper IdentifiableWrapper, filepath string) error {
-	return emitAuthLogicToFile(wrapAttributed(wrapper), filepath)
 }

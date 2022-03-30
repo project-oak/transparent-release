@@ -22,17 +22,22 @@ import (
 	"github.com/project-oak/transparent-release/slsa"
 )
 
-func (p provenanceBuildWrapper) Identify() Principal {
+func (p provenanceBuildWrapper) identify() (Principal, error) {
 	provenance, provenanceErr := slsa.ParseProvenanceFile(p.provenanceFilePath)
 	if provenanceErr != nil {
-		panic(provenanceErr)
+    return NilPrincipal, provenanceErr
 	}
 
 	applicationName := provenance.Subject[0].Name
-	return Principal{fmt.Sprintf("\"%v::ProvenanceBuilder\"", applicationName)}
+	return Principal{fmt.Sprintf("\"%v::ProvenanceBuilder\"", applicationName)}, nil
 }
 
 func TestProvenanceBuildWrapper(t *testing.T) {
+	handleErr := func(err error) {
+		if err != nil {
+			panic(err)
+		}
+	}
 	want := `"oak_functions_loader::ProvenanceBuilder" says {
 "oak_functions_loader::Binary" has_provenance("oak_functions_loader::Provenance").
 "oak_functions_loader::Binary" has_measured_hash(15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c).
@@ -45,7 +50,11 @@ func TestProvenanceBuildWrapper(t *testing.T) {
 	os.Chdir("../../")
 
 	testProvenance := provenanceBuildWrapper{slsa.SchemaExamplePath}
-	got := wrapAttributed(testProvenance).String()
+  speaker, idErr := testProvenance.identify()
+  handleErr(idErr)
+  statement, emitErr := EmitStatementAs(speaker, testProvenance)
+  handleErr(emitErr)
+  got := statement.String()
 
 	if got != want {
 		t.Errorf("got:\n%v\nwant:\n%v\n", got, want)
