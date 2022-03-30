@@ -30,19 +30,17 @@ func (v verifierWrapper) identify() Principal {
 const testFilePath = "test_data/verifier_wrapper_expected.auth_logic"
 
 func TestVerifierWrapper(t *testing.T) {
-	handleErr := func(err error) {
-		if err != nil {
-			t.Fatalf("test generated error %v", err)
-		}
-	}
-
 	testWrapper := verifierWrapper{appName: "OakFunctionsLoader"}
-	statement, emitErr := EmitStatementAs(testWrapper.identify(), testWrapper)
-	handleErr(emitErr)
+	statement, err := EmitStatementAs(testWrapper.identify(), testWrapper)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 	got := statement.String()
 
-	wantFileBytes, readFileErr := os.ReadFile(testFilePath)
-	handleErr(readFileErr)
+	wantFileBytes, err := os.ReadFile(testFilePath)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 	want := strings.TrimSuffix(string(wantFileBytes), "\n")
 
 	if got != want {

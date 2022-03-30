@@ -74,11 +74,11 @@ type Wrapper interface {
 }
 
 func EmitStatementAs(principal Principal, wrapper Wrapper) (AuthLogicStatement, error) {
-	statement, statementErr := wrapper.EmitStatement()
-	if statementErr != nil {
-		return AuthLogicStatement{}, statementErr
+	statement, err := wrapper.EmitStatement()
+	if err != nil {
+		return AuthLogicStatement{}, err
 	}
-	return AuthLogicStatement{Speaker: principal, Statement: statement}, statementErr
+	return AuthLogicStatement{Speaker: principal, Statement: statement}, nil
 }
 
 func EmitAuthLogicToFile(authLogic AuthLogicStatement, filepath string) error {

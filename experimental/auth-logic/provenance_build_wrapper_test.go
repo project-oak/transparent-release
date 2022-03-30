@@ -33,11 +33,6 @@ func (p provenanceBuildWrapper) identify() (Principal, error) {
 }
 
 func TestProvenanceBuildWrapper(t *testing.T) {
-	handleErr := func(err error) {
-		if err != nil {
-			t.Fatal("TestProvenanceBuildWrapper encountered fatal error:%s", err)
-		}
-	}
 	want := `"oak_functions_loader::ProvenanceBuilder" says {
 "oak_functions_loader::Binary" has_provenance("oak_functions_loader::Provenance").
 "oak_functions_loader::Binary" has_measured_hash(15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c).
@@ -50,10 +45,14 @@ func TestProvenanceBuildWrapper(t *testing.T) {
 	os.Chdir("../../")
 
 	testProvenance := provenanceBuildWrapper{slsa.SchemaExamplePath}
-	speaker, idErr := testProvenance.identify()
-	handleErr(idErr)
-	statement, emitErr := EmitStatementAs(speaker, testProvenance)
-	handleErr(emitErr)
+	speaker, err := testProvenance.identify()
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	statement, err := EmitStatementAs(speaker, testProvenance)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 	got := statement.String()
 
 	if got != want {

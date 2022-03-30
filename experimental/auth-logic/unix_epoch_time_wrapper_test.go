@@ -34,16 +34,11 @@ func (time UnixEpochTime) identify() Principal {
 }
 
 func TestUnixEpochTimeWrapper(t *testing.T) {
-	handleErr := func(err error) {
-		if err != nil {
-			t.Fatalf("test generated error %v", err)
-			panic(err)
-		}
-	}
-
 	testWrapper := UnixEpochTime{}
-	statement, emitErr := EmitStatementAs(testWrapper.identify(), testWrapper)
-	handleErr(emitErr)
+	statement, err := EmitStatementAs(testWrapper.identify(), testWrapper)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 	got := statement.String()
 
 	timeTestRegex := regexp.MustCompile("UnixEpochTime says {\nRealTimeIs\\(([0-9]+)\\).\n}")
@@ -52,8 +47,10 @@ func TestUnixEpochTimeWrapper(t *testing.T) {
 		t.Errorf("Result of time wrapper did not have valid format. Got: %v.", got)
 	}
 
-	timeValue, conversionErr := strconv.Atoi(match[1])
-	handleErr(conversionErr)
+	timeValue, err := strconv.Atoi(match[1])
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 
 	if timeValue < pastDate {
 		t.Errorf("The emitted current time %v, already happened", timeValue)

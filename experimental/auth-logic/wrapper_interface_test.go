@@ -29,7 +29,7 @@ type intPair struct {
 
 // Wrapper for pair of ints
 func (p intPair) EmitStatement() (UnattributedStatement, error) {
-	contents := fmt.Sprintf("sum(%v, %v, %v).", p.x, p.y, p.x+p.y)
+	contents := fmt.Sprintf("sum(%d, %d, %d).", p.x, p.y, p.x+p.y)
 	return UnattributedStatement{Contents: contents}, nil
 }
 
@@ -38,22 +38,21 @@ func (p intPair) Identify() Principal {
 }
 
 func TestEmitWrapperStatement(t *testing.T) {
-	handleErr := func(err error) {
-		if err != nil {
-			t.Fatalf("test generated error %v", err)
-			panic(err)
-		}
+	statement, err := EmitStatementAs(Principal{"Summer"}, intPair{2, 3})
+	if err != nil {
+		t.Fatalf("%v", err)
 	}
 
-	statement, emitErr := EmitStatementAs(Principal{"Summer"}, intPair{2, 3})
-	handleErr(emitErr)
-
-	writeErr := EmitAuthLogicToFile(statement, "wrapped_sum.auth_logic")
-	handleErr(writeErr)
+	err = EmitAuthLogicToFile(statement, "wrapped_sum.auth_logic")
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 
 	want := "Summer says {\nsum(2, 3, 5).\n}"
-	resultBytes, readErr := ioutil.ReadFile("wrapped_sum.auth_logic")
-	handleErr(readErr)
+	resultBytes, err := ioutil.ReadFile("wrapped_sum.auth_logic")
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 
 	got := string(resultBytes)
 	if got != want {
