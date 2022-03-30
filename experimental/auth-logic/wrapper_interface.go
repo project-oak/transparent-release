@@ -37,10 +37,6 @@ type UnattributedStatement struct {
 	Contents string
 }
 
-// This is an empty unattributed statement. It is defined as a var rather
-// than a constant because golang does not have support for const structs
-var NilUnattributedStatement = UnattributedStatement{Contents: ""}
-
 // This method gets a string for an UnattributedStatement.
 func (statement UnattributedStatement) String() string {
 	return statement.Contents
@@ -50,8 +46,6 @@ func (statement UnattributedStatement) String() string {
 type Principal struct {
 	Contents string
 }
-
-var NilPrincipal = Principal{Contents: ""}
 
 // This method gets a string for a Principal.
 func (principal Principal) String() string {
@@ -64,10 +58,6 @@ type AuthLogicStatement struct {
 	Speaker   Principal
 	Statement UnattributedStatement
 }
-
-var NilAuthLogicStatement = AuthLogicStatement{
-	Speaker:   NilPrincipal,
-	Statement: NilUnattributedStatement}
 
 // This method produces a string from an AuthLogicStatement
 func (authLogic AuthLogicStatement) String() string {
@@ -86,7 +76,7 @@ type Wrapper interface {
 func EmitStatementAs(principal Principal, wrapper Wrapper) (AuthLogicStatement, error) {
 	statement, statementErr := wrapper.EmitStatement()
 	if statementErr != nil {
-		return NilAuthLogicStatement, statementErr
+		return AuthLogicStatement{}, statementErr
 	}
 	return AuthLogicStatement{Speaker: principal, Statement: statement}, statementErr
 }

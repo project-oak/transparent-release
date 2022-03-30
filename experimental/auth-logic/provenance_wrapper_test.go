@@ -27,14 +27,12 @@ import (
 func (p provenanceWrapper) identify() (Principal, error) {
 	provenance, provenanceErr := slsa.ParseProvenanceFile(p.filePath)
 	if provenanceErr != nil {
-		return NilPrincipal, provenanceErr
+		return Principal{}, provenanceErr
 	}
 
 	applicationName := provenance.Subject[0].Name
-	principal := Principal{
-		Contents: fmt.Sprintf(`"%s::Provenance"`, applicationName),
-	}
-	return principal, nil
+	return Principal{
+		Contents: fmt.Sprintf(`"%s::Provenance"`, applicationName)}, nil
 }
 
 func TestProvenanceWrapper(t *testing.T) {

@@ -29,14 +29,14 @@ import (
 type provenanceWrapper struct{ filePath string }
 
 func (p provenanceWrapper) EmitStatement() (UnattributedStatement, error) {
-	provenance, provenanceErr := slsa.ParseProvenanceFile(p.filePath)
-	if provenanceErr != nil {
-		return NilUnattributedStatement, provenanceErr
+	provenance, err := slsa.ParseProvenanceFile(p.filePath)
+	if err != nil {
+		return UnattributedStatement{}, err
 	}
 
 	if len(provenance.Subject) < 1 {
 		noSubjectError := errors.New("Provenance file missing subject")
-		return NilUnattributedStatement, noSubjectError
+		return UnattributedStatement{}, noSubjectError
 	}
 
 	applicationName := provenance.Subject[0].Name
@@ -44,12 +44,10 @@ func (p provenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 
 	if !hashOk {
 		noExpectedHashErr := errors.New("Provenance file did not give an expected hash")
-		return NilUnattributedStatement, noExpectedHashErr
+		return UnattributedStatement{}, noExpectedHashErr
 	}
 
-	statement := UnattributedStatement{
+	return UnattributedStatement{
 		Contents: fmt.Sprintf(`expected_hash("%s::Binary", sha256:%s).`, applicationName,
-			expectedHash),
-	}
-	return statement, nil
+			expectedHash)}, nil
 }

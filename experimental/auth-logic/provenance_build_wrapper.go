@@ -27,43 +27,42 @@ type provenanceBuildWrapper struct{ provenanceFilePath string }
 
 func (pbw provenanceBuildWrapper) EmitStatement() (UnattributedStatement, error) {
 	// Unmarshal a provenance struct from the JSON file.
-	provenance, provenanceParseErr := slsa.ParseProvenanceFile(pbw.provenanceFilePath)
-	if provenanceParseErr != nil {
-		return NilUnattributedStatement, provenanceParseErr
+	provenance, err := slsa.ParseProvenanceFile(pbw.provenanceFilePath)
+	if err != nil {
+		return UnattributedStatement{}, err
 	}
 
 	applicationName := provenance.Subject[0].Name
 
 	// Generate a BuildConfig struct from the provenance file
-	buildConfig, loadBuildErr := common.LoadBuildConfigFromProvenance(provenance)
-	if loadBuildErr != nil {
-		return NilUnattributedStatement, loadBuildErr
+	buildConfig, err := common.LoadBuildConfigFromProvenance(provenance)
+	if err != nil {
+		return UnattributedStatement{}, err
 	}
 
 	// Fetch the repository sources from the repository referenced in the
 	// BuildConfig struct.
-	_, repoFetchErr := common.FetchSourcesFromRepo(buildConfig.Repo, buildConfig.CommitHash)
-	if repoFetchErr != nil {
-		return NilUnattributedStatement, repoFetchErr
+	_, err = common.FetchSourcesFromRepo(buildConfig.Repo, buildConfig.CommitHash)
+	if err != nil {
+		return UnattributedStatement{}, err
 	}
 
 	// Build the binary from the fetched sources.
-	buildErr := buildConfig.Build()
-	if buildErr != nil {
-		return NilUnattributedStatement, buildErr
+	err = buildConfig.Build()
+	if err != nil {
+		return UnattributedStatement{}, err
 	}
 
 	// Measure the hash of the binary.
-	measuredBinaryHash, hashErr := buildConfig.ComputeBinarySha256Hash()
-	if hashErr != nil {
-		return NilUnattributedStatement, hashErr
+	measuredBinaryHash, err := buildConfig.ComputeBinarySha256Hash()
+	if err != nil {
+		return UnattributedStatement{}, err
 	}
 
-	statement := UnattributedStatement{
+	return UnattributedStatement{
 		fmt.Sprintf("\"%v::Binary\" has_provenance(\"%v::Provenance\").\n",
 			applicationName, applicationName) +
 			fmt.Sprintf("\"%v::Binary\" has_measured_hash(%v).",
-				applicationName, measuredBinaryHash)}
-	return statement, nil
+				applicationName, measuredBinaryHash)}, nil
 
 }

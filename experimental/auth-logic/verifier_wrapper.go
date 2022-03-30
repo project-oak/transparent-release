@@ -66,12 +66,11 @@ func (v verifierWrapper) EmitStatement() (UnattributedStatement, error) {
 			"\t" + binaryPrincipal + " has_expected_hash_from(binary_hash, " + provenancePrincipal + "),\n" +
 			"\t" + binaryPrincipal + " has_measured_hash(binary_hash).\n"
 
-	statement := UnattributedStatement{Contents: strings.Join([]string{
+	return UnattributedStatement{Contents: strings.Join([]string{
 		endorsementHashDelegation,
 		provenanceHashDelegation,
 		provenanceDelegation,
 		hashMeasurementDelegation,
 		rekorLogCheckDelegation,
-		binaryIdentificationRule}[:], "\n")}
-	return statement, nil
+		binaryIdentificationRule}[:], "\n")}, nil
 }
