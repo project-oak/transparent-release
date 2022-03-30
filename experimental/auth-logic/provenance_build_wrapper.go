@@ -28,42 +28,42 @@ type provenanceBuildWrapper struct{ provenanceFilePath string }
 func (pbw provenanceBuildWrapper) EmitStatement() (UnattributedStatement, error) {
 	// Unmarshal a provenance struct from the JSON file.
 	provenance, provenanceParseErr := slsa.ParseProvenanceFile(pbw.provenanceFilePath)
-  if provenanceParseErr != nil {
-    return NilUnattributedStatement, provenanceParseErr
-  }
+	if provenanceParseErr != nil {
+		return NilUnattributedStatement, provenanceParseErr
+	}
 
 	applicationName := provenance.Subject[0].Name
 
 	// Generate a BuildConfig struct from the provenance file
 	buildConfig, loadBuildErr := common.LoadBuildConfigFromProvenance(provenance)
-  if loadBuildErr != nil {
-    return NilUnattributedStatement, loadBuildErr
-  }
+	if loadBuildErr != nil {
+		return NilUnattributedStatement, loadBuildErr
+	}
 
 	// Fetch the repository sources from the repository referenced in the
 	// BuildConfig struct.
 	_, repoFetchErr := common.FetchSourcesFromRepo(buildConfig.Repo, buildConfig.CommitHash)
-  if repoFetchErr != nil {
-    return NilUnattributedStatement, repoFetchErr
-  }
+	if repoFetchErr != nil {
+		return NilUnattributedStatement, repoFetchErr
+	}
 
 	// Build the binary from the fetched sources.
 	buildErr := buildConfig.Build()
-  if buildErr != nil {
-    return NilUnattributedStatement, buildErr
-  }
+	if buildErr != nil {
+		return NilUnattributedStatement, buildErr
+	}
 
 	// Measure the hash of the binary.
 	measuredBinaryHash, hashErr := buildConfig.ComputeBinarySha256Hash()
-  if hashErr != nil {
-    return NilUnattributedStatement, hashErr
-  }
+	if hashErr != nil {
+		return NilUnattributedStatement, hashErr
+	}
 
-  statement := UnattributedStatement{
+	statement := UnattributedStatement{
 		fmt.Sprintf("\"%v::Binary\" has_provenance(\"%v::Provenance\").\n",
 			applicationName, applicationName) +
 			fmt.Sprintf("\"%v::Binary\" has_measured_hash(%v).",
 				applicationName, measuredBinaryHash)}
-  return statement, nil
+	return statement, nil
 
 }

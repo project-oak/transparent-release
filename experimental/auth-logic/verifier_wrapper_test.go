@@ -17,21 +17,33 @@
 package authlogic
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"testing"
 )
 
+func (v verifierWrapper) identify() Principal {
+	return Principal{Contents: fmt.Sprintf(`"%s::Verifier"`, v.appName)}
+}
+
 const testFilePath = "test_data/verifier_wrapper_expected.auth_logic"
 
 func TestVerifierWrapper(t *testing.T) {
-	testVerifier := verifierWrapper{appName: "OakFunctionsLoader"}
-	got := wrapAttributed(testVerifier).String()
-
-	wantFileBytes, err := os.ReadFile(testFilePath)
-	if err != nil {
-		panic(err)
+	handleErr := func(err error) {
+		if err != nil {
+			t.Fatalf("test generated error %v", err)
+			panic(err)
+		}
 	}
+
+	testWrapper := verifierWrapper{appName: "OakFunctionsLoader"}
+	statement, emitErr := EmitStatementAs(testWrapper.identify(), testWrapper)
+	handleErr(emitErr)
+	got := statement.String()
+
+	wantFileBytes, readFileErr := os.ReadFile(testFilePath)
+	handleErr(readFileErr)
 	want := strings.TrimSuffix(string(wantFileBytes), "\n")
 
 	if got != want {

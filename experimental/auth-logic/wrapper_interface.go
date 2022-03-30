@@ -18,7 +18,7 @@ package authlogic
 
 import (
 	"fmt"
-  "os"
+	"os"
 )
 
 // This struct represents an authorization logic statement (or sequence of
@@ -39,7 +39,7 @@ type UnattributedStatement struct {
 
 // This is an empty unattributed statement. It is defined as a var rather
 // than a constant because golang does not have support for const structs
-var NilUnattributedStatement = UnattributedStatement{Contents:""}
+var NilUnattributedStatement = UnattributedStatement{Contents: ""}
 
 // This method gets a string for an UnattributedStatement.
 func (statement UnattributedStatement) String() string {
@@ -51,7 +51,7 @@ type Principal struct {
 	Contents string
 }
 
-var NilPrincipal = Principal{Contents:""}
+var NilPrincipal = Principal{Contents: ""}
 
 // This method gets a string for a Principal.
 func (principal Principal) String() string {
@@ -66,8 +66,8 @@ type AuthLogicStatement struct {
 }
 
 var NilAuthLogicStatement = AuthLogicStatement{
-  Speaker: NilPrincipal, 
-  Statement: NilUnattributedStatement}
+	Speaker:   NilPrincipal,
+	Statement: NilUnattributedStatement}
 
 // This method produces a string from an AuthLogicStatement
 func (authLogic AuthLogicStatement) String() string {
@@ -77,18 +77,18 @@ func (authLogic AuthLogicStatement) String() string {
 // This interface defines a way of emitting authorization logic statements
 // that are not attributed to any principal. A wrapper might implement this
 // method by parsing a file in a particular format or checking the system clock
-// before emitting an authorization logic statement. These do not include 
+// before emitting an authorization logic statement. These do not include
 // speakers.
 type Wrapper interface {
 	EmitStatement() (UnattributedStatement, error)
 }
 
 func EmitStatementAs(principal Principal, wrapper Wrapper) (AuthLogicStatement, error) {
-  statement, statementErr := wrapper.EmitStatement()
-  if statementErr != nil {
-    return NilAuthLogicStatement, statementErr
-  }
-  return AuthLogicStatement{Speaker: principal, Statement: statement}, statementErr
+	statement, statementErr := wrapper.EmitStatement()
+	if statementErr != nil {
+		return NilAuthLogicStatement, statementErr
+	}
+	return AuthLogicStatement{Speaker: principal, Statement: statement}, statementErr
 }
 
 func EmitAuthLogicToFile(authLogic AuthLogicStatement, filepath string) error {

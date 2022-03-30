@@ -33,7 +33,7 @@ type verifierWrapper struct{ appName string }
 
 // This produces the policy code for checking if a binary can act as an
 // application by aggregating all the evidence from the other parties.
-func (v verifierWrapper) EmitStatement() UnattributedStatement {
+func (v verifierWrapper) EmitStatement() (UnattributedStatement, error) {
 	// TODO(#39) consider using a [template](https://pkg.go.dev/text/template) to implement this.
 	endorsementPrincipal := fmt.Sprintf(`"%s::EndorsementFile"`, v.appName)
 	provenancePrincipal := fmt.Sprintf(`"%s::Provenance"`, v.appName)
@@ -66,15 +66,12 @@ func (v verifierWrapper) EmitStatement() UnattributedStatement {
 			"\t" + binaryPrincipal + " has_expected_hash_from(binary_hash, " + provenancePrincipal + "),\n" +
 			"\t" + binaryPrincipal + " has_measured_hash(binary_hash).\n"
 
-	return UnattributedStatement{Contents: strings.Join([]string{
+	statement := UnattributedStatement{Contents: strings.Join([]string{
 		endorsementHashDelegation,
 		provenanceHashDelegation,
 		provenanceDelegation,
 		hashMeasurementDelegation,
 		rekorLogCheckDelegation,
 		binaryIdentificationRule}[:], "\n")}
-}
-
-func (v verifierWrapper) Identify() Principal {
-  return Principal{Contents: fmt.Sprintf(`"%s::Verifier"`, v.appName)}
+	return statement, nil
 }

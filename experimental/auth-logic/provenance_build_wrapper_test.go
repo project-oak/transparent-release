@@ -25,7 +25,7 @@ import (
 func (p provenanceBuildWrapper) identify() (Principal, error) {
 	provenance, provenanceErr := slsa.ParseProvenanceFile(p.provenanceFilePath)
 	if provenanceErr != nil {
-    return NilPrincipal, provenanceErr
+		return NilPrincipal, provenanceErr
 	}
 
 	applicationName := provenance.Subject[0].Name
@@ -50,11 +50,11 @@ func TestProvenanceBuildWrapper(t *testing.T) {
 	os.Chdir("../../")
 
 	testProvenance := provenanceBuildWrapper{slsa.SchemaExamplePath}
-  speaker, idErr := testProvenance.identify()
-  handleErr(idErr)
-  statement, emitErr := EmitStatementAs(speaker, testProvenance)
-  handleErr(emitErr)
-  got := statement.String()
+	speaker, idErr := testProvenance.identify()
+	handleErr(idErr)
+	statement, emitErr := EmitStatementAs(speaker, testProvenance)
+	handleErr(emitErr)
+	got := statement.String()
 
 	if got != want {
 		t.Errorf("got:\n%v\nwant:\n%v\n", got, want)
