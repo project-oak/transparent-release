@@ -29,7 +29,8 @@ func (pbw provenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 	// Unmarshal a provenance struct from the JSON file.
 	provenance, err := slsa.ParseProvenanceFile(pbw.provenanceFilePath)
 	if err != nil {
-		return UnattributedStatement{}, err
+		return UnattributedStatement{},
+			fmt.Errorf("provenance build wrapper couldn't parse provenance file:%s", err)
 	}
 
 	applicationName := provenance.Subject[0].Name
@@ -37,26 +38,30 @@ func (pbw provenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 	// Generate a BuildConfig struct from the provenance file
 	buildConfig, err := common.LoadBuildConfigFromProvenance(provenance)
 	if err != nil {
-		return UnattributedStatement{}, err
+		return UnattributedStatement{},
+			fmt.Errorf("provenance build wrapper couldn't load build config:%s", err)
 	}
 
 	// Fetch the repository sources from the repository referenced in the
 	// BuildConfig struct.
 	_, err = common.FetchSourcesFromRepo(buildConfig.Repo, buildConfig.CommitHash)
 	if err != nil {
-		return UnattributedStatement{}, err
+		return UnattributedStatement{},
+			fmt.Errorf("provenance build wrapper couldn't fetch repo:%s", err)
 	}
 
 	// Build the binary from the fetched sources.
 	err = buildConfig.Build()
 	if err != nil {
-		return UnattributedStatement{}, err
+		return UnattributedStatement{},
+			fmt.Errorf("provenance build wrapper couldn't build repo:%s", err)
 	}
 
 	// Measure the hash of the binary.
 	measuredBinaryHash, err := buildConfig.ComputeBinarySha256Hash()
 	if err != nil {
-		return UnattributedStatement{}, err
+		return UnattributedStatement{},
+			fmt.Errorf("provenance build wrapper couldn't compute hash:%s", err)
 	}
 
 	return UnattributedStatement{

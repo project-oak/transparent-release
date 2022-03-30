@@ -20,7 +20,6 @@ package authlogic
 // about the expected hash for the binary.
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/project-oak/transparent-release/slsa"
@@ -35,7 +34,7 @@ func (p provenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 	}
 
 	if len(provenance.Subject) < 1 {
-		noSubjectError := errors.New("Provenance file missing subject")
+		noSubjectError := fmt.Errorf("Provenance file missing subject")
 		return UnattributedStatement{}, noSubjectError
 	}
 
@@ -43,7 +42,7 @@ func (p provenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 	expectedHash, hashOk := provenance.Subject[0].Digest["sha256"]
 
 	if !hashOk {
-		noExpectedHashErr := errors.New("Provenance file did not give an expected hash")
+		noExpectedHashErr := fmt.Errorf("Provenance file did not give an expected hash")
 		return UnattributedStatement{}, noExpectedHashErr
 	}
 

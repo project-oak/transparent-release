@@ -38,7 +38,7 @@ func (p provenanceWrapper) identify() (Principal, error) {
 func TestProvenanceWrapper(t *testing.T) {
 	handleErr := func(err error) {
 		if err != nil {
-			panic(err)
+			t.Fatal("TestProvenanceWrapper encountered fatal error:%s", err)
 		}
 	}
 	want := `"oak_functions_loader::Provenance" says {

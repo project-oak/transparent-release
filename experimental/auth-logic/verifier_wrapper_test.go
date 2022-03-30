@@ -33,7 +33,6 @@ func TestVerifierWrapper(t *testing.T) {
 	handleErr := func(err error) {
 		if err != nil {
 			t.Fatalf("test generated error %v", err)
-			panic(err)
 		}
 	}
 
