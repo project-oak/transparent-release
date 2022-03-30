@@ -18,11 +18,10 @@ package authlogic
 
 import (
   "encoding/json"
-  "errors"
-  "os"
+  "io/ioutil"
   "fmt"
-
-	"github.com/xeipuuv/gojsonschema"
+  "regexp"
+  "time"
 )
 
 type endorsementWrapper struct{ endorsementFilePath string }
@@ -54,7 +53,7 @@ type ValidityPeriod struct {
   ExpiryTime string `json:"expiryTime"`
 }
 
-func ParseEndorsmentFile(path string) (*Endorsement, error) {
+func ParseEndorsementFile(path string) (*Endorsement, error) {
 	endorsementBytes , readErr := ioutil.ReadFile(path)
 	if readErr != nil {
 		return nil, fmt.Errorf("could not read the endorsement file: %v", readErr)
@@ -64,38 +63,82 @@ func ParseEndorsmentFile(path string) (*Endorsement, error) {
 
 	unmarshalErr := json.Unmarshal(endorsementBytes, &endorsement)
 	if unmarshalErr != nil {
-		return nil, fmt.Errorf("could not unmarshal the endorsement file:\n%v", unmarshalErr)
+		return nil, fmt.Errorf("could not unmarshal the endorsement file:\n%v",
+      unmarshalErr)
 	}
 
 	return &endorsement, nil
 }
 
-func (ew endorsementWrapper) EmitStatement() (UnattributedStatement, error) {
-  endorsement, jsonParseErr := ParseEndorsementFile(ew.endorsementFilePath)
-  if jsonParseErr != nil {
-    return NilUnattributedStatement, nil
+func (ew endorsementWrapper) getShortAppName() (string, error) {
+  endorsement, err := ParseEndorsementFile(ew.endorsementFilePath)
+  if err != nil {
+    return "", nil
   }
 
   if len(endorsement.Subject) < 1 {
-    noSubjectError := errors.New("Endorsement file missing subject")
-    return NilUnattributedStatement, noSubjectError
+    return "", fmt.Errorf("Endorsement file missing subject")
   }
 
   appName := endorsement.Subject[0].Name
+  nameExtractRegex := regexp.MustCompile("(.+)-[0-9]+")
+  match := nameExtractRegex.FindStringSubmatch(appName)
+  if len(match) != 2 {
+    return "", fmt.Errorf("Couldn't extract app name from:%s", appName)
+  }
+
+  return match[1], nil
+}
+
+func (ew endorsementWrapper) EmitStatement() (UnattributedStatement, error) {
+  endorsement, err := ParseEndorsementFile(ew.endorsementFilePath)
+  if err != nil {
+    return UnattributedStatement{}, nil
+  }
+
+  if len(endorsement.Subject) < 1 {
+    return UnattributedStatement{}, fmt.Errorf("Endorsement file missing subject")
+  }
 
 	expectedHash, hashOk := endorsement.Subject[0].Digest["sha256"]
   if !hashOk {
-		noExpectedHashErr := errors.New("Endorsement file did not give an expected hash")
-    return NilUnattributedStatement, noExpectedHashErr
+    return UnattributedStatement{},
+      fmt.Errorf("Endorsement file did not give an expected hash")
   }
 
-  releaseTime := endorsement.Predicate.ValidityPeriod.ReleaseTime
-  expiryTime := endorsement.Predicate.ValidityPeriod.ExpiryTime
-
-  statement := UnattributedStatement {
-    Contents: fmt.Sprintf("%s\n%s\n%s,\n%s",
-      endorsement.appName, endorsement.digest,
-      releaseTime, expiryTime),
+  releaseTimeText := endorsement.Predicate.ValidityPeriod.ReleaseTime
+  releaseTime, err := time.Parse(time.RFC3339, releaseTimeText)
+  if err != nil {
+    return UnattributedStatement{}, err
   }
-  return statement, nil
+
+  expiryTimeText := endorsement.Predicate.ValidityPeriod.ExpiryTime
+  expiryTime, err := time.Parse(time.RFC3339, expiryTimeText)
+  if err != nil {
+    return UnattributedStatement{}, err
+  }
+
+  appName, err := ew.getShortAppName()
+  if err != nil {
+    return UnattributedStatement{}, err
+  }
+
+	binaryPrincipal := fmt.Sprintf(`"%s::Binary"`, appName)
+  endorsementWrapperName := fmt.Sprintf(`"%s::EndorsementFile"`, appName)
+
+  hasExpectedHash := fmt.Sprintf(`%s has_expected_hash_from("sha256:%s", %s)`,
+    binaryPrincipal, expectedHash, endorsementWrapperName)
+
+  expirationCondition := fmt.Sprintf(
+    `RealTimeIs(current_time), current_time > %d, current_time < %d`,
+    releaseTime.Unix(), expiryTime.Unix())
+
+  hashRule := fmt.Sprintf("%s :-\n    %s.\n", hasExpectedHash, expirationCondition)
+
+  timePrincipalName := `"UnixEpochTime"`
+  timeDelegation := fmt.Sprintf("%s canSay RealTimeIs(any_time).\n",
+    timePrincipalName)
+
+  return UnattributedStatement {
+    Contents: hashRule + timeDelegation }, nil
 }

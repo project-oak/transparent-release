@@ -15,17 +15,11 @@
 package authlogic
 
 import (
-	"fmt"
-	"os"
+  "fmt"
 	"testing"
 )
 
-const testEndorsementPath := "../../schema/amber-endorsement/v1/example.json"
-
-func (ew endorsementWrapper) identify() (Principal, error) {
-  endorsement, parseErr := parseJSONFromFile(ew.endorsementFilePath)
-  return Principal{Contents: endorsement.appName}, parseErr
-}
+const testEndorsementPath = "../../schema/amber-endorsement/v1/example.json"
 
 func TestEndorsementWrapper(t *testing.T) {
 	handleErr := func(err error) {
@@ -34,15 +28,24 @@ func TestEndorsementWrapper(t *testing.T) {
 		}
 	}
 
-  want := ""
+  want := `"oak_functions_loader::EndorsementFile" says {
+"oak_functions_loader::Binary" has_expected_hash_from("sha256:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c", "oak_functions_loader::EndorsementFile") :-
+    RealTimeIs(current_time), current_time > 1643710850, current_time < 1646130050.
+"UnixEpochTime" canSay RealTimeIs(any_time).
+
+}`
 
   testEndorsementWrapper := endorsementWrapper{
-    endorsementFilePath: testEndorsementPath,
-  }
+    endorsementFilePath: testEndorsementPath}
 
-  speaker, idErr := testEndorsementWrapper.identify()
-  handleErr(idErr)
-
+  appName, err := testEndorsementWrapper.getShortAppName()
+  handleErr(err)
+  speaker := fmt.Sprintf(`"%s::EndorsementFile"`, appName)
+  
+  statement, err := EmitStatementAs(Principal{Contents: speaker},
+    testEndorsementWrapper)
+	handleErr(err)
+	got := statement.String()
   
 	if got != want {
 		t.Errorf("got:\n%s\nwant:\n%s\n", got, want)
