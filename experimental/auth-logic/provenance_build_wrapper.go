@@ -30,7 +30,7 @@ func (pbw provenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 	provenance, err := slsa.ParseProvenanceFile(pbw.provenanceFilePath)
 	if err != nil {
 		return UnattributedStatement{},
-			fmt.Errorf("provenance build wrapper couldn't parse provenance file:%v", err)
+			fmt.Errorf("provenance build wrapper couldn't parse provenance file: %v", err)
 	}
 
 	applicationName := provenance.Subject[0].Name
@@ -39,7 +39,7 @@ func (pbw provenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 	buildConfig, err := common.LoadBuildConfigFromProvenance(provenance)
 	if err != nil {
 		return UnattributedStatement{},
-			fmt.Errorf("provenance build wrapper couldn't load build config:%v", err)
+			fmt.Errorf("provenance build wrapper couldn't load build config: %v", err)
 	}
 
 	// Fetch the repository sources from the repository referenced in the
@@ -47,21 +47,21 @@ func (pbw provenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 	_, err = common.FetchSourcesFromRepo(buildConfig.Repo, buildConfig.CommitHash)
 	if err != nil {
 		return UnattributedStatement{},
-			fmt.Errorf("provenance build wrapper couldn't fetch repo:%v", err)
+			fmt.Errorf("provenance build wrapper couldn't fetch repo: %v", err)
 	}
 
 	// Build the binary from the fetched sources.
 	err = buildConfig.Build()
 	if err != nil {
 		return UnattributedStatement{},
-			fmt.Errorf("provenance build wrapper couldn't build repo:%v", err)
+			fmt.Errorf("provenance build wrapper couldn't build repo: %v", err)
 	}
 
 	// Measure the hash of the binary.
 	measuredBinaryHash, err := buildConfig.ComputeBinarySha256Hash()
 	if err != nil {
 		return UnattributedStatement{},
-			fmt.Errorf("provenance build wrapper couldn't compute hash:%v", err)
+			fmt.Errorf("provenance build wrapper couldn't compute hash: %v", err)
 	}
 
 	return UnattributedStatement{

@@ -23,13 +23,15 @@ import (
 )
 
 func (p provenanceBuildWrapper) identify() (Principal, error) {
-	provenance, provenanceErr := slsa.ParseProvenanceFile(p.provenanceFilePath)
-	if provenanceErr != nil {
-		return Principal{}, provenanceErr
+	provenance, err := slsa.ParseProvenanceFile(p.provenanceFilePath)
+	if err != nil {
+		return Principal{}, err 
 	}
 
 	applicationName := provenance.Subject[0].Name
-	return Principal{fmt.Sprintf(`"%v::ProvenanceBuilder"`, applicationName)}, nil
+  return Principal{
+    Contents: fmt.Sprintf(`"%v::ProvenanceBuilder"`, applicationName),
+  }, nil
 }
 
 func TestProvenanceBuildWrapper(t *testing.T) {
