@@ -27,7 +27,9 @@ import (
 
 type UnixEpochTime struct{}
 
-func (timeWrapper UnixEpochTime) EmitStatement() UnattributedStatement {
+func (timeWrapper UnixEpochTime) EmitStatement() (UnattributedStatement, error) {
 	epochTime := time.Now().Unix()
-	return UnattributedStatement{Contents: fmt.Sprintf("RealTimeIs(%v).", epochTime)}
+	return UnattributedStatement{
+		Contents: fmt.Sprintf("RealTimeIs(%v).", epochTime),
+	}, nil
 }

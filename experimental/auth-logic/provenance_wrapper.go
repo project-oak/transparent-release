@@ -20,7 +20,6 @@ package authlogic
 // about the expected hash for the binary.
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/project-oak/transparent-release/slsa"
@@ -28,29 +27,26 @@ import (
 
 type provenanceWrapper struct{ filePath string }
 
-func (p provenanceWrapper) EmitStatement() UnattributedStatement {
-	// TODO(#40) return the errors produced here instead once the
-	// wrapper interface has been fixed.
-	provenance, provenanceErr := slsa.ParseProvenanceFile(p.filePath)
-	if provenanceErr != nil {
-		panic(provenanceErr)
+func (p provenanceWrapper) EmitStatement() (UnattributedStatement, error) {
+	provenance, err := slsa.ParseProvenanceFile(p.filePath)
+	if err != nil {
+    return UnattributedStatement{}, fmt.Errorf(
+      "provenance wrapper couldn't prase provenance file: %v", err)
 	}
 
 	if len(provenance.Subject) < 1 {
-		noSubjectError := errors.New("Provenance file missing subject")
-		panic(noSubjectError)
+		return UnattributedStatement{}, fmt.Errorf("Provenance file missing subject")
 	}
 
 	applicationName := provenance.Subject[0].Name
 	expectedHash, hashOk := provenance.Subject[0].Digest["sha256"]
 
 	if !hashOk {
-		noExpectedHashErr := errors.New("Provenance file did not give an expected hash")
-		panic(noExpectedHashErr)
+		return UnattributedStatement{}, fmt.Errorf(
+      "Provenance file did not give an expected hash")
 	}
 
 	return UnattributedStatement{
-    Contents: fmt.Sprintf(`expected_hash("%s::Binary", sha256:%s).`, applicationName,
-			expectedHash),
-	}
+		Contents: fmt.Sprintf(`expected_hash("%s::Binary", sha256:%s).`, applicationName,
+			expectedHash)}, nil
 }

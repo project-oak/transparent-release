@@ -17,7 +17,6 @@
 package authlogic
 
 import (
-	"io/ioutil"
 	"regexp"
 	"strconv"
 	"testing"
@@ -30,36 +29,28 @@ const (
 	futureDate = 33197947200
 )
 
-func (time UnixEpochTime) Identify() Principal {
+func (time UnixEpochTime) identify() Principal {
 	return Principal{Contents: "UnixEpochTime"}
 }
 
 func TestUnixEpochTimeWrapper(t *testing.T) {
-	handleErr := func(err error) {
-		if err != nil {
-			t.Fatalf("test generated error %v", err)
-			panic(err)
-		}
+	testWrapper := UnixEpochTime{}
+	statement, err := EmitStatementAs(testWrapper.identify(), testWrapper)
+	if err != nil {
+		t.Fatalf("%v", err)
 	}
-
-	// Write a statement from the time wrapper to a file
-	writeErr := EmitWrapperStatement(UnixEpochTime{}, "wrapped_time.auth_logic")
-	handleErr(writeErr)
-
-	// Read the contents of the file
-	fileReadBytes, readErr := ioutil.ReadFile("wrapped_time.auth_logic")
-	handleErr(readErr)
-	fileReadString := string(fileReadBytes)
+	got := statement.String()
 
 	timeTestRegex := regexp.MustCompile("UnixEpochTime says {\nRealTimeIs\\(([0-9]+)\\).\n}")
-	match := timeTestRegex.FindStringSubmatch(fileReadString)
+	match := timeTestRegex.FindStringSubmatch(got)
 	if len(match) != 2 {
-		t.Errorf("Result of time wrapper did not have valid format. Got: %v.",
-			fileReadString)
+		t.Errorf("Result of time wrapper did not have valid format. Got: %v.", got)
 	}
 
-	timeValue, conversionErr := strconv.Atoi(match[1])
-	handleErr(conversionErr)
+	timeValue, err := strconv.Atoi(match[1])
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 
 	if timeValue < pastDate {
 		t.Errorf("The emitted current time %v, already happened", timeValue)

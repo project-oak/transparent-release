@@ -22,14 +22,16 @@ import (
 	"github.com/project-oak/transparent-release/slsa"
 )
 
-func (p provenanceBuildWrapper) Identify() Principal {
-	provenance, provenanceErr := slsa.ParseProvenanceFile(p.provenanceFilePath)
-	if provenanceErr != nil {
-		panic(provenanceErr)
+func (p provenanceBuildWrapper) identify() (Principal, error) {
+	provenance, err := slsa.ParseProvenanceFile(p.provenanceFilePath)
+	if err != nil {
+		return Principal{}, err 
 	}
 
 	applicationName := provenance.Subject[0].Name
-	return Principal{fmt.Sprintf("\"%v::ProvenanceBuilder\"", applicationName)}
+  return Principal{
+    Contents: fmt.Sprintf(`"%v::ProvenanceBuilder"`, applicationName),
+  }, nil
 }
 
 func TestProvenanceBuildWrapper(t *testing.T) {
@@ -45,7 +47,15 @@ func TestProvenanceBuildWrapper(t *testing.T) {
 	os.Chdir("../../")
 
 	testProvenance := provenanceBuildWrapper{slsa.SchemaExamplePath}
-	got := wrapAttributed(testProvenance).String()
+	speaker, err := testProvenance.identify()
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	statement, err := EmitStatementAs(speaker, testProvenance)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	got := statement.String()
 
 	if got != want {
 		t.Errorf("got:\n%v\nwant:\n%v\n", got, want)
