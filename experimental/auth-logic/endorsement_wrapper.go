@@ -17,11 +17,11 @@
 package authlogic
 
 import (
-  "encoding/json"
-  "io/ioutil"
-  "fmt"
-  "regexp"
-  "time"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"regexp"
+	"time"
 )
 
 type endorsementWrapper struct{ endorsementFilePath string }
@@ -45,100 +45,109 @@ type Digest map[string]string
 
 // Struct to parse the Predicate in the endorsement file.
 type Predicate struct {
-  ValidityPeriod ValidityPeriod `json:"validityPeriod"`
+	ValidityPeriod ValidityPeriod `json:"validityPeriod"`
 }
 
 type ValidityPeriod struct {
-  ReleaseTime string `json:"releaseTime"`
-  ExpiryTime string `json:"expiryTime"`
+	ReleaseTime string `json:"releaseTime"`
+	ExpiryTime  string `json:"expiryTime"`
 }
 
 func ParseEndorsementFile(path string) (*Endorsement, error) {
-	endorsementBytes , readErr := ioutil.ReadFile(path)
-	if readErr != nil {
-		return nil, fmt.Errorf("could not read the endorsement file: %v", readErr)
+	endorsementBytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("could not read the endorsement file: %v", err)
 	}
 
 	var endorsement Endorsement
 
-	unmarshalErr := json.Unmarshal(endorsementBytes, &endorsement)
-	if unmarshalErr != nil {
-		return nil, fmt.Errorf("could not unmarshal the endorsement file:\n%v",
-      unmarshalErr)
+	err = json.Unmarshal(endorsementBytes, &endorsement)
+	if err != nil {
+		return nil,
+			fmt.Errorf("could not unmarshal the endorsement file: %v", err)
 	}
 
 	return &endorsement, nil
 }
 
 func (ew endorsementWrapper) getShortAppName() (string, error) {
-  endorsement, err := ParseEndorsementFile(ew.endorsementFilePath)
-  if err != nil {
-    return "", nil
-  }
+	endorsement, err := ParseEndorsementFile(ew.endorsementFilePath)
+	if err != nil {
+		return "", fmt.Errorf(
+			"getShortAppName couldn't parse endorsement file: %v", err)
+	}
 
-  if len(endorsement.Subject) < 1 {
-    return "", fmt.Errorf("Endorsement file missing subject")
-  }
+	if len(endorsement.Subject) < 1 {
+		return "", fmt.Errorf("Endorsement file missing subject: %s",
+			ew.endorsementFilePath)
+	}
 
-  appName := endorsement.Subject[0].Name
-  nameExtractRegex := regexp.MustCompile("(.+)-[0-9]+")
-  match := nameExtractRegex.FindStringSubmatch(appName)
-  if len(match) != 2 {
-    return "", fmt.Errorf("Couldn't extract app name from:%s", appName)
-  }
+	appName := endorsement.Subject[0].Name
+	nameExtractRegex := regexp.MustCompile("(.+)-[0-9]+")
+	match := nameExtractRegex.FindStringSubmatch(appName)
+	if len(match) != 2 {
+		return "", fmt.Errorf("Couldn't extract app name from: %s", appName)
+	}
 
-  return match[1], nil
+	return match[1], nil
 }
 
 func (ew endorsementWrapper) EmitStatement() (UnattributedStatement, error) {
-  endorsement, err := ParseEndorsementFile(ew.endorsementFilePath)
-  if err != nil {
-    return UnattributedStatement{}, nil
-  }
+	endorsement, err := ParseEndorsementFile(ew.endorsementFilePath)
+	if err != nil {
+		return UnattributedStatement{},
+			fmt.Errorf("Endorsement file wrapper couldn't parse file: %v", err)
+	}
 
-  if len(endorsement.Subject) < 1 {
-    return UnattributedStatement{}, fmt.Errorf("Endorsement file missing subject")
-  }
+	if len(endorsement.Subject) < 1 {
+		return UnattributedStatement{},
+			fmt.Errorf("Endorsement file missing subject: %s", ew.endorsementFilePath)
+	}
 
-	expectedHash, hashOk := endorsement.Subject[0].Digest["sha256"]
-  if !hashOk {
-    return UnattributedStatement{},
-      fmt.Errorf("Endorsement file did not give an expected hash")
-  }
+	expectedHash, ok := endorsement.Subject[0].Digest["sha256"]
+	if !ok {
+		return UnattributedStatement{},
+			fmt.Errorf("Endorsement file did not give an expected hash: %s",
+				ew.endorsementFilePath)
+	}
 
-  releaseTimeText := endorsement.Predicate.ValidityPeriod.ReleaseTime
-  releaseTime, err := time.Parse(time.RFC3339, releaseTimeText)
-  if err != nil {
-    return UnattributedStatement{}, err
-  }
+	releaseTimeText := endorsement.Predicate.ValidityPeriod.ReleaseTime
+	releaseTime, err := time.Parse(time.RFC3339, releaseTimeText)
+	if err != nil {
+		return UnattributedStatement{},
+			fmt.Errorf("Endorsement file release time had invalid format: %v", err)
+	}
 
-  expiryTimeText := endorsement.Predicate.ValidityPeriod.ExpiryTime
-  expiryTime, err := time.Parse(time.RFC3339, expiryTimeText)
-  if err != nil {
-    return UnattributedStatement{}, err
-  }
+	expiryTimeText := endorsement.Predicate.ValidityPeriod.ExpiryTime
+	expiryTime, err := time.Parse(time.RFC3339, expiryTimeText)
+	if err != nil {
+		return UnattributedStatement{},
+			fmt.Errorf("Endorsement file expiry time had invalid format: %v", err)
+	}
 
-  appName, err := ew.getShortAppName()
-  if err != nil {
-    return UnattributedStatement{}, err
-  }
+	appName, err := ew.getShortAppName()
+	if err != nil {
+		return UnattributedStatement{},
+			fmt.Errorf("Endorsement file wrapper couldn't get short name: %v", err)
+	}
 
 	binaryPrincipal := fmt.Sprintf(`"%s::Binary"`, appName)
-  endorsementWrapperName := fmt.Sprintf(`"%s::EndorsementFile"`, appName)
+	endorsementWrapperName := fmt.Sprintf(`"%s::EndorsementFile"`, appName)
 
-  hasExpectedHash := fmt.Sprintf(`%s has_expected_hash_from("sha256:%s", %s)`,
-    binaryPrincipal, expectedHash, endorsementWrapperName)
+	hasExpectedHash := fmt.Sprintf(`%s has_expected_hash_from("sha256:%s", %s)`,
+		binaryPrincipal, expectedHash, endorsementWrapperName)
 
-  expirationCondition := fmt.Sprintf(
-    `RealTimeIs(current_time), current_time > %d, current_time < %d`,
-    releaseTime.Unix(), expiryTime.Unix())
+	expirationCondition := fmt.Sprintf(
+		`RealTimeIs(current_time), current_time > %d, current_time < %d`,
+		releaseTime.Unix(), expiryTime.Unix())
 
-  hashRule := fmt.Sprintf("%s :-\n    %s.\n", hasExpectedHash, expirationCondition)
+	hashRule := fmt.Sprintf("%s :-\n    %s.\n", hasExpectedHash, expirationCondition)
 
-  timePrincipalName := `"UnixEpochTime"`
-  timeDelegation := fmt.Sprintf("%s canSay RealTimeIs(any_time).\n",
-    timePrincipalName)
+	timePrincipalName := `"UnixEpochTime"`
+	timeDelegation := fmt.Sprintf("%s canSay RealTimeIs(any_time).\n",
+		timePrincipalName)
 
-  return UnattributedStatement {
-    Contents: hashRule + timeDelegation }, nil
+	return UnattributedStatement{
+		Contents: hashRule + timeDelegation,
+	}, nil
 }

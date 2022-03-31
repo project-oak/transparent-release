@@ -15,38 +15,37 @@
 package authlogic
 
 import (
-  "fmt"
+	"fmt"
 	"testing"
 )
 
 const testEndorsementPath = "../../schema/amber-endorsement/v1/example.json"
 
 func TestEndorsementWrapper(t *testing.T) {
-	handleErr := func(err error) {
-		if err != nil {
-			panic(err)
-		}
-	}
-
-  want := `"oak_functions_loader::EndorsementFile" says {
+	want := `"oak_functions_loader::EndorsementFile" says {
 "oak_functions_loader::Binary" has_expected_hash_from("sha256:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c", "oak_functions_loader::EndorsementFile") :-
     RealTimeIs(current_time), current_time > 1643710850, current_time < 1646130050.
 "UnixEpochTime" canSay RealTimeIs(any_time).
 
 }`
 
-  testEndorsementWrapper := endorsementWrapper{
-    endorsementFilePath: testEndorsementPath}
+	testEndorsementWrapper := endorsementWrapper{
+		endorsementFilePath: testEndorsementPath}
 
-  appName, err := testEndorsementWrapper.getShortAppName()
-  handleErr(err)
-  speaker := fmt.Sprintf(`"%s::EndorsementFile"`, appName)
-  
-  statement, err := EmitStatementAs(Principal{Contents: speaker},
-    testEndorsementWrapper)
-	handleErr(err)
+	appName, err := testEndorsementWrapper.getShortAppName()
+	if err != nil {
+		fmt.Errorf("couldn't get short app name: %v", err)
+	}
+	speaker := fmt.Sprintf(`"%s::EndorsementFile"`, appName)
+
+	statement, err := EmitStatementAs(Principal{Contents: speaker},
+		testEndorsementWrapper)
+	if err != nil {
+		fmt.Errorf("couldn't get short app name: %v", err)
+	}
+
 	got := statement.String()
-  
+
 	if got != want {
 		t.Errorf("got:\n%s\nwant:\n%s\n", got, want)
 	}
