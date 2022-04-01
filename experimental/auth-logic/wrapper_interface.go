@@ -21,9 +21,10 @@ import (
 	"os"
 )
 
-// This struct represents an authorization logic statement (or sequence of
-// statements) without a principal. These statements might include rules or
-// predicates. For example, the following is an unattributed statement:
+// UnattributedStatement represents an authorization logic statement (or
+// sequence of statements) without a principal. These statements might
+// include rules or predicates. For example, the following is an unattributed
+// statement:
 // ```
 // foo("bar").
 // "SomePrincipal" canActAs baz("bar") :- foo("bar").
@@ -42,7 +43,7 @@ func (statement UnattributedStatement) String() string {
 	return statement.Contents
 }
 
-// This struct represents an authorization logic principal.
+// Principal represents an authorization logic principal.
 type Principal struct {
 	Contents string
 }
@@ -52,19 +53,19 @@ func (principal Principal) String() string {
 	return principal.Contents
 }
 
-// This struct represents an authorization logic statement (which is
+// Statement represents an authorization logic statement (which is
 // a Principal stating an UnattributedStatement).
-type AuthLogicStatement struct {
+type Statement struct {
 	Speaker   Principal
 	Statement UnattributedStatement
 }
 
-// This method produces a string from an AuthLogicStatement
-func (authLogic AuthLogicStatement) String() string {
+// This method produces a string from an Statement
+func (authLogic Statement) String() string {
 	return fmt.Sprintf("%v says {\n%v\n}", authLogic.Speaker, authLogic.Statement)
 }
 
-// This interface defines a way of emitting authorization logic statements
+// Wrapper defines a way of emitting authorization logic statements
 // that are not attributed to any principal. A wrapper might implement this
 // method by parsing a file in a particular format or checking the system clock
 // before emitting an authorization logic statement. These do not include
@@ -73,15 +74,18 @@ type Wrapper interface {
 	EmitStatement() (UnattributedStatement, error)
 }
 
-func EmitStatementAs(principal Principal, wrapper Wrapper) (AuthLogicStatement, error) {
+// EmitStatementAs produces a Statement uttered by the given principal, and
+// based on the UnattributedStatement produced by the given wrapper
+func EmitStatementAs(principal Principal, wrapper Wrapper) (Statement, error) {
 	statement, err := wrapper.EmitStatement()
 	if err != nil {
-		return AuthLogicStatement{}, err
+		return Statement{}, err
 	}
-	return AuthLogicStatement{Speaker: principal, Statement: statement}, nil
+	return Statement{Speaker: principal, Statement: statement}, nil
 }
 
-func EmitAuthLogicToFile(authLogic AuthLogicStatement, filepath string) error {
+// EmitAuthLogicToFile writes a given Statement to a given filepath
+func EmitAuthLogicToFile(authLogic Statement, filepath string) error {
 	f, createErr := os.Create(filepath)
 	if createErr != nil {
 		return createErr

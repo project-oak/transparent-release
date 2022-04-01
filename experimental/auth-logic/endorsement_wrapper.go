@@ -25,7 +25,8 @@ import (
 
 type endorsementWrapper struct{ endorsementFilePath string }
 
-// Struct to parse the Endorsement File
+// Endorsement is a struct for holding data parsed from
+// endorsement files which are JSON
 type Endorsement struct {
 	Type          string    `json:"_type"`
 	Subject       []Subject `json:"subject"`
@@ -33,25 +34,31 @@ type Endorsement struct {
 	Predicate     Predicate `json:"predicate"`
 }
 
-// Struct to parse the Subject of the endorsement file.
+// Subject is a part of Endorsement with names and hash digests
 type Subject struct {
 	Name   string `json:"name"`
 	Digest Digest `json:"digest"`
 }
 
-// Struct to parse a Digest from the endorsement file.
+// Digest is a map from hash functions (like "Sha256") to hash values.
+// This is a part of the Endorsement struct.
 type Digest map[string]string
 
-// Struct to parse the Predicate in the endorsement file.
+// Predicate is used to express valid date ranges
 type Predicate struct {
 	ValidityPeriod ValidityPeriod `json:"validityPeriod"`
 }
 
+// ValidityPeriod expresses time ranges during which the endorsement
+// file is valid.
 type ValidityPeriod struct {
 	ReleaseTime string `json:"releaseTime"`
 	ExpiryTime  string `json:"expiryTime"`
 }
 
+// ValidatedEndorsement is a structure for holding data from endorsement
+// files that have been validated. It also simplifies the Endorsement
+// structure to contain just the relevant
 type ValidatedEndorsement struct {
 	Name        string
 	Sha256      string
@@ -78,6 +85,8 @@ func ParseEndorsementFile(path string) (*Endorsement, error) {
 	return &endorsement, nil
 }
 
+// GenerateValidatedEndorsement produces a ValidatedEndorsement from an
+// Endorsement
 func (endorsement Endorsement) GenerateValidatedEndorsement() (ValidatedEndorsement, error) {
 
 	if len(endorsement.Subject) < 1 {

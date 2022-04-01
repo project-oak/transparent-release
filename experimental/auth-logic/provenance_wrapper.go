@@ -30,8 +30,8 @@ type provenanceWrapper struct{ filePath string }
 func (p provenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 	provenance, err := slsa.ParseProvenanceFile(p.filePath)
 	if err != nil {
-    return UnattributedStatement{}, fmt.Errorf(
-      "provenance wrapper couldn't prase provenance file: %v", err)
+		return UnattributedStatement{}, fmt.Errorf(
+			"provenance wrapper couldn't prase provenance file: %v", err)
 	}
 
 	if len(provenance.Subject) < 1 {
@@ -43,7 +43,7 @@ func (p provenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 
 	if !hashOk {
 		return UnattributedStatement{}, fmt.Errorf(
-      "Provenance file did not give an expected hash")
+			"Provenance file did not give an expected hash")
 	}
 
 	return UnattributedStatement{
