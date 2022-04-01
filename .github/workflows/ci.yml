@@ -30,12 +30,13 @@ jobs:
           chmod +x "${GITHUB_WORKSPACE}/bin/bazel"
       - name: Install mcpp #mcpp is a dependency of Souffle
         run: sudo apt-get install -y mcpp
-      - name: Test
-        run: |
-          "${GITHUB_WORKSPACE}/bin/bazel" test --test_output=streamed //...
+
       - name: Build
         run: |
           "${GITHUB_WORKSPACE}/bin/bazel" build //...
+      - name: Test
+        run: |
+          "${GITHUB_WORKSPACE}/bin/bazel" test --test_output=streamed //...
 
   check-license-lines:
     runs-on: ubuntu-20.04
