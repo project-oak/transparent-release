@@ -142,7 +142,7 @@ func (ew endorsementWrapper) EmitStatement() (UnattributedStatement, error) {
 		binaryPrincipal, validatedEndorsement.Sha256, endorsementWrapperName)
 
 	expirationCondition := fmt.Sprintf(
-		`RealTimeIs(current_time), current_time > %d, current_time < %d`,
+		`RealTimeIs(current_time), current_time >= %d, current_time < %d`,
 		validatedEndorsement.ReleaseTime.Unix(),
 		validatedEndorsement.ExpiryTime.Unix())
 

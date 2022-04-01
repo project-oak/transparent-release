@@ -24,7 +24,7 @@ const testEndorsementPath = "../../schema/amber-endorsement/v1/example.json"
 func TestEndorsementWrapper(t *testing.T) {
 	want := `"oak_functions_loader-0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile" says {
 "oak_functions_loader-0f2189703c57845e09d8ab89164a4041c0af0a62::Binary" has_expected_hash_from("sha256:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c", "oak_functions_loader-0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile") :-
-    RealTimeIs(current_time), current_time > 1643710850, current_time < 1646130050.
+    RealTimeIs(current_time), current_time >= 1643710850, current_time < 1646130050.
 "UnixEpochTime" canSay RealTimeIs(any_time).
 
 }`
