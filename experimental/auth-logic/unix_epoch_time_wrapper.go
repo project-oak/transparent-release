@@ -22,11 +22,15 @@ import (
 )
 
 // This file contains a wrapper that produces the current
-// time as the number of seconds since [the unix
+// time as the number of nanoseconds since [the unix
 // epoch](https://en.wikipedia.org/wiki/Unix_time).
 
+// UnixEpochTime is a wrapper that emits an authorization
+// logic statement about the current time in unix epoch nanosecons
 type UnixEpochTime struct{}
 
+// EmitStatement emits an authorization logic statement about
+// the current time in unix epoch nanoseconds.
 func (timeWrapper UnixEpochTime) EmitStatement() (UnattributedStatement, error) {
 	epochTime := time.Now().Unix()
 	return UnattributedStatement{
