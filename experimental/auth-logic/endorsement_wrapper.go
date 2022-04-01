@@ -59,7 +59,7 @@ type ValidatedEndorsement struct {
 	ExpiryTime  time.Time
 }
 
-// This parses an endorsement file (in JSON) and
+// ParseEndorsementFile parses an endorsement file (in JSON) and
 // produces an `Endorsement` data structure.
 func ParseEndorsementFile(path string) (*Endorsement, error) {
 	endorsementBytes, err := ioutil.ReadFile(path)
