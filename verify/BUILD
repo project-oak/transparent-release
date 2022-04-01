@@ -25,7 +25,7 @@ go_library(
         "//common:common",
         "//slsa:slsa",
     ],
-        importpath = "github.com/project-oak/transparent-release/verify",
+    importpath = "github.com/project-oak/transparent-release/verify",
 )
 
 go_test(

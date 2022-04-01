@@ -29,13 +29,14 @@ jobs:
           mv bazelisk-linux-amd64 "${GITHUB_WORKSPACE}/bin/bazel"
           chmod +x "${GITHUB_WORKSPACE}/bin/bazel"
       - name: Install mcpp #mcpp is a dependency of Souffle
-        run: sudo apt-get install -y mcpp 
-      - name: Test
-        run: |
-          "${GITHUB_WORKSPACE}/bin/bazel" test --test_output=streamed //...
+        run: sudo apt-get install -y mcpp
+
       - name: Build
         run: |
           "${GITHUB_WORKSPACE}/bin/bazel" build //...
+      - name: Test
+        run: |
+          "${GITHUB_WORKSPACE}/bin/bazel" test --test_output=streamed //...
 
   check-license-lines:
     runs-on: ubuntu-20.04
@@ -43,3 +44,12 @@ jobs:
       - uses: actions/checkout@v1
       - name: Check License Lines
         uses: kt3k/license_checker@v1.0.6
+
+  linting:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run golint
+        run: |
+          sudo apt-get install -y golint
+          ./scripts/linting.sh

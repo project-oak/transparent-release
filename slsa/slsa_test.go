@@ -19,13 +19,15 @@ import (
 	"testing"
 )
 
+const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
+
 func TestSlsaExampleProvenance(t *testing.T) {
 	// In the case of running tests bazel exposes data dependencies not in the
 	// current dir, but in the parent. Hence we need to move one level up.
 	os.Chdir("../")
 
 	// Parses the provenance and validates it against the schema.
-	provenance, err := ParseProvenanceFile(SchemaExamplePath)
+	provenance, err := ParseProvenanceFile(schemaExamplePath)
 	if err != nil {
 		t.Fatalf("Failed to parse example provenance: %v", err)
 	}

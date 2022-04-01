@@ -24,6 +24,7 @@ import (
 )
 
 const testdataPath = "../testdata/"
+const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
 
 func TestComputeBinarySha256Hash(t *testing.T) {
 	want := "56893dbba5667a305894b424c1fa58a0b51f994b117e62296fb6ee5986683856"
@@ -52,7 +53,7 @@ func TestLoadBuildConfigFromProvenance(t *testing.T) {
 	// In the case of running tests bazel exposes data dependencies not in the
 	// current dir, but in the parent. Hence we need to move one level up.
 	os.Chdir("../")
-	path := slsa.SchemaExamplePath
+	path := schemaExamplePath
 
 	provenance, err := slsa.ParseProvenanceFile(path)
 	if err != nil {

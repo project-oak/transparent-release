@@ -22,6 +22,8 @@ import (
 	"github.com/project-oak/transparent-release/slsa"
 )
 
+const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
+
 func (p provenanceBuildWrapper) identify() (Principal, error) {
 	provenance, err := slsa.ParseProvenanceFile(p.provenanceFilePath)
 	if err != nil {
@@ -46,7 +48,7 @@ func TestProvenanceBuildWrapper(t *testing.T) {
 	// be able to read the SLSA files.
 	os.Chdir("../../")
 
-	testProvenance := provenanceBuildWrapper{slsa.SchemaExamplePath}
+	testProvenance := provenanceBuildWrapper{schemaExamplePath}
 	speaker, err := testProvenance.identify()
 	if err != nil {
 		t.Fatalf("%v", err)
@@ -60,5 +62,4 @@ func TestProvenanceBuildWrapper(t *testing.T) {
 	if got != want {
 		t.Errorf("got:\n%v\nwant:\n%v\n", got, want)
 	}
-
 }
