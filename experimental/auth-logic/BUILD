@@ -145,6 +145,10 @@ go_test(
   embed = [":endorsement_wrapper"]
 )
 
+go_library(
+  name = "top_level"
+)
+
 # This rule runs the authorizaiton logic compiler on "simple.auth_logic"
 # as an input and produces the resulting souffle code and CSVs containing the 
 # results of queries. These outputs are used by "simple_auth_logic_test"

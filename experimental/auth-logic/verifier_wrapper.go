@@ -61,7 +61,10 @@ func (v verifierWrapper) EmitStatement() (UnattributedStatement, error) {
 	binaryIdentificationRule :=
 		binaryPrincipal + " canActas " + appPrincipal + " :-\n" +
 			"\t" + binaryPrincipal + " hasProvenance(" + provenancePrincipal + "),\n" +
-			"\t" + endorsementPrincipal + " canActAs \"ValidRekorEntry\",\n" +
+      // TODO: re-enable this. This is temporarily disabled to allow writing
+      // and testing the top-level function call before writing a wrapper
+      // for rekor log entries
+			// "\t" + endorsementPrincipal + " canActAs \"ValidRekorEntry\",\n" +
 			"\t" + binaryPrincipal + " has_expected_hash_from(binary_hash, " + endorsementPrincipal + "),\n" +
 			"\t" + binaryPrincipal + " has_expected_hash_from(binary_hash, " + provenancePrincipal + "),\n" +
 			"\t" + binaryPrincipal + " has_measured_hash(binary_hash).\n"
