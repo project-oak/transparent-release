@@ -128,6 +128,23 @@ go_test(
   embed = [":provenance_build_wrapper"]
 )
 
+go_library(
+  name = "endorsement_wrapper",
+  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
+  srcs = ["endorsement_wrapper.go"],
+  embed = [":wrapper_interface"]
+)
+
+go_test(
+  name = "endorsement_wrapper_test",
+  size = "small",
+  srcs = ["endorsement_wrapper_test.go"],
+  data = [
+      "//schema/amber-endorsement/v1:example.json"
+  ],
+  embed = [":endorsement_wrapper"]
+)
+
 # This rule runs the authorizaiton logic compiler on "simple.auth_logic"
 # as an input and produces the resulting souffle code and CSVs containing the 
 # results of queries. These outputs are used by "simple_auth_logic_test"
