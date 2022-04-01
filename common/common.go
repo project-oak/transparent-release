@@ -286,13 +286,16 @@ func saveToTempFile(reader io.Reader) (string, error) {
 	return tmpfile.Name(), nil
 }
 
-// FetchSourcesFromRepo fetches a repo from the given URL into '/tmp/release',
+// FetchSourcesFromRepo fetches a repo from the given URL into a temporary directory,
 // and checks out the specified commit. An instance of RepoCheckoutInfo
 // containing the absolute path to the root of the repo is returned.
 func FetchSourcesFromRepo(repoURL, commitHash string) (*RepoCheckoutInfo, error) {
 	// create a temp folder in the current directory for fetching the repo.
-	// TODO(razieh): This does not work for concurrent runs. Use a more reliable solution.
-	targetDir := "/tmp/release"
+	targetDir, err := ioutil.TempDir("", "release-*")
+	if err != nil {
+		return nil, fmt.Errorf("couldn't create temp directory: %v", err)
+	}
+	log.Printf("checking out the repo in %s.", targetDir)
 
 	if _, err := os.Stat(targetDir); !os.IsNotExist(err) {
 		// If target dir already exists remove it and its content.

@@ -62,5 +62,4 @@ func TestProvenanceBuildWrapper(t *testing.T) {
 	if got != want {
 		t.Errorf("got:\n%v\nwant:\n%v\n", got, want)
 	}
-
 }
