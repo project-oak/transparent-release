@@ -18,6 +18,8 @@ package authlogic
 
 import (
   "fmt"
+
+	"github.com/project-oak/transparent-release/slsa"
 )
 
 // Refactor these to both have short app name
@@ -29,7 +31,7 @@ func (p provenanceWrapper) identify() (Principal, error) {
 
 	applicationName := provenance.Subject[0].Name
 	return Principal{
-		Contents: fmt.Sprintf(`"%s::Provenance"`, applicationName)
+		Contents: fmt.Sprintf(`"%s::Provenance"`, applicationName),
   }, nil
 }
 
@@ -51,7 +53,7 @@ func VerifyRelease(appName string, endorsementFilePath string,
     endorsement := endorsementWrapper{endorsementFilePath: endorsementFilePath}
     endorsementShortAppName, err := endorsement.getShortAppName()
     if err != nil {
-      return false, fmt.Errorf(
+      return "", fmt.Errorf(
         "verifyRelease couldn't get endorsement app short name: %v", err)
     }
     endorsementStatement, err := EmitStatementAs(
@@ -59,7 +61,7 @@ func VerifyRelease(appName string, endorsementFilePath string,
         Contents: fmt.Sprintf("%s::EndorsementFile",
           endorsementWrapper.getShortAppName()),
       },
-      endorsement
+      endorsement,
     )
     if err != nil {
       return "", fmt.Errorf(
@@ -118,7 +120,7 @@ func VerifyRelease(appName string, endorsementFilePath string,
       provenanceStatement.String(),
       provenanceBuildStatement.String(),
       timeStatement.String(),
-      verifierStatement.String()
+      verifierStatement.String(),
     }[:], "\n"), nil
 
 }

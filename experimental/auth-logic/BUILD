@@ -91,9 +91,11 @@ go_test(
 go_library(
   name = "provenance_wrapper",
   importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
-  srcs = ["provenance_wrapper.go"],
+  srcs = [
+    "wrapper_interface.go",
+    "provenance_wrapper.go"
+  ],
   deps = ["//slsa:slsa"],
-  embed = [":wrapper_interface"]
 )
 
 go_test(
@@ -146,7 +148,21 @@ go_test(
 )
 
 go_library(
-  name = "top_level"
+  name = "top_level",
+  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
+  srcs = [
+    "wrapper_interface.go",
+    "endorsement_wrapper.go",
+    "provenance_build_wrapper.go",
+    "provenance_wrapper.go",
+    "unix_epoch_time_wrapper.go",
+    "verifier_wrapper.go",
+    "top_level.go"
+  ],
+  deps = [
+    "//slsa:slsa",
+    "//common:common",
+  ],
 )
 
 # This rule runs the authorizaiton logic compiler on "simple.auth_logic"
