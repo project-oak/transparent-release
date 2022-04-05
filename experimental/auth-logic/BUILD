@@ -67,22 +67,6 @@ go_binary(
   ]
 )
 
-go_test(
-  name = "top_level_test",
-  size = "large",
-  srcs = ["top_level_test.go"],
-  embed = [":top_level"],
-  data = [
-      "//schema/amber-slsa-buildtype/v1:example.json",
-      "//schema/amber-slsa-buildtype/v1:provenance.json",
-      "//schema/amber-endorsement/v1:example.json",
-  ],
-  deps = [
-    "//slsa:slsa",
-    "//common:common",
-  ],
-)
-
 # This rule runs the authorizaiton logic compiler on "simple.auth_logic"
 # as an input and produces the resulting souffle code and CSVs containing the 
 # results of queries. These outputs are used by "simple_auth_logic_test"
