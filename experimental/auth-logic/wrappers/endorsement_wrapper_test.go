@@ -23,7 +23,7 @@ import (
 	"testing"
 )
 
-const testEndorsementPath = "../../schema/amber-endorsement/v1/example.json"
+const testEndorsementPath = "../../../schema/amber-endorsement/v1/example.json"
 
 func TestEndorsementWrapper(t *testing.T) {
 	want := `"oak_functions_loader-0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile" says {

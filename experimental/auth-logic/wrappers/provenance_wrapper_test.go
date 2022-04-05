@@ -37,7 +37,7 @@ expected_hash("oak_functions_loader::Binary", sha256:15dc16c42a4ac9ed77f337a4a30
 	// be able to read the SLSA files.
 	os.Chdir("../../../")
 
-	testProvenance := provenanceWrapper{FilePath: schemaExamplePath}
+	testProvenance := ProvenanceWrapper{FilePath: schemaExamplePath}
 
   appName, err := GetAppNameFromProvenance(schemaExamplePath)
   if err != nil {

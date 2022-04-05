@@ -25,11 +25,11 @@ import (
 	"testing"
 )
 
-func (v verifierWrapper) identify() Principal {
+func (v VerifierWrapper) identify() Principal {
 	return Principal{Contents: fmt.Sprintf(`"%s::Verifier"`, v.AppName)}
 }
 
-const testFilePath = "test_data/verifier_wrapper_expected.auth_logic"
+const testFilePath = "../test_data/verifier_wrapper_expected.auth_logic"
 
 func TestVerifierWrapper(t *testing.T) {
 	testWrapper := VerifierWrapper{AppName: "OakFunctionsLoader"}

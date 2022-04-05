@@ -47,46 +47,26 @@ go_test(
   embed = [":wrapper_interface"],
 )
 
-go_library(
-  name = "unix_epoch_time_wrapper",
-  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic/wrappers",
+go_test(
+  name = "unix_epoch_time_wrapper_test",
+  size = "small",
   srcs = [
-    "unix_epoch_time_wrapper.go"
+    "unix_epoch_time_wrapper.go",
+    "unix_epoch_time_wrapper_test.go"
   ],
   embed = [":wrapper_interface"],
 )
 
 go_test(
-  name = "unix_epoch_time_wrapper_test",
-  size = "small",
-  srcs = ["unix_epoch_time_wrapper_test.go"],
-  embed = [":unix_epoch_time_wrapper"],
-)
-
-go_library(
-  name = "verifier_wrapper",
-  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic/wrappers",
-  srcs = ["verifier_wrapper.go"],
-  embed = [":wrapper_interface"]
-)
-
-go_test(
   name = "verifier_wrapper_test",
-  srcs = ["verifier_wrapper_test.go"],
-  embed = [":verifier_wrapper"],
+  srcs = [
+    "verifier_wrapper.go",
+    "verifier_wrapper_test.go",
+  ],
+  embed = [":wrapper_interface"],
   data = [
     "//experimental/auth-logic/test_data:verifier_wrapper_expected.auth_logic"
   ]
-)
-
-go_library(
-  name = "provenance_wrapper",
-  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic/wrappers",
-  srcs = [
-    "wrapper_interface.go",
-    "provenance_wrapper.go"
-  ],
-  deps = ["//slsa:slsa"],
 )
 
 go_test(
@@ -102,14 +82,6 @@ go_test(
       "//schema/amber-slsa-buildtype/v1:example.json"
   ],
   deps = ["//slsa:slsa"],
-)
-
-go_library(
-  name = "provenance_build_wrapper",
-  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic/wrappers",
-  srcs = ["provenance_build_wrapper.go"],
-  deps = ["//slsa:slsa", "//common:common"],
-  embed = [":wrapper_interface"]
 )
 
 go_test(
@@ -128,19 +100,15 @@ go_test(
   deps = ["//slsa:slsa", "//common:common"],
 )
 
-go_library(
-  name = "endorsement_wrapper",
-  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
-  srcs = ["endorsement_wrapper.go"],
-  embed = [":wrapper_interface"]
-)
-
 go_test(
   name = "endorsement_wrapper_test",
   size = "small",
-  srcs = ["endorsement_wrapper_test.go"],
+  srcs = [
+    "endorsement_wrapper.go",
+    "endorsement_wrapper_test.go"
+  ],
   data = [
       "//schema/amber-endorsement/v1:example.json"
   ],
-  embed = [":endorsement_wrapper"]
+  embed = [":wrapper_interface"]
 )
