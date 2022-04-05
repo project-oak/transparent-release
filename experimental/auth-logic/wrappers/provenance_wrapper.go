@@ -27,8 +27,13 @@ import (
 	"github.com/project-oak/transparent-release/slsa"
 )
 
+// ProvenanceWrapper is a wrapper that parses a provenance file
+// and emits an authorization logic statement with the expected
+// hash for the application.
 type ProvenanceWrapper struct{ FilePath string }
 
+// EmitStatement implements the wrapper interface for ProvenanceWrapper
+// by emitting the authorization logic statement.
 func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 	provenance, err := slsa.ParseProvenanceFile(p.FilePath)
 	if err != nil {
@@ -53,6 +58,9 @@ func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 			expectedHash)}, nil
 }
 
+// GetAppNameFromProvenance parses a provenance file and emits the name of the
+// application it is about. This is useful for generating principal names,
+// for example.
 func GetAppNameFromProvenance(provenanceFilePath string) (string, error) {
 	provenance, provenanceErr := slsa.ParseProvenanceFile(provenanceFilePath)
 	if provenanceErr != nil {

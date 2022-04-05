@@ -31,10 +31,14 @@ const (
 	rekorLogCheckDelegation        = "\"RekorLogCheck\" canSay some_object canActAs \"ValidRekorEntry\".\n"
 )
 
+// VerifierWrapper is a wrapper that emits an authorization logic statement
+// for a named application that includes all the requirements that the 
+// transparent release verifiers should check for; it ties all the evidence
+// together and specifies the requirement for accepting a hash.
 type VerifierWrapper struct{ AppName string }
 
-// This produces the policy code for checking if a binary can act as an
-// application by aggregating all the evidence from the other parties.
+// EmitStatement implements the wrapper interface for VerifierWrapper by
+// emitting the authorization logic statement.
 func (v VerifierWrapper) EmitStatement() (UnattributedStatement, error) {
 	// TODO(#39) consider using a [template](https://pkg.go.dev/text/template) to implement this.
 	endorsementPrincipal := fmt.Sprintf(`"%s::EndorsementFile"`, v.AppName)

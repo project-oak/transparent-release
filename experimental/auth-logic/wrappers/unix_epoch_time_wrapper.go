@@ -28,7 +28,7 @@ import (
 // epoch](https://en.wikipedia.org/wiki/Unix_time).
 
 // UnixEpochTime is a wrapper that emits an authorization
-// logic statement about the current time in unix epoch nanosecons
+// logic statement about the current time in unix epoch nanoseconds.
 type UnixEpochTime struct{}
 
 // EmitStatement emits an authorization logic statement about

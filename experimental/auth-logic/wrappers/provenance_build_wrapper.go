@@ -25,8 +25,14 @@ import (
 	"github.com/project-oak/transparent-release/slsa"
 )
 
+// ProvenanceBuildWrapper is a wrapper that parses a provenance file,
+// uses this to build a binary, generates a hash of the binary, and
+// generates an authorization logic statement that links the measured
+// hash to the provenance file.
 type ProvenanceBuildWrapper struct{ ProvenanceFilePath string }
 
+// EmitStatement implements the Wrapper interface for ProvenanceBuildWrapper
+// by emitting the authorization logic statement.
 func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error) {
 	// Unmarshal a provenance struct from the JSON file.
 	provenance, err := slsa.ParseProvenanceFile(pbw.ProvenanceFilePath)

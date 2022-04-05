@@ -25,6 +25,8 @@ import (
 	"time"
 )
 
+// EndorsementWrapper is a wrapper that emits an authorization logic
+// statement based on the contents of an endorsement file in parses.
 type EndorsementWrapper struct{ EndorsementFilePath string }
 
 // Endorsement is a struct for holding data parsed from
@@ -132,6 +134,8 @@ func (endorsement Endorsement) GenerateValidatedEndorsement() (ValidatedEndorsem
 
 }
 
+// EmitStatement implements the Wrapper interface for EndorsementWrapper
+// by producing the authorization logic statement.
 func (ew EndorsementWrapper) EmitStatement() (UnattributedStatement, error) {
 	endorsement, err := ParseEndorsementFile(ew.EndorsementFilePath)
 	if err != nil {
@@ -169,6 +173,9 @@ func (ew EndorsementWrapper) EmitStatement() (UnattributedStatement, error) {
 	}, nil
 }
 
+// GetAppNameFromEndorsement parses an endorsement file and returns the name
+// of the application it is about as a string. This is useful for principal 
+// names, for example.
 func GetAppNameFromEndorsement(endorsementFilePath string) (string, error) {
   endorsement, err := ParseEndorsementFile(endorsementFilePath)
   if err != nil {
