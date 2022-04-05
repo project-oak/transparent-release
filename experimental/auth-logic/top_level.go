@@ -12,93 +12,94 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main 
+package main
 
 import (
-  "fmt"
-  "strings"
-  "github.com/project-oak/transparent-release/experimental/auth-logic/wrappers"
+	"fmt"
+	"github.com/project-oak/transparent-release/experimental/auth-logic/wrappers"
+	"strings"
 )
 
-func VerifyRelease(appName string, endorsementFilePath string, 
-  provenanceFilePath string) (string, error) {
+func VerifyRelease(appName string, endorsementFilePath string,
+	provenanceFilePath string) (string, error) {
 
-    endorsementAppName, err := wrappers.GetAppNameFromEndorsement(endorsementFilePath)
-    if err != nil {
-      fmt.Errorf("couldn't get name from endorsement file: %s, error: %v",
-        endorsementFilePath, err)
-    }
-    endorsement := wrappers.EndorsementWrapper{
-      EndorsementFilePath: endorsementFilePath,
-    }
-    endorsementStatement, err := wrappers.EmitStatementAs(
-      wrappers.Principal{
-        Contents: fmt.Sprintf("%s::EndorsementFile", endorsementAppName),
-      },
-      endorsement,
-    )
-    if err != nil {
-      return "", fmt.Errorf(
-        "verifyRelease encountered error getting endorsement statement: %v", err)
-    }
+	endorsementAppName, err := wrappers.GetAppNameFromEndorsement(endorsementFilePath)
+	if err != nil {
+		fmt.Errorf("couldn't get name from endorsement file: %s, error: %v",
+			endorsementFilePath, err)
+	}
+	endorsementStatement, err := wrappers.EmitStatementAs(
+		wrappers.Principal{
+			Contents: fmt.Sprintf("%s::EndorsementFile", endorsementAppName),
+		},
+		wrappers.EndorsementWrapper{
+			EndorsementFilePath: endorsementFilePath,
+		},
+	)
+	if err != nil {
+		return "", fmt.Errorf(
+			"verifyRelease encountered error getting endorsement statement: %v", err)
+	}
 
-    provenanceAppName, err := wrappers.GetAppNameFromProvenance(provenanceFilePath)
-    if err != nil {
-      return "", fmt.Errorf(
-        "verifyRelease couldn't get app name in provenance file: %v", err)
-    }
+	provenanceAppName, err := wrappers.GetAppNameFromProvenance(provenanceFilePath)
+	if err != nil {
+		return "", fmt.Errorf(
+			"verifyRelease couldn't get app name in provenance file: %v", err)
+	}
 
-    provenance := wrappers.ProvenanceWrapper{FilePath: provenanceFilePath}
-    provenancePrincipal := wrappers.Principal{
-		  Contents: fmt.Sprintf(`"%s::Provenance"`, provenanceAppName),
-    }
-    provenanceStatement, err := wrappers.EmitStatementAs(
-      provenancePrincipal, provenance)
-    if err != nil {
-      return "", fmt.Errorf(
-        "verifyRelease couldn't get provenance statement: %v", err)
-    }
+	provenanceStatement, err := wrappers.EmitStatementAs(
+		wrappers.Principal{
+			Contents: fmt.Sprintf(`"%s::Provenance"`, provenanceAppName),
+		},
+		wrappers.ProvenanceWrapper{FilePath: provenanceFilePath},
+	)
+	if err != nil {
+		return "", fmt.Errorf(
+			"verifyRelease couldn't get provenance statement: %v", err)
+	}
 
-    provenanceBuild := wrappers.ProvenanceBuildWrapper{
-      ProvenanceFilePath: provenanceFilePath,
-    }
-    provenanceBuildPrincipal := wrappers.Principal{
-		  Contents: fmt.Sprintf(`"%s::ProvenanceBuilder"`, provenanceAppName),
-    }
-    provenanceBuildStatement, err := wrappers.EmitStatementAs(
-      provenanceBuildPrincipal, provenanceBuild)
-    if err != nil {
-      return "", fmt.Errorf(
-        "verifyRelease couldn't get provenance builder statement: %v", err)
-    }
+	provenanceBuildStatement, err := wrappers.EmitStatementAs(
+		wrappers.Principal{
+			Contents: fmt.Sprintf(`"%s::ProvenanceBuilder"`, provenanceAppName),
+		},
+		wrappers.ProvenanceBuildWrapper{
+			ProvenanceFilePath: provenanceFilePath,
+		},
+	)
+	if err != nil {
+		return "", fmt.Errorf(
+			"verifyRelease couldn't get provenance builder statement: %v", err)
+	}
 
-    verifier := wrappers.VerifierWrapper{AppName: appName}
-    verifierStatement, err := wrappers.EmitStatementAs(
-	    wrappers.Principal{
-        Contents: fmt.Sprintf(`"%s::Verifier"`, verifier.AppName),
-      }, verifier)
-    if err != nil {
-      return "", fmt.Errorf(
-        "verifyRelease encountered error getting verifier statement: %v", err)
-    }
+	verifierStatement, err := wrappers.EmitStatementAs(
+		wrappers.Principal{
+			Contents: fmt.Sprintf(`"%s::Verifier"`, appName),
+		},
+		wrappers.VerifierWrapper{AppName: appName},
+	)
+	if err != nil {
+		return "", fmt.Errorf(
+			"verifyRelease encountered error getting verifier statement: %v", err)
+	}
 
-    // It's useful to run this one last because this one emits the current
-    // time, and doing this one last reduces the error between the time
-    // the statement is generated and the time it is used.
-    timeStatement, err := wrappers.EmitStatementAs(
-      wrappers.Principal{Contents: "UnixEpochTime"},
-      wrappers.UnixEpochTime{})
-    if err != nil {
-      return "", fmt.Errorf(
-        "verifyRelease encountered error getting time statement: %v", err)
-    }
+	// It's useful to run this one last because this one emits the current
+	// time, and doing this one last reduces the error between the time
+	// the statement is generated and the time it is used.
+	timeStatement, err := wrappers.EmitStatementAs(
+		wrappers.Principal{Contents: "UnixEpochTime"},
+		wrappers.UnixEpochTime{},
+	)
+	if err != nil {
+		return "", fmt.Errorf(
+			"verifyRelease encountered error getting time statement: %v", err)
+	}
 
-    return strings.Join([]string{
-      endorsementStatement.String(),
-      provenanceStatement.String(),
-      provenanceBuildStatement.String(),
-      timeStatement.String(),
-      verifierStatement.String(),
-    }[:], "\n"), nil
+	return strings.Join([]string{
+		endorsementStatement.String(),
+		provenanceStatement.String(),
+		provenanceBuildStatement.String(),
+		timeStatement.String(),
+		verifierStatement.String(),
+	}[:], "\n"), nil
 
 }

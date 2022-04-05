@@ -15,21 +15,21 @@
 package main
 
 import (
-  "fmt"
-  "os"
+	"fmt"
+	"os"
 )
 
 func main() {
 
-  appName := os.Args[1]
-  endorsementFilePath := os.Args[2]
-  provenanceFilePath := os.Args[3]
+	appName := os.Args[1]
+	endorsementFilePath := os.Args[2]
+	provenanceFilePath := os.Args[3]
 
-  out, err := VerifyRelease(appName, endorsementFilePath, provenanceFilePath)
-  if err != nil {
-    panic(fmt.Errorf("Couldn't verify release because of error: %v", err))
-  }
+	out, err := VerifyRelease(appName, endorsementFilePath, provenanceFilePath)
+	if err != nil {
+		panic(fmt.Errorf("Couldn't verify release because of error: %v", err))
+	}
 
-  fmt.Println(out)
+	fmt.Println(out)
 
 }
