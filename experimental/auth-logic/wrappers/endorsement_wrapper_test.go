@@ -12,7 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package authlogic
+// Package wrappers contains an interface for writing wrappers that consume
+// data from a source and emit authorization logic that corresponds to the
+// consumed data. It also contains the wrappers used for the transparent
+// release verification process.
+package wrappers
 
 import (
 	"fmt"
@@ -29,21 +33,16 @@ func TestEndorsementWrapper(t *testing.T) {
 
 }`
 
-	testEndorsementWrapper := endorsementWrapper{
-		endorsementFilePath: testEndorsementPath,
+	testEndorsementWrapper := EndorsementWrapper{
+		EndorsementFilePath: testEndorsementPath,
 	}
 
-	endorsement, err := ParseEndorsementFile(testEndorsementPath)
-	if err != nil {
-		t.Fatalf("couldn't parse endorsement file: %s error: %v",
-			testEndorsementPath, err)
-	}
-	validEndorsement, err := endorsement.GenerateValidatedEndorsement()
-	if err != nil {
-		t.Fatalf("couldn't validate endorsement struct: %v error: %v",
-			endorsement, err)
-	}
-	speaker := fmt.Sprintf(`"%s::EndorsementFile"`, validEndorsement.Name)
+  endorsementAppName, err := GetAppNameFromEndorsement(testEndorsementPath)
+  if err != nil {
+    t.Fatalf("couldn't get name from endorsement file: %s, error: %v",
+      testEndorsementPath, err)
+  }
+	speaker := fmt.Sprintf(`"%s::EndorsementFile"`, endorsementAppName)
 
 	statement, err := EmitStatementAs(Principal{Contents: speaker},
 		testEndorsementWrapper)

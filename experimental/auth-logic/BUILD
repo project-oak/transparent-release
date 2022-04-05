@@ -1,4 +1,5 @@
-#
+
+
 # Copyright 2022 The Project Oak Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -41,123 +42,40 @@ go_test(
 )
 
 go_library(
-  name = "wrapper_interface",
-  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
-  srcs = [
-    "wrapper_interface.go",
-  ],
-)
-
-go_test(
-  name = "wrapper_interface_test",
-  size = "small",
-  srcs = ["wrapper_interface_test.go"],
-  embed = [":wrapper_interface"],
-)
-
-go_library(
-  name = "unix_epoch_time_wrapper",
-  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
-  srcs = [
-    "unix_epoch_time_wrapper.go"
-  ],
-  embed = [":wrapper_interface"],
-)
-
-go_test(
-  name = "unix_epoch_time_wrapper_test",
-  size = "small",
-  srcs = ["unix_epoch_time_wrapper_test.go"],
-  embed = [":unix_epoch_time_wrapper"],
-)
-
-go_library(
-  name = "verifier_wrapper",
-  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
-  srcs = ["verifier_wrapper.go"],
-  embed = [":wrapper_interface"]
-)
-
-go_test(
-  name = "verifier_wrapper_test",
-  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
-  srcs = ["verifier_wrapper_test.go"],
-  embed = [":verifier_wrapper"],
-  data = [
-    "//experimental/auth-logic/test_data:verifier_wrapper_expected.auth_logic"
-  ]
-)
-
-go_library(
-  name = "provenance_wrapper",
-  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
-  srcs = [
-    "wrapper_interface.go",
-    "provenance_wrapper.go"
-  ],
-  deps = ["//slsa:slsa"],
-)
-
-go_test(
-  name = "provenance_wrapper_test",
-  size = "small",
-  srcs = ["provenance_wrapper_test.go"],
-  data = [
-      "//schema/amber-slsa-buildtype/v1:provenance.json",
-      "//schema/amber-slsa-buildtype/v1:example.json"
-  ],
-  deps = ["//slsa:slsa"],
-  embed = [":provenance_wrapper"]
-)
-
-go_library(
-  name = "provenance_build_wrapper",
-  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
-  srcs = ["provenance_build_wrapper.go"],
-  deps = ["//slsa:slsa", "//common:common"],
-  embed = [":wrapper_interface"]
-)
-
-go_test(
-  name = "provenance_build_wrapper_test",
-  size = "large",
-  srcs = ["provenance_build_wrapper_test.go"],
-  data = [
-      "//schema/amber-slsa-buildtype/v1:provenance.json",
-      "//schema/amber-slsa-buildtype/v1:example.json"
-  ],
-  deps = ["//slsa:slsa", "//common:common"],
-  embed = [":provenance_build_wrapper"]
-)
-
-go_library(
-  name = "endorsement_wrapper",
-  importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
-  srcs = ["endorsement_wrapper.go"],
-  embed = [":wrapper_interface"]
-)
-
-go_test(
-  name = "endorsement_wrapper_test",
-  size = "small",
-  srcs = ["endorsement_wrapper_test.go"],
-  data = [
-      "//schema/amber-endorsement/v1:example.json"
-  ],
-  embed = [":endorsement_wrapper"]
-)
-
-go_library(
   name = "top_level",
   importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
   srcs = [
-    "wrapper_interface.go",
-    "endorsement_wrapper.go",
-    "provenance_build_wrapper.go",
-    "provenance_wrapper.go",
-    "unix_epoch_time_wrapper.go",
-    "verifier_wrapper.go",
     "top_level.go"
+  ],
+  deps = [
+    "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
+    "//slsa:slsa",
+    "//common:common",
+  ],
+)
+
+go_binary(
+  name = "auth_logic_verification",
+  srcs = [
+    "top_level.go",
+    "main.go",
+  ],
+  deps = [
+    "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
+    "//slsa:slsa",
+    "//common:common",
+  ]
+)
+
+go_test(
+  name = "top_level_test",
+  size = "large",
+  srcs = ["top_level_test.go"],
+  embed = [":top_level"],
+  data = [
+      "//schema/amber-slsa-buildtype/v1:example.json",
+      "//schema/amber-slsa-buildtype/v1:provenance.json",
+      "//schema/amber-endorsement/v1:example.json",
   ],
   deps = [
     "//slsa:slsa",

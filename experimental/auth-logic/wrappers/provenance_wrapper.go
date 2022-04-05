@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package authlogic contains logic and tests for interfacing with the
-// authorization logic compiler
-package authlogic
+// Package wrappers contains an interface for writing wrappers that consume
+// data from a source and emit authorization logic that corresponds to the
+// consumed data. It also contains the wrappers used for the transparent
+// release verification process.
+package wrappers
 
 // This file contains a wrapper for provenance files. It produces a statement
 // about the expected hash for the binary.
@@ -25,10 +27,10 @@ import (
 	"github.com/project-oak/transparent-release/slsa"
 )
 
-type provenanceWrapper struct{ filePath string }
+type ProvenanceWrapper struct{ FilePath string }
 
-func (p provenanceWrapper) EmitStatement() (UnattributedStatement, error) {
-	provenance, err := slsa.ParseProvenanceFile(p.filePath)
+func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
+	provenance, err := slsa.ParseProvenanceFile(p.FilePath)
 	if err != nil {
 		return UnattributedStatement{}, fmt.Errorf(
 			"provenance wrapper couldn't prase provenance file: %v", err)
@@ -49,4 +51,17 @@ func (p provenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 	return UnattributedStatement{
 		Contents: fmt.Sprintf(`expected_hash("%s::Binary", sha256:%s).`, applicationName,
 			expectedHash)}, nil
+}
+
+func GetAppNameFromProvenance(provenanceFilePath string) (string, error) {
+	provenance, provenanceErr := slsa.ParseProvenanceFile(provenanceFilePath)
+	if provenanceErr != nil {
+		return "", provenanceErr
+	}
+	
+  if len(provenance.Subject) < 1 {
+		return "", fmt.Errorf("Provenance file missing subject")
+	}
+
+	return provenance.Subject[0].Name, nil
 }

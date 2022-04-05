@@ -12,30 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package authlogic contains logic and tests for interfacing with the
-// authorization logic compiler
-package authlogic
+// Package wrappers contains an interface for writing wrappers that consume
+// data from a source and emit authorization logic that corresponds to the
+// consumed data. It also contains the wrappers used for the transparent
+// release verification process.
+package wrappers
 
 import (
 	"fmt"
 	"os"
 	"testing"
-
-	"github.com/project-oak/transparent-release/slsa"
 )
 
 const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
-
-func (p provenanceWrapper) identify() (Principal, error) {
-	provenance, provenanceErr := slsa.ParseProvenanceFile(p.filePath)
-	if provenanceErr != nil {
-		return Principal{}, provenanceErr
-	}
-
-	applicationName := provenance.Subject[0].Name
-	return Principal{
-		Contents: fmt.Sprintf(`"%s::Provenance"`, applicationName)}, nil
-}
 
 func TestProvenanceWrapper(t *testing.T) {
 	want := `"oak_functions_loader::Provenance" says {
@@ -46,13 +35,17 @@ expected_hash("oak_functions_loader::Binary", sha256:15dc16c42a4ac9ed77f337a4a30
 	// the directory structure of the WORKSPACE, so we need to change
 	// to the root directory of the transparent-release project to
 	// be able to read the SLSA files.
-	os.Chdir("../../")
+	os.Chdir("../../../")
 
-	testProvenance := provenanceWrapper{filePath: schemaExamplePath}
-	speaker, err := testProvenance.identify()
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
+	testProvenance := provenanceWrapper{FilePath: schemaExamplePath}
+
+  appName, err := GetAppNameFromProvenance(schemaExamplePath)
+  if err != nil {
+    t.Fatalf("couldn't get app name from provenance file: %s, error: %v",
+      schemaExamplePath, err)
+  }
+  speaker := Principal{Contents: fmt.Sprintf(`"%s::Provenance"`, appName)}
+
 	statement, err := EmitStatementAs(speaker, testProvenance)
 	if err != nil {
 		t.Fatalf("%v", err)

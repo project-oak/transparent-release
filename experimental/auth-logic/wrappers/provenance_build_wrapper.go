@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package authlogic contains logic and tests for interfacing with the
-// authorization logic compiler
-package authlogic
+// Package wrappers contains an interface for writing wrappers that consume
+// data from a source and emit authorization logic that corresponds to the
+// consumed data. It also contains the wrappers used for the transparent
+// release verification process.
+package wrappers
 
 import (
 	"fmt"
@@ -23,11 +25,11 @@ import (
 	"github.com/project-oak/transparent-release/slsa"
 )
 
-type provenanceBuildWrapper struct{ provenanceFilePath string }
+type ProvenanceBuildWrapper struct{ ProvenanceFilePath string }
 
-func (pbw provenanceBuildWrapper) EmitStatement() (UnattributedStatement, error) {
+func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error) {
 	// Unmarshal a provenance struct from the JSON file.
-	provenance, err := slsa.ParseProvenanceFile(pbw.provenanceFilePath)
+	provenance, err := slsa.ParseProvenanceFile(pbw.ProvenanceFilePath)
 	if err != nil {
 		return UnattributedStatement{},
 			fmt.Errorf("provenance build wrapper couldn't parse provenance file: %v", err)

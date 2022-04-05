@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package authlogic contains logic and tests for interfacing with the
-// authorization logic compiler
-package authlogic
+// Package wrappers contains an interface for writing wrappers that consume
+// data from a source and emit authorization logic that corresponds to the
+// consumed data. It also contains the wrappers used for the transparent
+// release verification process.
+package wrappers
 
 import (
 	"regexp"

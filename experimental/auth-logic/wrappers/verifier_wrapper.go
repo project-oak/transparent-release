@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package authlogic contains logic and tests for interfacing with the
-// authorization logic compiler
-package authlogic
+// Package wrappers contains an interface for writing wrappers that consume
+// data from a source and emit authorization logic that corresponds to the
+// consumed data. It also contains the wrappers used for the transparent
+// release verification process.
+package wrappers
 
 import (
 	"fmt"
@@ -29,16 +31,16 @@ const (
 	rekorLogCheckDelegation        = "\"RekorLogCheck\" canSay some_object canActAs \"ValidRekorEntry\".\n"
 )
 
-type verifierWrapper struct{ appName string }
+type VerifierWrapper struct{ AppName string }
 
 // This produces the policy code for checking if a binary can act as an
 // application by aggregating all the evidence from the other parties.
-func (v verifierWrapper) EmitStatement() (UnattributedStatement, error) {
+func (v VerifierWrapper) EmitStatement() (UnattributedStatement, error) {
 	// TODO(#39) consider using a [template](https://pkg.go.dev/text/template) to implement this.
-	endorsementPrincipal := fmt.Sprintf(`"%s::EndorsementFile"`, v.appName)
-	provenancePrincipal := fmt.Sprintf(`"%s::Provenance"`, v.appName)
-	binaryPrincipal := fmt.Sprintf(`"%s::Binary"`, v.appName)
-	appPrincipal := fmt.Sprintf(`"%s"`, v.appName)
+	endorsementPrincipal := fmt.Sprintf(`"%s::EndorsementFile"`, v.AppName)
+	provenancePrincipal := fmt.Sprintf(`"%s::Provenance"`, v.AppName)
+	binaryPrincipal := fmt.Sprintf(`"%s::Binary"`, v.AppName)
+	appPrincipal := fmt.Sprintf(`"%s"`, v.AppName)
 
 	// The verifier needs to import expected hashes from both the endorsement
 	// and provenance files. If we use the same predicate to represent both of

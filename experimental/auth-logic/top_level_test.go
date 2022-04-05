@@ -18,20 +18,27 @@ package authlogic
 
 import (
   "testing"
-	
-  "github.com/project-oak/transparent-release/slsa"
+  "os"
 )
 
-const testEndorsementPath = "../../schema/amber-endorsement/v1/example.json"
-const testProvenancePath = slsa.SchemaExamplePath
+const testEndorsementPath = "schema/amber-endorsement/v1/example.json"
+const testProvenancePath = "schema/amber-slsa-buildtype/v1/example.json"
 
 func TestVerifyRelease(t *testing.T) {
+
+	// When running tests, bazel exposes data dependencies relative to
+	// the directory structure of the WORKSPACE, so we need to change
+	// to the root directory of the transparent-release project to
+	// be able to read the SLSA files. The path of the provenance
+  // file schema is also hard-coded in the library for parsing provenance
+  // files, so this can't be adjusted by changing the argument paths
+	os.Chdir("../../")
+
   got, err := VerifyRelease("oak_functions_loader",
     testEndorsementPath, testProvenancePath)
   if err != nil {
     t.Fatalf("verifying release encountered error: %v", err)
   }
-  want = ""
   if got != want {
     t.Errorf("got:\n%v\nwant:\n%v", got, want)
   }

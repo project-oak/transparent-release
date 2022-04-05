@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package authlogic contains logic and tests for interfacing with the
-// authorization logic compiler
-package authlogic
+// Package wrappers contains an interface for writing wrappers that consume
+// data from a source and emit authorization logic that corresponds to the
+// consumed data. It also contains the wrappers used for the transparent
+// release verification process.
+package wrappers
 
 import (
 	"encoding/json"
@@ -23,7 +25,7 @@ import (
 	"time"
 )
 
-type endorsementWrapper struct{ endorsementFilePath string }
+type EndorsementWrapper struct{ EndorsementFilePath string }
 
 // Endorsement is a struct for holding data parsed from
 // endorsement files which are JSON
@@ -130,8 +132,8 @@ func (endorsement Endorsement) GenerateValidatedEndorsement() (ValidatedEndorsem
 
 }
 
-func (ew endorsementWrapper) EmitStatement() (UnattributedStatement, error) {
-	endorsement, err := ParseEndorsementFile(ew.endorsementFilePath)
+func (ew EndorsementWrapper) EmitStatement() (UnattributedStatement, error) {
+	endorsement, err := ParseEndorsementFile(ew.EndorsementFilePath)
 	if err != nil {
 		return UnattributedStatement{},
 			fmt.Errorf("Endorsement file wrapper couldn't parse file: %v", err)
@@ -165,4 +167,21 @@ func (ew endorsementWrapper) EmitStatement() (UnattributedStatement, error) {
 	return UnattributedStatement{
 		Contents: hashRule + timeDelegation,
 	}, nil
+}
+
+func GetAppNameFromEndorsement(endorsementFilePath string) (string, error) {
+  endorsement, err := ParseEndorsementFile(endorsementFilePath)
+  if err != nil {
+    return "", fmt.Errorf(
+      "couldn't prase endorsement file: %s, error: %v", 
+      endorsementFilePath, err)
+  }
+
+  validatedEndorsement, err := endorsement.GenerateValidatedEndorsement()
+  if err != nil {
+    return "", fmt.Errorf(
+      "couldn't validate endorsement: %v", err)
+  }
+
+  return validatedEndorsement.Name, nil
 }

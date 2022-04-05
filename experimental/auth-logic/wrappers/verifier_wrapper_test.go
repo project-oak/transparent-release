@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package authlogic contains logic and tests for interfacing with the
-// authorization logic compiler
-package authlogic
+// Package wrappers contains an interface for writing wrappers that consume
+// data from a source and emit authorization logic that corresponds to the
+// consumed data. It also contains the wrappers used for the transparent
+// release verification process.
+package wrappers
 
 import (
 	"fmt"
@@ -24,13 +26,13 @@ import (
 )
 
 func (v verifierWrapper) identify() Principal {
-	return Principal{Contents: fmt.Sprintf(`"%s::Verifier"`, v.appName)}
+	return Principal{Contents: fmt.Sprintf(`"%s::Verifier"`, v.AppName)}
 }
 
 const testFilePath = "test_data/verifier_wrapper_expected.auth_logic"
 
 func TestVerifierWrapper(t *testing.T) {
-	testWrapper := verifierWrapper{appName: "OakFunctionsLoader"}
+	testWrapper := VerifierWrapper{AppName: "OakFunctionsLoader"}
 	statement, err := EmitStatementAs(testWrapper.identify(), testWrapper)
 	if err != nil {
 		t.Fatalf("%v", err)
