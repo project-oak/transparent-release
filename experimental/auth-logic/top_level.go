@@ -20,6 +20,12 @@ import (
 	"strings"
 )
 
+const relationDeclarations =
+  ".decl attribute has_expected_hash_from(hash : Sha256Hash, expecter : Principal)\n" +
+  ".decl attribute has_measured_hash(hash : Sha256Hash)\n" +
+  ".decl attribute hasProvenance(provenance : Principal)\n" +
+  ".decl RealTimeIs(time : Number)\n"
+
 func VerifyRelease(appName string, endorsementFilePath string,
 	provenanceFilePath string) (string, error) {
 
@@ -30,7 +36,7 @@ func VerifyRelease(appName string, endorsementFilePath string,
 	}
 	endorsementStatement, err := wrappers.EmitStatementAs(
 		wrappers.Principal{
-			Contents: fmt.Sprintf("%s::EndorsementFile", endorsementAppName),
+			Contents: fmt.Sprintf(`"%s::EndorsementFile"`, endorsementAppName),
 		},
 		wrappers.EndorsementWrapper{
 			EndorsementFilePath: endorsementFilePath,
@@ -71,22 +77,27 @@ func VerifyRelease(appName string, endorsementFilePath string,
 			"verifyRelease couldn't get provenance builder statement: %v", err)
 	}
 
-	verifierStatement, err := wrappers.EmitStatementAs(
-		wrappers.Principal{
+  // verifierPrincipal is reused in the query definition as well
+  verifierPrincipal := wrappers.Principal{
 			Contents: fmt.Sprintf(`"%s::Verifier"`, appName),
-		},
+  }
+	verifierStatement, err := wrappers.EmitStatementAs(
+    verifierPrincipal,
 		wrappers.VerifierWrapper{AppName: appName},
 	)
 	if err != nil {
 		return "", fmt.Errorf(
 			"verifyRelease encountered error getting verifier statement: %v", err)
 	}
+  
+  topLevelQuery := "verification_success = query " + verifierPrincipal.String() +
+    " says \"" + appName + "::Binary\" canActAs " + appName + "?"
 
 	// It's useful to run this one last because this one emits the current
 	// time, and doing this one last reduces the error between the time
 	// the statement is generated and the time it is used.
 	timeStatement, err := wrappers.EmitStatementAs(
-		wrappers.Principal{Contents: "UnixEpochTime"},
+		wrappers.Principal{Contents: `"UnixEpochTime"`},
 		wrappers.UnixEpochTime{},
 	)
 	if err != nil {
@@ -95,11 +106,13 @@ func VerifyRelease(appName string, endorsementFilePath string,
 	}
 
 	return strings.Join([]string{
+    relationDeclarations,
 		endorsementStatement.String(),
 		provenanceStatement.String(),
 		provenanceBuildStatement.String(),
 		timeStatement.String(),
 		verifierStatement.String(),
+    topLevelQuery,
 	}[:], "\n"), nil
 
 }

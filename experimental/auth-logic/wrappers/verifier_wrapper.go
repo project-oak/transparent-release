@@ -32,7 +32,7 @@ const (
 )
 
 // VerifierWrapper is a wrapper that emits an authorization logic statement
-// for a named application that includes all the requirements that the 
+// for a named application that includes all the requirements that the
 // transparent release verifiers should check for; it ties all the evidence
 // together and specifies the requirement for accepting a hash.
 type VerifierWrapper struct{ AppName string }
@@ -53,7 +53,7 @@ func (v VerifierWrapper) EmitStatement() (UnattributedStatement, error) {
 	// used `Binary has_expected_hash(<hash>)` and the verifier delegates this
 	// predicate to both the endorsement file and the provenance file, we cannot
 	// write a policy that looks for the same predicate from both. To work around
-	// this we had a second argument to the predicate to track the original
+	// this we add a second argument to the predicate to track the original
 	// speaker.
 
 	endorsementHashDelegation :=
@@ -65,11 +65,11 @@ func (v VerifierWrapper) EmitStatement() (UnattributedStatement, error) {
 			provenancePrincipal, binaryPrincipal, provenancePrincipal)
 
 	binaryIdentificationRule :=
-		binaryPrincipal + " canActas " + appPrincipal + " :-\n" +
+		binaryPrincipal + " canActAs " + appPrincipal + " :-\n" +
 			"\t" + binaryPrincipal + " hasProvenance(" + provenancePrincipal + "),\n" +
-      // TODO: re-enable this. This is temporarily disabled to allow writing
-      // and testing the top-level function call before writing a wrapper
-      // for rekor log entries
+			// TODO: re-enable this. This is temporarily disabled to allow writing
+			// and testing the top-level function call before writing a wrapper
+			// for rekor log entries
 			// "\t" + endorsementPrincipal + " canActAs \"ValidRekorEntry\",\n" +
 			"\t" + binaryPrincipal + " has_expected_hash_from(binary_hash, " + endorsementPrincipal + "),\n" +
 			"\t" + binaryPrincipal + " has_expected_hash_from(binary_hash, " + provenancePrincipal + "),\n" +

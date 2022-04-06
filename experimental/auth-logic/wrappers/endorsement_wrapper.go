@@ -174,21 +174,21 @@ func (ew EndorsementWrapper) EmitStatement() (UnattributedStatement, error) {
 }
 
 // GetAppNameFromEndorsement parses an endorsement file and returns the name
-// of the application it is about as a string. This is useful for principal 
+// of the application it is about as a string. This is useful for principal
 // names, for example.
 func GetAppNameFromEndorsement(endorsementFilePath string) (string, error) {
-  endorsement, err := ParseEndorsementFile(endorsementFilePath)
-  if err != nil {
-    return "", fmt.Errorf(
-      "couldn't prase endorsement file: %s, error: %v", 
-      endorsementFilePath, err)
-  }
+	endorsement, err := ParseEndorsementFile(endorsementFilePath)
+	if err != nil {
+		return "", fmt.Errorf(
+			"couldn't prase endorsement file: %s, error: %v",
+			endorsementFilePath, err)
+	}
 
-  validatedEndorsement, err := endorsement.GenerateValidatedEndorsement()
-  if err != nil {
-    return "", fmt.Errorf(
-      "couldn't validate endorsement: %v", err)
-  }
+	validatedEndorsement, err := endorsement.GenerateValidatedEndorsement()
+	if err != nil {
+		return "", fmt.Errorf(
+			"couldn't validate endorsement: %v", err)
+	}
 
-  return validatedEndorsement.Name, nil
+	return validatedEndorsement.Name, nil
 }

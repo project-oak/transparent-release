@@ -24,12 +24,43 @@ func main() {
 	appName := os.Args[1]
 	endorsementFilePath := os.Args[2]
 	provenanceFilePath := os.Args[3]
+  outputFilePath := os.Args[4]
+
+  // Part of the code for building a project using provenance
+  // files changes the working directory. This binary needs to keep
+  // the working directory as-is, so the old working directory is saved
+  // before running VerifyRelease.
+  oldWorkingDirectory, err := os.Getwd()
+  if err != nil {
+    panic(fmt.Errorf(
+      "Couldn't get working directory before verifying: %v", err))
+  }
 
 	out, err := VerifyRelease(appName, endorsementFilePath, provenanceFilePath)
 	if err != nil {
 		panic(fmt.Errorf("Couldn't verify release because of error: %v", err))
 	}
 
-	fmt.Println(out)
+  // Restore old working directory
+  err = os.Chdir(oldWorkingDirectory)
+  if err != nil {
+    panic(fmt.Errorf("Couldn't restore old working directory: %v", err))
+  }
+
+  file, err := os.Create(outputFilePath)
+  defer file.Close()
+  if err != nil {
+    panic(fmt.Errorf(
+      "Couldn't create file for generated authorizaiton logic: %v\n" +
+      "The generated auth logic was this:\n%s",
+      err, out))
+  }
+  _, err = file.WriteString(out)
+  if err != nil {
+    panic(fmt.Errorf(
+      "Couldn't write generated authorization logic to file: %v\n" +
+      "The generated auth logic was this:\n%s",
+      err, out))
+  }
 
 }

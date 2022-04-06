@@ -37,11 +37,11 @@ func TestEndorsementWrapper(t *testing.T) {
 		EndorsementFilePath: testEndorsementPath,
 	}
 
-  endorsementAppName, err := GetAppNameFromEndorsement(testEndorsementPath)
-  if err != nil {
-    t.Fatalf("couldn't get name from endorsement file: %s, error: %v",
-      testEndorsementPath, err)
-  }
+	endorsementAppName, err := GetAppNameFromEndorsement(testEndorsementPath)
+	if err != nil {
+		t.Fatalf("couldn't get name from endorsement file: %s, error: %v",
+			testEndorsementPath, err)
+	}
 	speaker := fmt.Sprintf(`"%s::EndorsementFile"`, endorsementAppName)
 
 	statement, err := EmitStatementAs(Principal{Contents: speaker},

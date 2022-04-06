@@ -28,7 +28,7 @@ const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
 
 func TestProvenanceWrapper(t *testing.T) {
 	want := `"oak_functions_loader::Provenance" says {
-expected_hash("oak_functions_loader::Binary", sha256:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c).
+"oak_functions_loader::Binary" has_expected_hash_from("sha256:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c", "oak_functions_loader::Provenance").
 }`
 
 	// When running tests, bazel exposes data dependencies relative to
@@ -39,12 +39,12 @@ expected_hash("oak_functions_loader::Binary", sha256:15dc16c42a4ac9ed77f337a4a30
 
 	testProvenance := ProvenanceWrapper{FilePath: schemaExamplePath}
 
-  appName, err := GetAppNameFromProvenance(schemaExamplePath)
-  if err != nil {
-    t.Fatalf("couldn't get app name from provenance file: %s, error: %v",
-      schemaExamplePath, err)
-  }
-  speaker := Principal{Contents: fmt.Sprintf(`"%s::Provenance"`, appName)}
+	appName, err := GetAppNameFromProvenance(schemaExamplePath)
+	if err != nil {
+		t.Fatalf("couldn't get app name from provenance file: %s, error: %v",
+			schemaExamplePath, err)
+	}
+	speaker := Principal{Contents: fmt.Sprintf(`"%s::Provenance"`, appName)}
 
 	statement, err := EmitStatementAs(speaker, testProvenance)
 	if err != nil {

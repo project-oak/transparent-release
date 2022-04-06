@@ -38,18 +38,18 @@ func TestProvenanceBuildWrapper(t *testing.T) {
 	// be able to read the SLSA files.
 	os.Chdir("../../../")
 
-  appName, err := GetAppNameFromProvenance(schemaExamplePath)
-  if err != nil {
-    t.Fatalf("couldn't get app name from provenance file: %s, error: %v",
-      schemaExamplePath, err)
-  }
-  speaker := Principal{Contents: fmt.Sprintf(`"%s::ProvenanceBuilder"`, appName)}
+	appName, err := GetAppNameFromProvenance(schemaExamplePath)
+	if err != nil {
+		t.Fatalf("couldn't get app name from provenance file: %s, error: %v",
+			schemaExamplePath, err)
+	}
+	speaker := Principal{Contents: fmt.Sprintf(`"%s::ProvenanceBuilder"`, appName)}
 
 	testProvenance := ProvenanceBuildWrapper{schemaExamplePath}
 	statement, err := EmitStatementAs(speaker, testProvenance)
 	if err != nil {
-    t.Fatalf("couldn't get statement from provenance file: %s, error:%v",
-      schemaExamplePath, err)
+		t.Fatalf("couldn't get statement from provenance file: %s, error:%v",
+			schemaExamplePath, err)
 	}
 	got := statement.String()
 
