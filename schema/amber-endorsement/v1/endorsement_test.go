@@ -53,7 +53,7 @@ func TestExampleAmberEndorsement(t *testing.T) {
 	}
 }
 
-func loadJSON(path string) (gojsonschema.JSONLoader, error)  {
+func loadJSON(path string) (gojsonschema.JSONLoader, error) {
 
 	jsonFile, err := ioutil.ReadFile(path)
 	if err != nil {

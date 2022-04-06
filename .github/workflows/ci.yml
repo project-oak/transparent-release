@@ -45,6 +45,14 @@ jobs:
       - name: Check License Lines
         uses: kt3k/license_checker@v1.0.6
 
+  formatting:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run golint
+        run: |
+          ./scripts/formatting.sh
+
   linting:
     runs-on: ubuntu-20.04
     steps:
