@@ -64,7 +64,29 @@ go_binary(
     "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
     "//slsa:slsa",
     "//common:common",
-  ]
+  ],
+)
+
+# This rule runs transparent release verification on the oak functions
+# loader as a specific target by:
+# - calling the auth_logic_binary on the evidence for oak_functions_loader,
+# to generate an authorization logic program
+# - calling the auth logic compiler on the authorization logic program to
+# generate a souffle program
+# - calling the souffle program to generate CSV files with the results of 
+# the queries
+genrule(
+  name = "oak_auth_logic_verification",
+  tools = [
+    "@auth_logic_verification//file",
+    "@auth-logic-compiler//file",
+    "@souffle-bin//file",
+  ],
+  data = [
+    "//schema/amber-slsa-buildtype/v1:provenance.json",
+    "//schema/amber-slsa-buildtype/v1:example.json"
+  ],
+  outs = ["oak_functions_loader_hash.csv"]
 )
 
 # This rule runs the authorizaiton logic compiler on "simple.auth_logic"
