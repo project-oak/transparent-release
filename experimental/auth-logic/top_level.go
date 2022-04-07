@@ -22,7 +22,7 @@ import (
 const relationDeclarations = ".decl attribute has_expected_hash_from(hash : Sha256Hash, expecter : Principal)\n" +
 	".decl attribute has_measured_hash(hash : Sha256Hash)\n" +
 	".decl attribute hasProvenance(provenance : Principal)\n" +
-	".decl RealTimeIs(time : Number)\n"
+	".decl RealTimeNsecIs(time : Number)\n"
 
 // verifyRelease takes an application name, the path to an endorsement file
 // for that application, the path to a provenance file for that application,

@@ -39,7 +39,7 @@ func TestUnixEpochTimeWrapper(t *testing.T) {
 	}
 	got := statement.String()
 
-	timeTestRegex := regexp.MustCompile("UnixEpochTime says {\nRealTimeIs\\(([0-9]+)\\).\n}")
+	timeTestRegex := regexp.MustCompile("UnixEpochTime says {\nRealTimeNsecIs\\(([0-9]+)\\).\n}")
 	match := timeTestRegex.FindStringSubmatch(got)
 	if len(match) != 2 {
 		t.Errorf("Result of time wrapper did not have valid format. Got: %v.", got)

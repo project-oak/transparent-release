@@ -32,6 +32,6 @@ type UnixEpochTime struct{}
 func (timeWrapper UnixEpochTime) EmitStatement() (UnattributedStatement, error) {
 	epochTime := time.Now().Unix()
 	return UnattributedStatement{
-		Contents: fmt.Sprintf("RealTimeIs(%v).", epochTime),
+		Contents: fmt.Sprintf("RealTimeNsecIs(%v).", epochTime),
 	}, nil
 }

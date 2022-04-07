@@ -155,7 +155,7 @@ func (ew EndorsementWrapper) EmitStatement() (UnattributedStatement, error) {
 		binaryPrincipal, validatedEndorsement.Sha256, endorsementWrapperName)
 
 	expirationCondition := fmt.Sprintf(
-		`RealTimeIs(current_time), current_time >= %d, current_time < %d`,
+		`RealTimeNsecIs(current_time), current_time >= %d, current_time < %d`,
 		validatedEndorsement.ReleaseTime.Unix(),
 		validatedEndorsement.ExpiryTime.Unix())
 
@@ -163,7 +163,7 @@ func (ew EndorsementWrapper) EmitStatement() (UnattributedStatement, error) {
 		expirationCondition)
 
 	timePrincipalName := `"UnixEpochTime"`
-	timeDelegation := fmt.Sprintf("%s canSay RealTimeIs(any_time).\n",
+	timeDelegation := fmt.Sprintf("%s canSay RealTimeNsecIs(any_time).\n",
 		timePrincipalName)
 
 	return UnattributedStatement{
