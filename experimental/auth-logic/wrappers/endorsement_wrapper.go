@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package wrappers contains an interface for writing wrappers that consume
-// data from a source and emit authorization logic that corresponds to the
-// consumed data. It also contains the wrappers used for the transparent
-// release verification process.
 package wrappers
+
+// This file contains a wrapper for endorsement files.
 
 import (
 	"encoding/json"
@@ -26,7 +24,7 @@ import (
 )
 
 // EndorsementWrapper is a wrapper that emits an authorization logic
-// statement based on the contents of an endorsement file in parses.
+// statement based on the contents of an endorsement file it parses.
 type EndorsementWrapper struct{ EndorsementFilePath string }
 
 // Endorsement is a struct for holding data parsed from

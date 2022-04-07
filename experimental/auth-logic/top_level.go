@@ -10,8 +10,7 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License.
-
+// limitations under the Licen
 package main
 
 import (
@@ -26,13 +25,15 @@ const relationDeclarations =
   ".decl attribute hasProvenance(provenance : Principal)\n" +
   ".decl RealTimeIs(time : Number)\n"
 
-func VerifyRelease(appName string, endorsementFilePath string,
-	provenanceFilePath string) (string, error) {
+// verifyRelease takes an application name, the path to an endorsement file
+// for that application, the path to a provenance file for that application,
+// and emits authorization logic code (as a string) that runs the transparent
+// release verification process.
+func verifyRelease(appName , endorsementFilePath, provenanceFilePath string) (string, error) {
 
 	endorsementAppName, err := wrappers.GetAppNameFromEndorsement(endorsementFilePath)
 	if err != nil {
-		fmt.Errorf("couldn't get name from endorsement file: %s, error: %v",
-			endorsementFilePath, err)
+		return "", fmt.Errorf("verifyRelease couldn't get name from endorsement file: %s, error: %v", endorsementFilePath, err)
 	}
 	endorsementStatement, err := wrappers.EmitStatementAs(
 		wrappers.Principal{
@@ -43,14 +44,12 @@ func VerifyRelease(appName string, endorsementFilePath string,
 		},
 	)
 	if err != nil {
-		return "", fmt.Errorf(
-			"verifyRelease encountered error getting endorsement statement: %v", err)
+		return "", fmt.Errorf("verifyRelease couldn't get endorsement statement: %v", err)
 	}
 
 	provenanceAppName, err := wrappers.GetAppNameFromProvenance(provenanceFilePath)
 	if err != nil {
-		return "", fmt.Errorf(
-			"verifyRelease couldn't get app name in provenance file: %v", err)
+		return "", fmt.Errorf("verifyRelease couldn't get app name in provenance file: %v", err)
 	}
 
 	provenanceStatement, err := wrappers.EmitStatementAs(
@@ -60,8 +59,7 @@ func VerifyRelease(appName string, endorsementFilePath string,
 		wrappers.ProvenanceWrapper{FilePath: provenanceFilePath},
 	)
 	if err != nil {
-		return "", fmt.Errorf(
-			"verifyRelease couldn't get provenance statement: %v", err)
+		return "", fmt.Errorf("verifyRelease couldn't get provenance statement: %v", err)
 	}
 
 	provenanceBuildStatement, err := wrappers.EmitStatementAs(
@@ -73,8 +71,7 @@ func VerifyRelease(appName string, endorsementFilePath string,
 		},
 	)
 	if err != nil {
-		return "", fmt.Errorf(
-			"verifyRelease couldn't get provenance builder statement: %v", err)
+		return "", fmt.Errorf("verifyRelease couldn't get provenance builder statement: %v", err)
 	}
 
   // verifierPrincipal is reused in the query definition as well
@@ -86,8 +83,7 @@ func VerifyRelease(appName string, endorsementFilePath string,
 		wrappers.VerifierWrapper{AppName: appName},
 	)
 	if err != nil {
-		return "", fmt.Errorf(
-			"verifyRelease encountered error getting verifier statement: %v", err)
+		return "", fmt.Errorf("verifyRelease couldn't get verifier statement: %v", err)
 	}
   
   topLevelQuery := "verification_success = query " + verifierPrincipal.String() +
@@ -101,8 +97,7 @@ func VerifyRelease(appName string, endorsementFilePath string,
 		wrappers.UnixEpochTime{},
 	)
 	if err != nil {
-		return "", fmt.Errorf(
-			"verifyRelease encountered error getting time statement: %v", err)
+		return "", fmt.Errorf("verifyRelease couldn't get time statement: %v", err)
 	}
 
 	return strings.Join([]string{

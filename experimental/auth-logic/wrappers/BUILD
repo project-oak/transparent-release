@@ -22,7 +22,7 @@ go_library(
   name = "wrapper_interface",
   importpath = "github.com/project-oak/transparent-release/experimental/auth-logic/wrappers",
   srcs = [
-    "wrapper_interface.go",
+    "wrappers.go",
   ],
 )
 
@@ -30,7 +30,7 @@ go_library(
   name = "transparent_release_verification_wrappers",
   importpath = "github.com/project-oak/transparent-release/experimental/auth-logic/wrappers",
   srcs = [
-    "wrapper_interface.go",
+    "wrappers.go",
     "endorsement_wrapper.go",
     "provenance_build_wrapper.go",
     "provenance_wrapper.go",
@@ -73,7 +73,7 @@ go_test(
   name = "provenance_wrapper_test",
   size = "small",
   srcs = [
-    "wrapper_interface.go",
+    "wrappers.go",
     "provenance_wrapper.go",
     "provenance_wrapper_test.go",
   ],
@@ -88,7 +88,7 @@ go_test(
   name = "provenance_build_wrapper_test",
   size = "large",
   srcs = [
-    "wrapper_interface.go",
+    "wrappers.go",
     "provenance_wrapper.go",
     "provenance_build_wrapper.go",
     "provenance_build_wrapper_test.go",
