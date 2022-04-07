@@ -67,6 +67,23 @@ func TestLoadBuildConfigFromProvenance(t *testing.T) {
 	checkBuildConfig(config, t)
 }
 
+func TestParseBuilderImageURI(t *testing.T) {
+	imageURI := "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320"
+	alg, digest, err := parseBuilderImageURI(imageURI)
+	if err != nil {
+		t.Fatalf("couldn't parse imageURI (%q): %v", imageURI, err)
+	}
+
+	if alg != "sha256" {
+		t.Errorf("got parseBuilderImageURI(%s).algorithm = %s, want sha256", imageURI, alg)
+	}
+
+	want := "53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320"
+	if digest != want {
+		t.Errorf("got parseBuilderImageURI(%s).digest = %s, want %s", imageURI, alg, want)
+	}
+}
+
 func checkBuildConfig(got *BuildConfig, t *testing.T) {
 
 	want := &BuildConfig{
