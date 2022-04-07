@@ -36,8 +36,7 @@ func TestProvenanceBuildWrapper(t *testing.T) {
 
 	appName, err := GetAppNameFromProvenance(schemaExamplePath)
 	if err != nil {
-		t.Fatalf("couldn't get app name from provenance file: %s, error: %v",
-			schemaExamplePath, err)
+		t.Fatalf("couldn't get app name from provenance file: %q, %v", schemaExamplePath, err)
 	}
 	speaker := Principal{Contents: fmt.Sprintf(`"%s::ProvenanceBuilder"`, appName)}
 
