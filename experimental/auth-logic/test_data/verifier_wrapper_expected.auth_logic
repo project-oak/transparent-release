@@ -9,7 +9,7 @@
 
 "RekorLogCheck" canSay some_object canActAs "ValidRekorEntry".
 
-"OakFunctionsLoader::Binary" canActas "OakFunctionsLoader" :-
+"OakFunctionsLoader::Binary" canActAs "OakFunctionsLoader" :-
 	"OakFunctionsLoader::Binary" hasProvenance("OakFunctionsLoader::Provenance"),
 	"OakFunctionsLoader::Binary" has_expected_hash_from(binary_hash, "OakFunctionsLoader::EndorsementFile"),
 	"OakFunctionsLoader::Binary" has_expected_hash_from(binary_hash, "OakFunctionsLoader::Provenance"),
