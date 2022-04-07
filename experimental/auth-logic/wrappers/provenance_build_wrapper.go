@@ -37,7 +37,7 @@ func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 			fmt.Errorf("provenance build wrapper couldn't parse provenance file: %v", err)
 	}
 
-	applicationName := provenance.Subject[0].Name
+	sanitizedAppName := SanitizeName(provenance.Subject[0].Name)
 
 	// Generate a BuildConfig struct from the provenance file
 	buildConfig, err := common.LoadBuildConfigFromProvenance(provenance)
@@ -70,8 +70,8 @@ func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 
 	return UnattributedStatement{
 		Contents: fmt.Sprintf("\"%v::Binary\" hasProvenance(\"%v::Provenance\").\n",
-			applicationName, applicationName) +
+			sanitizedAppName, sanitizedAppName) +
 			fmt.Sprintf("\"%v::Binary\" has_measured_hash(\"sha256:%v\").",
-				applicationName, measuredBinaryHash)}, nil
+				sanitizedAppName, measuredBinaryHash)}, nil
 
 }

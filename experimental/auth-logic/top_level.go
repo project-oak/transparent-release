@@ -30,7 +30,7 @@ const relationDeclarations = ".decl attribute has_expected_hash_from(hash : Sha2
 // release verification process.
 func verifyRelease(appName, endorsementFilePath, provenanceFilePath string) (string, error) {
 
-	endorsementAppName, err := wrappers.GetAppNameFromEndorsement(endorsementFilePath)
+	endorsementAppName, err := SanitizeName(wrappers.GetAppNameFromEndorsement(endorsementFilePath))
 	if err != nil {
 		return "", fmt.Errorf("verifyRelease couldn't get name from endorsement file: %s, error: %v", endorsementFilePath, err)
 	}
@@ -46,7 +46,7 @@ func verifyRelease(appName, endorsementFilePath, provenanceFilePath string) (str
 		return "", fmt.Errorf("verifyRelease couldn't get endorsement statement: %v", err)
 	}
 
-	provenanceAppName, err := wrappers.GetAppNameFromProvenance(provenanceFilePath)
+	provenanceAppName, err := SanitizeName(wrappers.GetAppNameFromProvenance(provenanceFilePath))
 	if err != nil {
 		return "", fmt.Errorf("verifyRelease couldn't get app name in provenance file: %v", err)
 	}

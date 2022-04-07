@@ -147,9 +147,11 @@ func (ew EndorsementWrapper) EmitStatement() (UnattributedStatement, error) {
 			fmt.Errorf("Endorsement file wrapper couldn't validate endorsement: %v", err)
 	}
 
-	binaryPrincipal := fmt.Sprintf(`"%s::Binary"`, validatedEndorsement.Name)
+  sanitizedAppName := SanitizeName(validatedEndorsement.Name)
+
+	binaryPrincipal := fmt.Sprintf(`"%s::Binary"`, sanitizedAppName)
 	endorsementWrapperName := fmt.Sprintf(`"%s::EndorsementFile"`,
-		validatedEndorsement.Name)
+		sanitizedAppName)
 
 	hasExpectedHash := fmt.Sprintf(`%s has_expected_hash_from("sha256:%s", %s)`,
 		binaryPrincipal, validatedEndorsement.Sha256, endorsementWrapperName)

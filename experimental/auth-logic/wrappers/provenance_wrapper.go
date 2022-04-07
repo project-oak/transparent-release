@@ -40,7 +40,7 @@ func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 		return UnattributedStatement{}, fmt.Errorf("Provenance file missing subject")
 	}
 
-	applicationName := provenance.Subject[0].Name
+	sanitizedAppName := SanitizeName(provenance.Subject[0].Name)
 	expectedHash, hashOk := provenance.Subject[0].Digest["sha256"]
 
 	if !hashOk {
@@ -50,9 +50,9 @@ func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 	return UnattributedStatement{
 		Contents: fmt.Sprintf(
 			`"%s::Binary" has_expected_hash_from("sha256:%s", "%s::Provenance").`,
-			applicationName,
+			sanitizedAppName,
 			expectedHash,
-			applicationName)}, nil
+			sanitizedAppName)}, nil
 }
 
 // GetAppNameFromProvenance parses a provenance file and emits the name of the
