@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package authlogic contains logic and tests for interfacing with the
-// authorization logic compiler
-package authlogic
+package wrappers
 
 import (
 	"fmt"
@@ -26,7 +24,7 @@ import (
 // epoch](https://en.wikipedia.org/wiki/Unix_time).
 
 // UnixEpochTime is a wrapper that emits an authorization
-// logic statement about the current time in unix epoch nanosecons
+// logic statement about the current time in unix epoch nanoseconds.
 type UnixEpochTime struct{}
 
 // EmitStatement emits an authorization logic statement about
@@ -34,6 +32,6 @@ type UnixEpochTime struct{}
 func (timeWrapper UnixEpochTime) EmitStatement() (UnattributedStatement, error) {
 	epochTime := time.Now().Unix()
 	return UnattributedStatement{
-		Contents: fmt.Sprintf("RealTimeIs(%v).", epochTime),
+		Contents: fmt.Sprintf("RealTimeNsecIs(%v).", epochTime),
 	}, nil
 }

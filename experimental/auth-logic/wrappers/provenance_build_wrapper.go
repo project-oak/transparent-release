@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package authlogic contains logic and tests for interfacing with the
-// authorization logic compiler
-package authlogic
+package wrappers
 
 import (
 	"fmt"
@@ -23,11 +21,17 @@ import (
 	"github.com/project-oak/transparent-release/slsa"
 )
 
-type provenanceBuildWrapper struct{ provenanceFilePath string }
+// ProvenanceBuildWrapper is a wrapper that parses a provenance file,
+// uses this to build a binary, generates a hash of the binary, and
+// generates an authorization logic statement that links the measured
+// hash to the provenance file.
+type ProvenanceBuildWrapper struct{ ProvenanceFilePath string }
 
-func (pbw provenanceBuildWrapper) EmitStatement() (UnattributedStatement, error) {
+// EmitStatement implements the Wrapper interface for ProvenanceBuildWrapper
+// by emitting the authorization logic statement.
+func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error) {
 	// Unmarshal a provenance struct from the JSON file.
-	provenance, err := slsa.ParseProvenanceFile(pbw.provenanceFilePath)
+	provenance, err := slsa.ParseProvenanceFile(pbw.ProvenanceFilePath)
 	if err != nil {
 		return UnattributedStatement{},
 			fmt.Errorf("provenance build wrapper couldn't parse provenance file: %v", err)
@@ -65,9 +69,9 @@ func (pbw provenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 	}
 
 	return UnattributedStatement{
-		Contents: fmt.Sprintf("\"%v::Binary\" has_provenance(\"%v::Provenance\").\n",
+		Contents: fmt.Sprintf("\"%v::Binary\" hasProvenance(\"%v::Provenance\").\n",
 			applicationName, applicationName) +
-			fmt.Sprintf("\"%v::Binary\" has_measured_hash(%v).",
+			fmt.Sprintf("\"%v::Binary\" has_measured_hash(\"sha256:%v\").",
 				applicationName, measuredBinaryHash)}, nil
 
 }

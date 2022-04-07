@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package authlogic contains logic and tests for interfacing with the
-// authorization logic compiler
-package authlogic
+package wrappers
 
 import (
 	"fmt"
@@ -23,14 +21,14 @@ import (
 	"testing"
 )
 
-func (v verifierWrapper) identify() Principal {
-	return Principal{Contents: fmt.Sprintf(`"%s::Verifier"`, v.appName)}
+func (v VerifierWrapper) identify() Principal {
+	return Principal{Contents: fmt.Sprintf(`"%s::Verifier"`, v.AppName)}
 }
 
-const testFilePath = "test_data/verifier_wrapper_expected.auth_logic"
+const testFilePath = "../test_data/verifier_wrapper_expected.auth_logic"
 
 func TestVerifierWrapper(t *testing.T) {
-	testWrapper := verifierWrapper{appName: "OakFunctionsLoader"}
+	testWrapper := VerifierWrapper{AppName: "OakFunctionsLoader"}
 	statement, err := EmitStatementAs(testWrapper.identify(), testWrapper)
 	if err != nil {
 		t.Fatalf("%v", err)

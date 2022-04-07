@@ -12,41 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package authlogic
+package wrappers
 
 import (
 	"fmt"
 	"testing"
 )
 
-const testEndorsementPath = "../../schema/amber-endorsement/v1/example.json"
+const testEndorsementPath = "../../../schema/amber-endorsement/v1/example.json"
 
 func TestEndorsementWrapper(t *testing.T) {
 	want := `"oak_functions_loader-0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile" says {
 "oak_functions_loader-0f2189703c57845e09d8ab89164a4041c0af0a62::Binary" has_expected_hash_from("sha256:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c", "oak_functions_loader-0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile") :-
-    RealTimeIs(current_time), current_time >= 1643710850, current_time < 1646130050.
-"UnixEpochTime" canSay RealTimeIs(any_time).
+    RealTimeNsecIs(current_time), current_time >= 1643710850, current_time < 1646130050.
+"UnixEpochTime" canSay RealTimeNsecIs(any_time).
 
 }`
 
-	testEndorsementWrapper := endorsementWrapper{
-		endorsementFilePath: testEndorsementPath,
+	testEndorsementWrapper := EndorsementWrapper{
+		EndorsementFilePath: testEndorsementPath,
 	}
 
-	endorsement, err := ParseEndorsementFile(testEndorsementPath)
+	endorsementAppName, err := GetAppNameFromEndorsement(testEndorsementPath)
 	if err != nil {
-		t.Fatalf("couldn't parse endorsement file: %s error: %v",
-			testEndorsementPath, err)
+		t.Fatalf("couldn't get name from endorsement file: %s, error: %v", testEndorsementPath, err)
 	}
-	validEndorsement, err := endorsement.GenerateValidatedEndorsement()
-	if err != nil {
-		t.Fatalf("couldn't validate endorsement struct: %v error: %v",
-			endorsement, err)
-	}
-	speaker := fmt.Sprintf(`"%s::EndorsementFile"`, validEndorsement.Name)
+	speaker := fmt.Sprintf(`"%s::EndorsementFile"`, endorsementAppName)
 
-	statement, err := EmitStatementAs(Principal{Contents: speaker},
-		testEndorsementWrapper)
+	statement, err := EmitStatementAs(Principal{Contents: speaker}, testEndorsementWrapper)
 	if err != nil {
 		t.Fatalf("couldn't get endorsement file statement : %v", err)
 	}

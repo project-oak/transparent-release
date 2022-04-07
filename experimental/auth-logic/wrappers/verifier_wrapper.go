@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package authlogic contains logic and tests for interfacing with the
-// authorization logic compiler
-package authlogic
+package wrappers
 
 import (
 	"fmt"
@@ -29,16 +27,20 @@ const (
 	rekorLogCheckDelegation        = "\"RekorLogCheck\" canSay some_object canActAs \"ValidRekorEntry\".\n"
 )
 
-type verifierWrapper struct{ appName string }
+// VerifierWrapper is a wrapper that emits an authorization logic statement
+// for a named application that includes all the requirements that the
+// transparent release verifiers should check for; it ties all the evidence
+// together and specifies the requirement for accepting a hash.
+type VerifierWrapper struct{ AppName string }
 
-// This produces the policy code for checking if a binary can act as an
-// application by aggregating all the evidence from the other parties.
-func (v verifierWrapper) EmitStatement() (UnattributedStatement, error) {
+// EmitStatement implements the wrapper interface for VerifierWrapper by
+// emitting the authorization logic statement.
+func (v VerifierWrapper) EmitStatement() (UnattributedStatement, error) {
 	// TODO(#39) consider using a [template](https://pkg.go.dev/text/template) to implement this.
-	endorsementPrincipal := fmt.Sprintf(`"%s::EndorsementFile"`, v.appName)
-	provenancePrincipal := fmt.Sprintf(`"%s::Provenance"`, v.appName)
-	binaryPrincipal := fmt.Sprintf(`"%s::Binary"`, v.appName)
-	appPrincipal := fmt.Sprintf(`"%s"`, v.appName)
+	endorsementPrincipal := fmt.Sprintf(`"%s::EndorsementFile"`, v.AppName)
+	provenancePrincipal := fmt.Sprintf(`"%s::Provenance"`, v.AppName)
+	binaryPrincipal := fmt.Sprintf(`"%s::Binary"`, v.AppName)
+	appPrincipal := fmt.Sprintf(`"%s"`, v.AppName)
 
 	// The verifier needs to import expected hashes from both the endorsement
 	// and provenance files. If we use the same predicate to represent both of
@@ -47,7 +49,7 @@ func (v verifierWrapper) EmitStatement() (UnattributedStatement, error) {
 	// used `Binary has_expected_hash(<hash>)` and the verifier delegates this
 	// predicate to both the endorsement file and the provenance file, we cannot
 	// write a policy that looks for the same predicate from both. To work around
-	// this we had a second argument to the predicate to track the original
+	// this we add a second argument to the predicate to track the original
 	// speaker.
 
 	endorsementHashDelegation :=
@@ -59,9 +61,12 @@ func (v verifierWrapper) EmitStatement() (UnattributedStatement, error) {
 			provenancePrincipal, binaryPrincipal, provenancePrincipal)
 
 	binaryIdentificationRule :=
-		binaryPrincipal + " canActas " + appPrincipal + " :-\n" +
+		binaryPrincipal + " canActAs " + appPrincipal + " :-\n" +
 			"\t" + binaryPrincipal + " hasProvenance(" + provenancePrincipal + "),\n" +
-			"\t" + endorsementPrincipal + " canActAs \"ValidRekorEntry\",\n" +
+			// TODO: re-enable this. This is temporarily disabled to allow writing
+			// and testing the top-level function call before writing a wrapper
+			// for rekor log entries
+			// "\t" + endorsementPrincipal + " canActAs \"ValidRekorEntry\",\n" +
 			"\t" + binaryPrincipal + " has_expected_hash_from(binary_hash, " + endorsementPrincipal + "),\n" +
 			"\t" + binaryPrincipal + " has_expected_hash_from(binary_hash, " + provenancePrincipal + "),\n" +
 			"\t" + binaryPrincipal + " has_measured_hash(binary_hash).\n"

@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package authlogic contains logic and tests for interfacing with the
-// authorization logic compiler
-package authlogic
+package wrappers
+
+// This file contains a wrapper for endorsement files.
 
 import (
 	"encoding/json"
@@ -23,7 +23,9 @@ import (
 	"time"
 )
 
-type endorsementWrapper struct{ endorsementFilePath string }
+// EndorsementWrapper is a wrapper that emits an authorization logic
+// statement based on the contents of an endorsement file it parses.
+type EndorsementWrapper struct{ EndorsementFilePath string }
 
 // Endorsement is a struct for holding data parsed from
 // endorsement files which are JSON
@@ -89,7 +91,7 @@ func ParseEndorsementFile(path string) (*Endorsement, error) {
 // Endorsement
 func (endorsement Endorsement) GenerateValidatedEndorsement() (ValidatedEndorsement, error) {
 
-	if len(endorsement.Subject) < 1 {
+	if len(endorsement.Subject) != 1 {
 		return ValidatedEndorsement{},
 			fmt.Errorf("Endorsement file missing subject: %s", endorsement)
 	}
@@ -130,8 +132,10 @@ func (endorsement Endorsement) GenerateValidatedEndorsement() (ValidatedEndorsem
 
 }
 
-func (ew endorsementWrapper) EmitStatement() (UnattributedStatement, error) {
-	endorsement, err := ParseEndorsementFile(ew.endorsementFilePath)
+// EmitStatement implements the Wrapper interface for EndorsementWrapper
+// by producing the authorization logic statement.
+func (ew EndorsementWrapper) EmitStatement() (UnattributedStatement, error) {
+	endorsement, err := ParseEndorsementFile(ew.EndorsementFilePath)
 	if err != nil {
 		return UnattributedStatement{},
 			fmt.Errorf("Endorsement file wrapper couldn't parse file: %v", err)
@@ -151,7 +155,7 @@ func (ew endorsementWrapper) EmitStatement() (UnattributedStatement, error) {
 		binaryPrincipal, validatedEndorsement.Sha256, endorsementWrapperName)
 
 	expirationCondition := fmt.Sprintf(
-		`RealTimeIs(current_time), current_time >= %d, current_time < %d`,
+		`RealTimeNsecIs(current_time), current_time >= %d, current_time < %d`,
 		validatedEndorsement.ReleaseTime.Unix(),
 		validatedEndorsement.ExpiryTime.Unix())
 
@@ -159,10 +163,27 @@ func (ew endorsementWrapper) EmitStatement() (UnattributedStatement, error) {
 		expirationCondition)
 
 	timePrincipalName := `"UnixEpochTime"`
-	timeDelegation := fmt.Sprintf("%s canSay RealTimeIs(any_time).\n",
+	timeDelegation := fmt.Sprintf("%s canSay RealTimeNsecIs(any_time).\n",
 		timePrincipalName)
 
 	return UnattributedStatement{
 		Contents: hashRule + timeDelegation,
 	}, nil
+}
+
+// GetAppNameFromEndorsement parses an endorsement file and returns the name
+// of the application it is about as a string. This is useful for principal
+// names, for example.
+func GetAppNameFromEndorsement(endorsementFilePath string) (string, error) {
+	endorsement, err := ParseEndorsementFile(endorsementFilePath)
+	if err != nil {
+		return "", fmt.Errorf("couldn't prase endorsement file: %q, %v", endorsementFilePath, err)
+	}
+
+	validatedEndorsement, err := endorsement.GenerateValidatedEndorsement()
+	if err != nil {
+		return "", fmt.Errorf("couldn't validate endorsement: %v", err)
+	}
+
+	return validatedEndorsement.Name, nil
 }
