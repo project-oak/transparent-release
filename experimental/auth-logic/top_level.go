@@ -36,7 +36,7 @@ func verifyRelease(appName, endorsementFilePath, provenanceFilePath string) (str
 	}
 	endorsementStatement, err := wrappers.EmitStatementAs(
 		wrappers.Principal{
-			Contents: fmt.Sprintf(`"%s::EndorsementFile"`, SanitizeName(endorsementAppName)),
+			Contents: fmt.Sprintf(`"%s::EndorsementFile"`, wrappers.SanitizeName(endorsementAppName)),
 		},
 		wrappers.EndorsementWrapper{
 			EndorsementFilePath: endorsementFilePath,
@@ -53,7 +53,7 @@ func verifyRelease(appName, endorsementFilePath, provenanceFilePath string) (str
 
 	provenanceStatement, err := wrappers.EmitStatementAs(
 		wrappers.Principal{
-			Contents: fmt.Sprintf(`"%s::Provenance"`, SanitizeName(provenanceAppName)),
+			Contents: fmt.Sprintf(`"%s::Provenance"`, wrappers.SanitizeName(provenanceAppName)),
 		},
 		wrappers.ProvenanceWrapper{FilePath: provenanceFilePath},
 	)
@@ -63,7 +63,7 @@ func verifyRelease(appName, endorsementFilePath, provenanceFilePath string) (str
 
 	provenanceBuildStatement, err := wrappers.EmitStatementAs(
 		wrappers.Principal{
-			Contents: fmt.Sprintf(`"%s::ProvenanceBuilder"`, SanitizeName(provenanceAppName)),
+			Contents: fmt.Sprintf(`"%s::ProvenanceBuilder"`, wrappers.SanitizeName(provenanceAppName)),
 		},
 		wrappers.ProvenanceBuildWrapper{
 			ProvenanceFilePath: provenanceFilePath,
