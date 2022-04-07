@@ -19,17 +19,16 @@ import (
 	"strings"
 )
 
-const relationDeclarations =
-  ".decl attribute has_expected_hash_from(hash : Sha256Hash, expecter : Principal)\n" +
-  ".decl attribute has_measured_hash(hash : Sha256Hash)\n" +
-  ".decl attribute hasProvenance(provenance : Principal)\n" +
-  ".decl RealTimeIs(time : Number)\n"
+const relationDeclarations = ".decl attribute has_expected_hash_from(hash : Sha256Hash, expecter : Principal)\n" +
+	".decl attribute has_measured_hash(hash : Sha256Hash)\n" +
+	".decl attribute hasProvenance(provenance : Principal)\n" +
+	".decl RealTimeIs(time : Number)\n"
 
 // verifyRelease takes an application name, the path to an endorsement file
 // for that application, the path to a provenance file for that application,
 // and emits authorization logic code (as a string) that runs the transparent
 // release verification process.
-func verifyRelease(appName , endorsementFilePath, provenanceFilePath string) (string, error) {
+func verifyRelease(appName, endorsementFilePath, provenanceFilePath string) (string, error) {
 
 	endorsementAppName, err := wrappers.GetAppNameFromEndorsement(endorsementFilePath)
 	if err != nil {
@@ -74,20 +73,20 @@ func verifyRelease(appName , endorsementFilePath, provenanceFilePath string) (st
 		return "", fmt.Errorf("verifyRelease couldn't get provenance builder statement: %v", err)
 	}
 
-  // verifierPrincipal is reused in the query definition as well
-  verifierPrincipal := wrappers.Principal{
-			Contents: fmt.Sprintf(`"%s::Verifier"`, appName),
-  }
+	// verifierPrincipal is reused in the query definition as well
+	verifierPrincipal := wrappers.Principal{
+		Contents: fmt.Sprintf(`"%s::Verifier"`, appName),
+	}
 	verifierStatement, err := wrappers.EmitStatementAs(
-    verifierPrincipal,
+		verifierPrincipal,
 		wrappers.VerifierWrapper{AppName: appName},
 	)
 	if err != nil {
 		return "", fmt.Errorf("verifyRelease couldn't get verifier statement: %v", err)
 	}
-  
-  topLevelQuery := "verification_success = query " + verifierPrincipal.String() +
-    " says \"" + appName + "::Binary\" canActAs " + appName + "?"
+
+	topLevelQuery := "verification_success = query " + verifierPrincipal.String() +
+		" says \"" + appName + "::Binary\" canActAs " + appName + "?"
 
 	// It's useful to run this one last because this one emits the current
 	// time, and doing this one last reduces the error between the time
@@ -101,13 +100,13 @@ func verifyRelease(appName , endorsementFilePath, provenanceFilePath string) (st
 	}
 
 	return strings.Join([]string{
-    relationDeclarations,
+		relationDeclarations,
 		endorsementStatement.String(),
 		provenanceStatement.String(),
 		provenanceBuildStatement.String(),
 		timeStatement.String(),
 		verifierStatement.String(),
-    topLevelQuery,
+		topLevelQuery,
 	}[:], "\n"), nil
 
 }

@@ -15,8 +15,8 @@
 package main
 
 import (
+	"log"
 	"os"
-  "log"
 )
 
 // This is a program that takes the evidence required for running
@@ -29,43 +29,43 @@ func main() {
 	appName := os.Args[1]
 	endorsementFilePath := os.Args[2]
 	provenanceFilePath := os.Args[3]
-  outputFilePath := os.Args[4]
+	outputFilePath := os.Args[4]
 
-  // Part of the code for building a project using provenance
-  // files changes the working directory. This binary needs to keep
-  // the working directory as-is, so the old working directory is saved
-  // before running verifyRelease.
-  oldWorkingDirectory, err := os.Getwd()
-  if err != nil {
-    log.Fatalf(
-      "Couldn't get working directory before verifying: %v", err)
-  }
+	// Part of the code for building a project using provenance
+	// files changes the working directory. This binary needs to keep
+	// the working directory as-is, so the old working directory is saved
+	// before running verifyRelease.
+	oldWorkingDirectory, err := os.Getwd()
+	if err != nil {
+		log.Fatalf(
+			"Couldn't get working directory before verifying: %v", err)
+	}
 
 	out, err := verifyRelease(appName, endorsementFilePath, provenanceFilePath)
 	if err != nil {
-    log.Fatalf("Couldn't verify release: %v", err)
+		log.Fatalf("Couldn't verify release: %v", err)
 	}
 
-  // Restore old working directory
-  err = os.Chdir(oldWorkingDirectory)
-  if err != nil {
-    log.Fatalf("Couldn't restore old working directory: %v", err)
-  }
+	// Restore old working directory
+	err = os.Chdir(oldWorkingDirectory)
+	if err != nil {
+		log.Fatalf("Couldn't restore old working directory: %v", err)
+	}
 
-  file, err := os.Create(outputFilePath)
-  defer file.Close()
-  if err != nil {
-    log.Fatalf(
-      "Couldn't create file for generated authorizaiton logic: %v\n" +
-      "The generated auth logic was this:\n%s",
-      err, out)
-  }
-  _, err = file.WriteString(out)
-  if err != nil {
-    log.Fatalf(
-      "Couldn't write generated authorization logic to file: %v\n" +
-      "The generated auth logic was this:\n%s",
-      err, out)
-  }
+	file, err := os.Create(outputFilePath)
+	defer file.Close()
+	if err != nil {
+		log.Fatalf(
+			"Couldn't create file for generated authorizaiton logic: %v\n"+
+				"The generated auth logic was this:\n%s",
+			err, out)
+	}
+	_, err = file.WriteString(out)
+	if err != nil {
+		log.Fatalf(
+			"Couldn't write generated authorization logic to file: %v\n"+
+				"The generated auth logic was this:\n%s",
+			err, out)
+	}
 
 }
