@@ -37,7 +37,7 @@ func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 			"provenance wrapper couldn't prase provenance file: %v", err)
 	}
 
-	if len(provenance.Subject) == 1 {
+	if len(provenance.Subject) != 1 {
 		return UnattributedStatement{}, fmt.Errorf("Provenance file missing subject")
 	}
 
@@ -66,7 +66,7 @@ func GetAppNameFromProvenance(provenanceFilePath string) (string, error) {
 		return "", provenanceErr
 	}
 
-	if len(provenance.Subject) < 1 {
+	if len(provenance.Subject) != 1 {
 		return "", fmt.Errorf("Provenance file missing subject")
 	}
 

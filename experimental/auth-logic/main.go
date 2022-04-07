@@ -37,8 +37,7 @@ func main() {
 	// before running verifyRelease.
 	oldWorkingDirectory, err := os.Getwd()
 	if err != nil {
-		log.Fatalf(
-			"Couldn't get working directory before verifying: %v", err)
+		log.Fatalf("Couldn't get working directory before verifying: %v", err)
 	}
 
 	out, err := verifyRelease(appName, endorsementFilePath, provenanceFilePath)
@@ -55,17 +54,11 @@ func main() {
 	file, err := os.Create(outputFilePath)
 	defer file.Close()
 	if err != nil {
-		log.Fatalf(
-			"Couldn't create file for generated authorizaiton logic: %v\n"+
-				"The generated auth logic was this:\n%s",
-			err, out)
+		log.Fatalf("Couldn't create file for generated authorizaiton logic: %v\nThe generated auth logic was this:\n%s",err, out)
 	}
 	_, err = file.WriteString(out)
 	if err != nil {
-		log.Fatalf(
-			"Couldn't write generated authorization logic to file: %v\n"+
-				"The generated auth logic was this:\n%s",
-			err, out)
+		log.Fatalf("Couldn't write generated authorization logic to file: %v\nThe generated auth logic was this:\n%s", err, out)
 	}
 
 }

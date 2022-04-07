@@ -91,7 +91,7 @@ func ParseEndorsementFile(path string) (*Endorsement, error) {
 // Endorsement
 func (endorsement Endorsement) GenerateValidatedEndorsement() (ValidatedEndorsement, error) {
 
-	if len(endorsement.Subject) < 1 {
+	if len(endorsement.Subject) != 1 {
 		return ValidatedEndorsement{},
 			fmt.Errorf("Endorsement file missing subject: %s", endorsement)
 	}
