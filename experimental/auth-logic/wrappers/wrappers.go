@@ -21,7 +21,7 @@ package wrappers
 import (
 	"fmt"
 	"os"
-  "strings"
+	"strings"
 )
 
 // UnattributedStatement represents an authorization logic statement (or
@@ -98,11 +98,11 @@ func EmitAuthLogicToFile(authLogic Statement, filepath string) error {
 	return writeErr
 }
 
-// SanitizeName takes a value that was parsed from something external to 
-// authorizaiton logic and returns a new value that can be used as part of the 
+// SanitizeName takes a value that was parsed from something external to
+// authorizaiton logic and returns a new value that can be used as part of the
 // syntax for principal names and arguments in the authorization logic syntax.
-// At present, it removes hyphens. This is exported because it may be used in 
+// At present, it removes hyphens. This is exported because it may be used in
 // the main package to get principal names.
 func SanitizeName(oldName string) string {
-  return strings.ReplaceAll(oldName, "-", "")
+	return strings.ReplaceAll(oldName, "-", "")
 }

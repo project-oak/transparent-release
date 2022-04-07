@@ -147,7 +147,7 @@ func (ew EndorsementWrapper) EmitStatement() (UnattributedStatement, error) {
 			fmt.Errorf("Endorsement file wrapper couldn't validate endorsement: %v", err)
 	}
 
-  sanitizedAppName := SanitizeName(validatedEndorsement.Name)
+	sanitizedAppName := SanitizeName(validatedEndorsement.Name)
 
 	binaryPrincipal := fmt.Sprintf(`"%s::Binary"`, sanitizedAppName)
 	endorsementWrapperName := fmt.Sprintf(`"%s::EndorsementFile"`,
