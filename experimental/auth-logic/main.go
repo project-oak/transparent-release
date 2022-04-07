@@ -21,9 +21,9 @@ import (
 
 // This is a program that takes the evidence required for running
 // the transparent release verification process and emits
-// authorization logic code that can decide if the transparent release
-// process has succeeded. The authorization logic compiler can then
-// run on the generated code.
+// authorization logic code that runs the transparent release verification
+// process for the application using this evidence. The authorization logic
+// compiler can then run on the generated code.
 func main() {
 
 	appName := os.Args[1]
