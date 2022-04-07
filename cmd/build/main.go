@@ -16,8 +16,10 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"log"
+	"os"
 
 	"github.com/project-oak/transparent-release/build"
 )
@@ -27,9 +29,23 @@ func main() {
 		"Required - Path to a toml file containing the build configs.")
 	gitRootDirPtr := flag.String("git_root_dir", "",
 		"Optional - Root of the Git repository. If not specified, sources are fetched from the repo specified in the config file.")
+	provenancePathPtr := flag.String("provenance_path", "",
+		"Required - Output file name for storing the generated provenance file.")
+
 	flag.Parse()
 
-	if err := build.Build(*buildConfigPathPtr, *gitRootDirPtr); err != nil {
-		log.Fatalf("error when building the binary: %v", err)
+	prov, err := build.Build(*buildConfigPathPtr, *gitRootDirPtr)
+	if err != nil {
+		log.Fatalf("Couldn't build the binary: %v", err)
+	}
+
+	// Write the provenance statement to file.
+	bytes, err := json.Marshal(prov)
+	if err != nil {
+		log.Fatalf("Couldn't marshal the provenance: %v", err)
+	}
+
+	if err := os.WriteFile(*provenancePathPtr, bytes, 0644); err != nil {
+		log.Fatalf("Couldn't write provenance file: %v", err)
 	}
 }
