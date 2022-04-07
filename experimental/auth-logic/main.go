@@ -54,7 +54,7 @@ func main() {
 	file, err := os.Create(outputFilePath)
 	defer file.Close()
 	if err != nil {
-		log.Fatalf("Couldn't create file for generated authorizaiton logic: %v\nThe generated auth logic was this:\n%s",err, out)
+		log.Fatalf("Couldn't create file for generated authorizaiton logic: %v\nThe generated auth logic was this:\n%s", err, out)
 	}
 	_, err = file.WriteString(out)
 	if err != nil {
