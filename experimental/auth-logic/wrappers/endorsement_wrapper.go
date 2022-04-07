@@ -177,15 +177,12 @@ func (ew EndorsementWrapper) EmitStatement() (UnattributedStatement, error) {
 func GetAppNameFromEndorsement(endorsementFilePath string) (string, error) {
 	endorsement, err := ParseEndorsementFile(endorsementFilePath)
 	if err != nil {
-		return "", fmt.Errorf(
-			"couldn't prase endorsement file: %s, error: %v",
-			endorsementFilePath, err)
+		return "", fmt.Errorf("couldn't prase endorsement file: %q, %v", endorsementFilePath, err)
 	}
 
 	validatedEndorsement, err := endorsement.GenerateValidatedEndorsement()
 	if err != nil {
-		return "", fmt.Errorf(
-			"couldn't validate endorsement: %v", err)
+		return "", fmt.Errorf("couldn't validate endorsement: %v", err)
 	}
 
 	return validatedEndorsement.Name, nil
