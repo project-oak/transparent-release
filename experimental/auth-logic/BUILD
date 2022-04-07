@@ -1,4 +1,4 @@
-
+jjjjjjjjk
 
 # Copyright 2022 The Project Oak Authors
 #
@@ -78,15 +78,37 @@ go_binary(
 genrule(
   name = "oak_auth_logic_verification",
   tools = [
-    "@auth_logic_verification//file",
+    ":auth_logic_verification",
     "@auth-logic-compiler//file",
     "@souffle-bin//file",
   ],
-  data = [
+  srcs = [
     "//schema/amber-slsa-buildtype/v1:provenance.json",
-    "//schema/amber-slsa-buildtype/v1:example.json"
+    "//schema/amber-slsa-buildtype/v1:example.json",
+    "//schema/amber-endorsement/v1:example.json",
   ],
-  outs = ["oak_functions_loader_hash.csv"]
+  cmd = """
+  export PROVENANCE=$(location //schema/amber-slsa-buildtype/v1:example.json)
+  export ENDORSEMENT=$(location //schema/amber-endorsement/v1:example.json)
+  ./$(location :auth_logic_verification) oak_functions_loader $$ENDORSEMENT $$PROVENANCE $(RULEDIR)/oak_verification.auth_logic
+  export SOUFFLE_BIN=$(location @souffle-bin//file)
+  ./$(location @auth-logic-compiler//file) oak_verification.auth_logic $(RULEDIR) $(RULEDIR)
+  """,
+  outs = [
+    "oak_verification.auth_logic",
+    "oak_verification.auth_logic.dl",
+    "verification_success.csv"
+  ]
+)
+
+go_test(
+    name = "oak_auth_logic_verification_test",
+    size = "medium",
+    srcs = ["oak_auth_logic_verification_test.go"],
+    embed = [":auth_logic_interface"],
+    data = [
+      "verification_success.csv",
+    ],
 )
 
 # This rule runs the authorizaiton logic compiler on "simple.auth_logic"
