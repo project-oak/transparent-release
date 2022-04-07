@@ -30,13 +30,13 @@ const relationDeclarations = ".decl attribute has_expected_hash_from(hash : Sha2
 // release verification process.
 func verifyRelease(appName, endorsementFilePath, provenanceFilePath string) (string, error) {
 
-	endorsementAppName, err := SanitizeName(wrappers.GetAppNameFromEndorsement(endorsementFilePath))
+	endorsementAppName, err := wrappers.GetAppNameFromEndorsement(endorsementFilePath)
 	if err != nil {
 		return "", fmt.Errorf("verifyRelease couldn't get name from endorsement file: %s, error: %v", endorsementFilePath, err)
 	}
 	endorsementStatement, err := wrappers.EmitStatementAs(
 		wrappers.Principal{
-			Contents: fmt.Sprintf(`"%s::EndorsementFile"`, endorsementAppName),
+			Contents: fmt.Sprintf(`"%s::EndorsementFile"`, SanitizeName(endorsementAppName)),
 		},
 		wrappers.EndorsementWrapper{
 			EndorsementFilePath: endorsementFilePath,
@@ -46,14 +46,14 @@ func verifyRelease(appName, endorsementFilePath, provenanceFilePath string) (str
 		return "", fmt.Errorf("verifyRelease couldn't get endorsement statement: %v", err)
 	}
 
-	provenanceAppName, err := SanitizeName(wrappers.GetAppNameFromProvenance(provenanceFilePath))
+	provenanceAppName, err := wrappers.GetAppNameFromProvenance(provenanceFilePath)
 	if err != nil {
 		return "", fmt.Errorf("verifyRelease couldn't get app name in provenance file: %v", err)
 	}
 
 	provenanceStatement, err := wrappers.EmitStatementAs(
 		wrappers.Principal{
-			Contents: fmt.Sprintf(`"%s::Provenance"`, provenanceAppName),
+			Contents: fmt.Sprintf(`"%s::Provenance"`, SanitizeName(provenanceAppName)),
 		},
 		wrappers.ProvenanceWrapper{FilePath: provenanceFilePath},
 	)
@@ -63,7 +63,7 @@ func verifyRelease(appName, endorsementFilePath, provenanceFilePath string) (str
 
 	provenanceBuildStatement, err := wrappers.EmitStatementAs(
 		wrappers.Principal{
-			Contents: fmt.Sprintf(`"%s::ProvenanceBuilder"`, provenanceAppName),
+			Contents: fmt.Sprintf(`"%s::ProvenanceBuilder"`, SanitizeName(provenanceAppName)),
 		},
 		wrappers.ProvenanceBuildWrapper{
 			ProvenanceFilePath: provenanceFilePath,

@@ -1,4 +1,4 @@
-// Copyright 2022 The Project Oak Authors
+//A/ Copyright 2022 The Project Oak Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,13 +38,12 @@ func TestProvenanceBuildWrapper(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get app name from provenance file: %q, %v", schemaExamplePath, err)
 	}
-	speaker := Principal{Contents: fmt.Sprintf(`"%s::ProvenanceBuilder"`, appName)}
+	speaker := Principal{Contents: fmt.Sprintf(`"%s::ProvenanceBuilder"`, SanitizeName(appName))}
 
 	testProvenance := ProvenanceBuildWrapper{schemaExamplePath}
 	statement, err := EmitStatementAs(speaker, testProvenance)
 	if err != nil {
-		t.Fatalf("couldn't get statement from provenance file: %s, error:%v",
-			schemaExamplePath, err)
+		t.Fatalf("couldn't get statement from provenance file: %s, error:%v", schemaExamplePath, err)
 	}
 	got := statement.String()
 
