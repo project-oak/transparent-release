@@ -1,5 +1,4 @@
-jjjjjjjjk
-
+#
 # Copyright 2022 The Project Oak Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
