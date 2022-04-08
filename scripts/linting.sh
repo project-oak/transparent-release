@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-lint_errors=$(golint ./...)
+lint_errors=$(golint ./... 2>&1)
 
 if [[ -z "$lint_errors" ]]; then
     echo No linting errors
