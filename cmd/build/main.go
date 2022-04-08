@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package main contains a command-line tool for verifying Amber provenance files.
+// Package main contains a command-line tool for building banaries and
+// generating SLSA provenance files, with Amber buildType.
 package main
 
 import (
@@ -28,7 +29,7 @@ func main() {
 	buildConfigPath := flag.String("build_config_path", "",
 		"Required - Path to a toml file containing the build configs.")
 	gitRootDir := flag.String("git_root_dir", "",
-		"Optional - Root of the Git repository. If not specified, sources are fetched from the repo specified in the config file.")
+		"Optional - Root of the Git repository. If not specified, sources are fetched from the repo specified in the toml file.")
 	provenancePath := flag.String("provenance_path", "",
 		"Required - Output file name for storing the generated provenance file.")
 

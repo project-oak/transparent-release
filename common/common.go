@@ -255,7 +255,7 @@ func (b *BuildConfig) VerifyBinarySha256Hash() error {
 }
 
 // GenerateProvenanceStatement generates a provenance statement from this config. If
-// `ExpectedBinarySha256Hash` is non-empty, the provenance statement is generated  only if the
+// `ExpectedBinarySha256Hash` is non-empty, the provenance statement is generated only if the
 // SHA256 hash of the generated binary is equal to `ExpectedBinarySha256Hash`.
 func (b *BuildConfig) GenerateProvenanceStatement() (*slsa.Provenance, error) {
 	binarySha256Hash, err := b.ComputeBinarySha256Hash()
@@ -271,7 +271,7 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*slsa.Provenance, error) {
 	}
 
 	subject := slsa.Subject{
-		// TODO: Get the name as an input in the TOML file.
+		// TODO(#57): Get the name as an input in the TOML file.
 		Name:   fmt.Sprintf("%s-%s", filepath.Base(b.OutputPath), b.CommitHash),
 		Digest: map[string]string{"sha256": string(binarySha256Hash)},
 	}

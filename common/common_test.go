@@ -15,6 +15,7 @@
 package common
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -70,7 +71,7 @@ func TestLoadBuildConfigFromProvenance(t *testing.T) {
 	checkBuildConfig(config, t)
 }
 
-func TestParseBuilderImageURI(t *testing.T) {
+func TestParseBuilderImageURI_ValidURI(t *testing.T) {
 	imageURI := "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320"
 	alg, digest, err := parseBuilderImageURI(imageURI)
 	if err != nil {
@@ -87,6 +88,24 @@ func TestParseBuilderImageURI(t *testing.T) {
 	}
 }
 
+func TestParseBuilderImageURI_InvalidURIs(t *testing.T) {
+	imageURIWithTag := "gcr.io/oak-ci/oak@latest"
+	want := fmt.Sprintf("the builder image digest (%q) does not have the required ALG:VALUE format", "latest")
+	alg, digest, err := parseBuilderImageURI(imageURIWithTag)
+	got := fmt.Sprintf("%v", err)
+	if got != want {
+		t.Fatalf("got (%s, %s, %v) = parseBuilderImageURI(%q), want (_, _, %s)", alg, digest, err, imageURIWithTag, want)
+	}
+
+	invalidURI := "gcr.io/oak-ci/oak"
+	want = fmt.Sprintf("the builder image URI (%q) does not have the required NAME@DIGEST format", invalidURI)
+	alg, digest, err = parseBuilderImageURI(invalidURI)
+	got = fmt.Sprintf("%v", err)
+	if got != want {
+		t.Fatalf("got (%s, %s, %v) = parseBuilderImageURI(%q), want (_, _, %s)", alg, digest, err, invalidURI, want)
+	}
+}
+
 func TestGenerateProvenanceStatement(t *testing.T) {
 	// Load config from "build.toml" in testdata
 	path := filepath.Join(testdataPath, "build.toml")
@@ -94,10 +113,10 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't load build file: %v", err)
 	}
-	// Replace output path with an existing path
+	// Replace output path with path of the "build.toml" file
 	config.OutputPath = path
-	// Set ExpectedBinarySha256Hash to empty string to skip the check for the hash
-	config.ExpectedBinarySha256Hash = ""
+	// Set ExpectedBinarySha256Hash to the hash of the "build.toml" file
+	config.ExpectedBinarySha256Hash = "56893dbba5667a305894b424c1fa58a0b51f994b117e62296fb6ee5986683856"
 
 	prov, err := config.GenerateProvenanceStatement()
 	if err != nil {
@@ -111,7 +130,7 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 		}
 	}
 
-	// Check that the provenance parses correctly
+	// Check that the provenance is generated correctly
 	assert("repoURL", prov.Predicate.Materials[1].URI, "https://github.com/project-oak/oak")
 	assert("commitHash", prov.Predicate.Materials[1].Digest["sha1"], "0f2189703c57845e09d8ab89164a4041c0af0a62")
 	assert("builderImage", prov.Predicate.Materials[0].URI, "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
