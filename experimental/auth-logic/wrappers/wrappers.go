@@ -103,7 +103,7 @@ func EmitAuthLogicToFile(authLogic Statement, filepath string) error {
 // syntax for principal names and arguments in the authorization logic syntax.
 // At present, it removes hyphens. This is exported because it may be used in
 // the main package to get principal names.
-// TODO([#58](https://github.com/project-oak/transparent-release/issues/58)) 
+// TODO([#58](https://github.com/project-oak/transparent-release/issues/58))
 // name collisions are possible and may not be detected.
 func SanitizeName(oldName string) string {
 	return strings.ReplaceAll(oldName, "-", ":")
