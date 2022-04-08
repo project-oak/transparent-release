@@ -40,7 +40,6 @@ func TestComputeBinarySha256Hash(t *testing.T) {
 
 func TestLoadBuildConfigFromFile(t *testing.T) {
 	path := filepath.Join(testdataPath, "build.toml")
-
 	config, err := LoadBuildConfigFromFile(path)
 	if err != nil {
 		t.Fatalf("couldn't load build file: %v", err)
@@ -50,12 +49,16 @@ func TestLoadBuildConfigFromFile(t *testing.T) {
 }
 
 func TestLoadBuildConfigFromProvenance(t *testing.T) {
-	// In the case of running tests bazel exposes data dependencies not in the
-	// current dir, but in the parent. Hence we need to move one level up.
+	// The path to provenance is specified relative to the root of the repo, so we need to go one level up.
+	// Get the current directory before that to restore the path at the end of the test.
+	currentDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("couldn't get current directory: %v", err)
+	}
+	defer os.Chdir(currentDir)
 	os.Chdir("../")
-	path := schemaExamplePath
 
-	provenance, err := slsa.ParseProvenanceFile(path)
+	provenance, err := slsa.ParseProvenanceFile(schemaExamplePath)
 	if err != nil {
 		t.Fatalf("couldn't parse the provenance file: %v", err)
 	}
@@ -82,6 +85,42 @@ func TestParseBuilderImageURI(t *testing.T) {
 	if digest != want {
 		t.Errorf("got parseBuilderImageURI(%s).digest = %s, want %s", imageURI, alg, want)
 	}
+}
+
+func TestGenerateProvenanceStatement(t *testing.T) {
+	// Load config from "build.toml" in testdata
+	path := filepath.Join(testdataPath, "build.toml")
+	config, err := LoadBuildConfigFromFile(path)
+	if err != nil {
+		t.Fatalf("couldn't load build file: %v", err)
+	}
+	// Replace output path with an existing path
+	config.OutputPath = path
+	// Set ExpectedBinarySha256Hash to empty string to skip the check for the hash
+	config.ExpectedBinarySha256Hash = ""
+
+	prov, err := config.GenerateProvenanceStatement()
+	if err != nil {
+		t.Fatalf("couldn't generate provenance: %v", err)
+	}
+
+	// Verify the content of the generated provenance statement
+	assert := func(name, got, want string) {
+		if want != got {
+			t.Errorf("Unexpected %v: got %s, want %g", name, got, want)
+		}
+	}
+
+	// Check that the provenance parses correctly
+	assert("repoURL", prov.Predicate.Materials[1].URI, "https://github.com/project-oak/oak")
+	assert("commitHash", prov.Predicate.Materials[1].Digest["sha1"], "0f2189703c57845e09d8ab89164a4041c0af0a62")
+	assert("builderImage", prov.Predicate.Materials[0].URI, "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
+	assert("commitHash", prov.Predicate.Materials[0].Digest["sha256"], "53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
+	assert("subjectName", prov.Subject[0].Name, "build.toml-0f2189703c57845e09d8ab89164a4041c0af0a62")
+	assert("expectedSha256Hash", prov.Subject[0].Digest["sha256"], "56893dbba5667a305894b424c1fa58a0b51f994b117e62296fb6ee5986683856")
+	assert("outputPath", prov.Predicate.BuildConfig.OutputPath, "../testdata/build.toml")
+	assert("command[0]", prov.Predicate.BuildConfig.Command[0], "./scripts/runner")
+	assert("command[1]", prov.Predicate.BuildConfig.Command[1], "build-functions-server")
 }
 
 func checkBuildConfig(got *BuildConfig, t *testing.T) {
