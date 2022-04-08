@@ -311,14 +311,14 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*slsa.Provenance, error) {
 
 func parseBuilderImageURI(imageURI string) (string, string, error) {
 	// We expect the URI of the builder image to be of the form NAME@DIGEST
-	uRIParts := strings.Split(imageURI, "@")
-	if len(uRIParts) != 2 {
+	URIParts := strings.Split(imageURI, "@")
+	if len(URIParts) != 2 {
 		return "", "", fmt.Errorf("the builder image URI (%q) does not have the required NAME@DIGEST format", imageURI)
 	}
 	// We expect the DIGEST to be of the form ALG:VALUE
-	digestParts := strings.Split(uRIParts[1], ":")
+	digestParts := strings.Split(URIParts[1], ":")
 	if len(digestParts) != 2 {
-		return "", "", fmt.Errorf("the builder image digest (%q) does not have the required ALG:VALUE format", uRIParts[1])
+		return "", "", fmt.Errorf("the builder image digest (%q) does not have the required ALG:VALUE format", URIParts[1])
 	}
 
 	return digestParts[0], digestParts[1], nil

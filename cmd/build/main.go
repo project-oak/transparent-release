@@ -25,16 +25,16 @@ import (
 )
 
 func main() {
-	buildConfigPathPtr := flag.String("config", "",
+	buildConfigPath := flag.String("build_config_path", "",
 		"Required - Path to a toml file containing the build configs.")
-	gitRootDirPtr := flag.String("git_root_dir", "",
+	gitRootDir := flag.String("git_root_dir", "",
 		"Optional - Root of the Git repository. If not specified, sources are fetched from the repo specified in the config file.")
-	provenancePathPtr := flag.String("provenance_path", "",
+	provenancePath := flag.String("provenance_path", "",
 		"Required - Output file name for storing the generated provenance file.")
 
 	flag.Parse()
 
-	prov, err := build.Build(*buildConfigPathPtr, *gitRootDirPtr)
+	prov, err := build.Build(*buildConfigPath, *gitRootDir)
 	if err != nil {
 		log.Fatalf("Couldn't build the binary: %v", err)
 	}
@@ -45,7 +45,7 @@ func main() {
 		log.Fatalf("Couldn't marshal the provenance: %v", err)
 	}
 
-	if err := os.WriteFile(*provenancePathPtr, bytes, 0644); err != nil {
+	if err := os.WriteFile(*provenancePath, bytes, 0644); err != nil {
 		log.Fatalf("Couldn't write provenance file: %v", err)
 	}
 }
