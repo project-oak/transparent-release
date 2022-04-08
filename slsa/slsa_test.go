@@ -32,9 +32,9 @@ func TestSlsaExampleProvenance(t *testing.T) {
 		t.Fatalf("Failed to parse example provenance: %v", err)
 	}
 
-	assert := func(name, want, got string) {
+	assert := func(name, got, want string) {
 		if want != got {
-			t.Fatalf("Unexpected %v want %s got %g", name, want, got)
+			t.Errorf("Unexpected %v: got %s, want %g", name, got, want)
 		}
 	}
 

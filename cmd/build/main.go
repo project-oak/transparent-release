@@ -12,24 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package main contains a command-line tool for verifying Amber provenance files.
+// Package main contains a command-line tool for building banaries and
+// generating SLSA provenance files, with Amber buildType.
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"log"
+	"os"
 
 	"github.com/project-oak/transparent-release/build"
 )
 
 func main() {
-	buildConfigPathPtr := flag.String("config", "",
+	buildConfigPath := flag.String("build_config_path", "",
 		"Required - Path to a toml file containing the build configs.")
-	gitRootDirPtr := flag.String("git_root_dir", "",
-		"Optional - Root of the Git repository. If not specified, sources are fetched from the repo specified in the config file.")
+	gitRootDir := flag.String("git_root_dir", "",
+		"Optional - Root of the Git repository. If not specified, sources are fetched from the repo specified in the toml file.")
+	provenancePath := flag.String("provenance_path", "",
+		"Required - Output file name for storing the generated provenance file.")
+
 	flag.Parse()
 
-	if err := build.Build(*buildConfigPathPtr, *gitRootDirPtr); err != nil {
-		log.Fatalf("error when building the binary: %v", err)
+	prov, err := build.Build(*buildConfigPath, *gitRootDir)
+	if err != nil {
+		log.Fatalf("Couldn't build the binary: %v", err)
+	}
+
+	// Write the provenance statement to file.
+	bytes, err := json.Marshal(prov)
+	if err != nil {
+		log.Fatalf("Couldn't marshal the provenance: %v", err)
+	}
+
+	if err := os.WriteFile(*provenancePath, bytes, 0644); err != nil {
+		log.Fatalf("Couldn't write provenance file: %v", err)
 	}
 }
