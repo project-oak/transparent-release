@@ -89,9 +89,9 @@ genrule(
   cmd = """
   export PROVENANCE=$(location //schema/amber-slsa-buildtype/v1:example.json)
   export ENDORSEMENT=$(location //schema/amber-endorsement/v1:example.json)
-  ./$(location :auth_logic_verification) oak_functions_loader $$ENDORSEMENT $$PROVENANCE $(RULEDIR)/oak_verification.auth_logic
+  ./$(location :auth_logic_verification) oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62 $$ENDORSEMENT $$PROVENANCE $(RULEDIR)/oak_verification.auth_logic
   export SOUFFLE_BIN=$(location @souffle-bin//file)
-  ./$(location @auth-logic-compiler//file) oak_verification.auth_logic $(RULEDIR) $(RULEDIR)
+  ./$(location @auth-logic-compiler//file) $(RULEDIR)/oak_verification.auth_logic --souffle-output-file $(RULEDIR)/oak_verification.auth_logic.dl --output_queries_directory $(RULEDIR)
   """,
   outs = [
     "oak_verification.auth_logic",
@@ -122,8 +122,7 @@ genrule(
   ],
   cmd = """
     export SOUFFLE_BIN=$(location @souffle-bin//file)
-    export INPUT_DIR=$$(dirname $(location simple.auth_logic))
-    ./$(location @auth-logic-compiler//file) simple.auth_logic $$INPUT_DIR $(RULEDIR)
+    ./$(location @auth-logic-compiler//file) $(location simple.auth_logic) --output_queries_directory $(RULEDIR) --souffle-output-file $(RULEDIR)/simple.auth_logic.dl
   """,
   outs = ["simple.auth_logic.dl", "demo_working.csv", "demo_disappointing.csv"]
 )
