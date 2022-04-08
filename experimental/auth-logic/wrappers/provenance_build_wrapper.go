@@ -27,6 +27,11 @@ import (
 // hash to the provenance file.
 type ProvenanceBuildWrapper struct{ ProvenanceFilePath string }
 
+const (
+	provenanceStatementInner = `"%v::Binary" hasProvenance("%v::Provenance").`
+	hashStatementInner       = `"%v::Binary" has_measured_hash("sha256:%v").`
+)
+
 // EmitStatement implements the Wrapper interface for ProvenanceBuildWrapper
 // by emitting the authorization logic statement.
 func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error) {
@@ -37,7 +42,7 @@ func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 			fmt.Errorf("provenance build wrapper couldn't parse provenance file: %v", err)
 	}
 
-	applicationName := provenance.Subject[0].Name
+	sanitizedAppName := SanitizeName(provenance.Subject[0].Name)
 
 	// Generate a BuildConfig struct from the provenance file
 	buildConfig, err := common.LoadBuildConfigFromProvenance(provenance)
@@ -69,9 +74,7 @@ func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 	}
 
 	return UnattributedStatement{
-		Contents: fmt.Sprintf("\"%v::Binary\" hasProvenance(\"%v::Provenance\").\n",
-			applicationName, applicationName) +
-			fmt.Sprintf("\"%v::Binary\" has_measured_hash(\"sha256:%v\").",
-				applicationName, measuredBinaryHash)}, nil
+		Contents: fmt.Sprintf(provenanceStatementInner+"\n"+hashStatementInner, sanitizedAppName, sanitizedAppName, sanitizedAppName, measuredBinaryHash),
+	}, nil
 
 }

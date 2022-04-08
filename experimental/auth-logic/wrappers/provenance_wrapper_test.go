@@ -40,7 +40,7 @@ func TestProvenanceWrapper(t *testing.T) {
 		t.Fatalf("couldn't get app name from provenance file: %s, error: %v",
 			schemaExamplePath, err)
 	}
-	speaker := Principal{Contents: fmt.Sprintf(`"%s::Provenance"`, appName)}
+	speaker := Principal{Contents: fmt.Sprintf(`"%s::Provenance"`, SanitizeName(appName))}
 
 	statement, err := EmitStatementAs(speaker, testProvenance)
 	if err != nil {

@@ -21,6 +21,7 @@ package wrappers
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 // UnattributedStatement represents an authorization logic statement (or
@@ -95,4 +96,15 @@ func EmitAuthLogicToFile(authLogic Statement, filepath string) error {
 	defer f.Close()
 	_, writeErr := f.WriteString(authLogic.String())
 	return writeErr
+}
+
+// SanitizeName takes a value that was parsed from something external to
+// authorizaiton logic and returns a new value that can be used as part of the
+// syntax for principal names and arguments in the authorization logic syntax.
+// At present, it removes hyphens. This is exported because it may be used in
+// the main package to get principal names.
+// TODO([#58](https://github.com/project-oak/transparent-release/issues/58))
+// name collisions are possible and may not be detected.
+func SanitizeName(oldName string) string {
+	return strings.ReplaceAll(oldName, "-", ":")
 }
