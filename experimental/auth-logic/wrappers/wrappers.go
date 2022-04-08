@@ -104,5 +104,5 @@ func EmitAuthLogicToFile(authLogic Statement, filepath string) error {
 // At present, it removes hyphens. This is exported because it may be used in
 // the main package to get principal names.
 func SanitizeName(oldName string) string {
-	return strings.ReplaceAll(oldName, "-", "")
+	return strings.ReplaceAll(oldName, "-", ":")
 }
