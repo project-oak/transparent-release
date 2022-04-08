@@ -27,6 +27,11 @@ import (
 // hash to the provenance file.
 type ProvenanceBuildWrapper struct{ ProvenanceFilePath string }
 
+const (
+  provenanceStatementInner = `"%v::Binary" hasProvenance("%v::Provenance").`
+  hashStatementInner = `"%v::Binary" has_measured_hash("sha256:%v").`
+)
+
 // EmitStatement implements the Wrapper interface for ProvenanceBuildWrapper
 // by emitting the authorization logic statement.
 func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error) {
@@ -69,9 +74,7 @@ func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 	}
 
 	return UnattributedStatement{
-		Contents: fmt.Sprintf("\"%v::Binary\" hasProvenance(\"%v::Provenance\").\n",
-			sanitizedAppName, sanitizedAppName) +
-			fmt.Sprintf("\"%v::Binary\" has_measured_hash(\"sha256:%v\").",
-				sanitizedAppName, measuredBinaryHash)}, nil
+    Contents: fmt.Sprintf(provenanceStatementInner + "\n" + hashStatementInner, sanitizedAppName, sanitizedAppName, sanitizedAppName, measuredBinaryHash),
+  }, nil
 
 }
