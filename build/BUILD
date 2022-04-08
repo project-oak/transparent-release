@@ -21,6 +21,6 @@ package(default_visibility = ["//:__subpackages__"])
 go_library(
     name = "build",
     srcs = ["build.go"],
-    deps = ["//common:common"],
+    deps = ["//common:common", "//slsa:slsa"],
     importpath = "github.com/project-oak/transparent-release/build",
 )

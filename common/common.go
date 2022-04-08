@@ -25,10 +25,21 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 
 	toml "github.com/pelletier/go-toml"
 	"github.com/project-oak/transparent-release/slsa"
+)
+
+const (
+	// InTotoStatementV01 is the statement type for the generalized link format
+	// containing statements. This is constant for all predicate types.
+	InTotoStatementV01 = "https://in-toto.io/Statement/v0.1"
+	// SLSAPredicateV02 is the predicate type for the SLSA v0.2 Provenance predicate type.
+	SLSAPredicateV02 = "https://slsa.dev/provenance/v0.2"
+	// AmberBuildTypeV1 is the SLSA BuildType for Amber builds.
+	AmberBuildTypeV1 = "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json"
 )
 
 // BuildConfig is a struct wrapping arguments for building a binary from source.
@@ -243,26 +254,74 @@ func (b *BuildConfig) VerifyBinarySha256Hash() error {
 	return nil
 }
 
-// GenerateProvenanceFile generates the provenance file. If
-// `ExpectedBinarySha256Hash` is non-empty, the provenance file is generated
-// only if the SHA256 hash of the generated binary is equal to
-// `ExpectedBinarySha256Hash`.
-func (b *BuildConfig) GenerateProvenanceFile() error {
-	// TODO(b/210658815): Instead of only checking the hash, generate the provenance file.
-
+// GenerateProvenanceStatement generates a provenance statement from this config. If
+// `ExpectedBinarySha256Hash` is non-empty, the provenance statement is generated only if the
+// SHA256 hash of the generated binary is equal to `ExpectedBinarySha256Hash`.
+func (b *BuildConfig) GenerateProvenanceStatement() (*slsa.Provenance, error) {
 	binarySha256Hash, err := b.ComputeBinarySha256Hash()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	log.Printf("The hash of the binary is: %s", binarySha256Hash)
 
 	if b.ExpectedBinarySha256Hash != "" && b.ExpectedBinarySha256Hash != binarySha256Hash {
-		return fmt.Errorf("the hash of the output binary does not match the expected binary hash; got %s, want %v",
+		return nil, fmt.Errorf("the hash of the output binary does not match the expected binary hash; got %s, want %v",
 			binarySha256Hash, b.ExpectedBinarySha256Hash)
 	}
 
-	return nil
+	subject := slsa.Subject{
+		// TODO(#57): Get the name as an input in the TOML file.
+		Name:   fmt.Sprintf("%s-%s", filepath.Base(b.OutputPath), b.CommitHash),
+		Digest: map[string]string{"sha256": string(binarySha256Hash)},
+	}
+
+	alg, digest, err := parseBuilderImageURI(b.BuilderImage)
+	if err != nil {
+		return nil, fmt.Errorf("malformed builder image URI: %v", err)
+	}
+
+	predicate := slsa.Predicate{
+		BuildType: AmberBuildTypeV1,
+		BuildConfig: slsa.BuildConfig{
+			Command:    b.Command,
+			OutputPath: b.OutputPath,
+		},
+		Materials: []slsa.Material{
+			// Builder image
+			slsa.Material{
+				URI:    b.BuilderImage,
+				Digest: map[string]string{alg: digest},
+			},
+			// Source code
+			slsa.Material{
+				URI:    b.Repo,
+				Digest: map[string]string{"sha1": b.CommitHash},
+			},
+		},
+	}
+
+	return &slsa.Provenance{
+		Type:          InTotoStatementV01,
+		Subject:       []slsa.Subject{subject},
+		PredicateType: SLSAPredicateV02,
+		Predicate:     predicate,
+	}, nil
+}
+
+func parseBuilderImageURI(imageURI string) (string, string, error) {
+	// We expect the URI of the builder image to be of the form NAME@DIGEST
+	URIParts := strings.Split(imageURI, "@")
+	if len(URIParts) != 2 {
+		return "", "", fmt.Errorf("the builder image URI (%q) does not have the required NAME@DIGEST format", imageURI)
+	}
+	// We expect the DIGEST to be of the form ALG:VALUE
+	digestParts := strings.Split(URIParts[1], ":")
+	if len(digestParts) != 2 {
+		return "", "", fmt.Errorf("the builder image digest (%q) does not have the required ALG:VALUE format", URIParts[1])
+	}
+
+	return digestParts[0], digestParts[1], nil
 }
 
 // saveToTempFile creates a tempfile in `/tmp` and writes the content of the
