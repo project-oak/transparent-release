@@ -30,6 +30,7 @@ func main() {
 	endorsementFilePath := os.Args[2]
 	provenanceFilePath := os.Args[3]
 	outputFilePath := os.Args[4]
+	queryName := os.Args[5]
 
 	// Part of the code for building a project using provenance
 	// files changes the working directory. This binary needs to keep
@@ -40,7 +41,7 @@ func main() {
 		log.Fatalf("Couldn't get working directory before verifying: %v", err)
 	}
 
-	out, err := verifyRelease(appName, endorsementFilePath, provenanceFilePath)
+	out, err := verifyRelease(appName, endorsementFilePath, provenanceFilePath, queryName)
 	if err != nil {
 		log.Fatalf("Couldn't verify release: %v", err)
 	}

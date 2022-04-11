@@ -3,9 +3,9 @@
 
 "OakFunctionsLoader::Provenance" canSay "OakFunctionsLoader::Binary" has_expected_hash_from(any_hash, "OakFunctionsLoader::Provenance").
 
-"ProvenanceFileBuilder" canSay any_principal hasProvenance(any_provenance).
+"OakFunctionsLoader::ProvenanceBuilder" canSay any_principal hasProvenance(any_provenance).
 
-"Sha256Wrapper" canSay some_object has_measured_hash(some_hash).
+"OakFunctionsLoader::ProvenanceBuilder" canSay some_object has_measured_hash(some_hash).
 
 "RekorLogCheck" canSay some_object canActAs "ValidRekorEntry".
 

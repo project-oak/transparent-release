@@ -18,24 +18,20 @@ import (
 	"testing"
 )
 
-func TestOakVerification(t *testing.T) {
+func TestOakVerificationPassing(t *testing.T) {
 	actualQueryValues, err := emitOutputQueries(".")
 	if actualQueryValues == nil || err != nil {
 		t.Fatalf("Could not parse verification query results for oak_functions_loader: %v", err)
 	}
 
-	// In this case verification is expected to fail because the endorsement
-	// file has expired and the names of the app in the endorsement and provenance
-	// files are different.
 	var expectedQueryValues = map[string]bool{
-		"verification_success": false,
+		"oak_verification_passing": true,
 	}
 
 	for query, want := range expectedQueryValues {
 		got := actualQueryValues[query]
 		if want != got {
-			t.Fatalf("Query %q failed; want %t got %t.", query, want, got)
+			t.Errorf("Query %q failed; want %t got %t.", query, want, got)
 		}
 	}
-
 }
