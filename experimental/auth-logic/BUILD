@@ -89,7 +89,7 @@ genrule(
   cmd = """
   export PROVENANCE=$(location //schema/amber-slsa-buildtype/v1:example.json)
   export ENDORSEMENT=$(location //schema/amber-endorsement/v1:example.json)
-  ./$(location :auth_logic_verification) oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62 $$ENDORSEMENT $$PROVENANCE $(RULEDIR)/oak_verification.auth_logic
+  ./$(location :auth_logic_verification) oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62 $$ENDORSEMENT $$PROVENANCE $(RULEDIR)/oak_verification.auth_logic verification_success
   export SOUFFLE_BIN=$(location @souffle-bin//file)
   ./$(location @auth-logic-compiler//file) $(RULEDIR)/oak_verification.auth_logic --souffle-output-file $(RULEDIR)/oak_verification.auth_logic.dl --output_queries_directory $(RULEDIR)
   """,
@@ -100,6 +100,35 @@ genrule(
   ]
 )
 
+# This rule is the same as the above except that it uses an endorsement file
+# that has not expired and a provenance file with the same name as the 
+# endorsement so that it passes.
+genrule(
+  name = "oak_verification_passing",
+  tools = [
+    ":auth_logic_verification",
+    "@auth-logic-compiler//file",
+    "@souffle-bin//file",
+  ],
+  srcs = [
+    "//schema/amber-slsa-buildtype/v1:provenance.json",
+    "//experimental/auth-logic/test_data:oak_endorsement.json",
+    "//experimental/auth-logic/test_data:oak_provenance.json",
+  ],
+  cmd = """
+  export PROVENANCE=$(location //experimental/auth-logic/test_data:oak_provenance.json)
+  export ENDORSEMENT=$(location //experimental/auth-logic/test_data:oak_endorsement.json)
+  ./$(location :auth_logic_verification) oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62 $$ENDORSEMENT $$PROVENANCE $(RULEDIR)/oak_verification_passing.auth_logic oak_verification_passing
+  export SOUFFLE_BIN=$(location @souffle-bin//file)
+  ./$(location @auth-logic-compiler//file) $(RULEDIR)/oak_verification_passing.auth_logic --souffle-output-file $(RULEDIR)/oak_verification_passing.auth_logic.dl --output_queries_directory $(RULEDIR)
+  """,
+  outs = [
+    "oak_verification_passing.auth_logic",
+    "oak_verification_passing.auth_logic.dl",
+    "oak_verification_passing.csv"
+  ]
+)
+
 go_test(
     name = "oak_auth_logic_verification_test",
     size = "medium",
@@ -107,6 +136,16 @@ go_test(
     embed = [":auth_logic_interface"],
     data = [
       "verification_success.csv",
+    ],
+)
+
+go_test(
+    name = "oak_verification_passing_test",
+    size = "medium",
+    srcs = ["oak_verification_passing_test.go"],
+    embed = [":auth_logic_interface"],
+    data = [
+      "oak_verification_passing.csv",
     ],
 )
 

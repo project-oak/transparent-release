@@ -22,8 +22,8 @@ import (
 const (
 	endorsementHashDelegationInner = "%s canSay %s has_expected_hash_from(any_hash, %s).\n"
 	provenanceHashDelegationInner  = "%s canSay %s has_expected_hash_from(any_hash, %s).\n"
-	provenanceDelegation           = "\"ProvenanceFileBuilder\" canSay any_principal hasProvenance(any_provenance).\n"
-	hashMeasurementDelegation      = "\"Sha256Wrapper\" canSay some_object has_measured_hash(some_hash).\n"
+  provenanceDelegationInner      = "%s canSay any_principal hasProvenance(any_provenance).\n"
+	hashMeasurementDelegationInner = "%s canSay some_object has_measured_hash(some_hash).\n"
 	rekorLogCheckDelegation        = "\"RekorLogCheck\" canSay some_object canActAs \"ValidRekorEntry\".\n"
 )
 
@@ -39,6 +39,7 @@ func (v VerifierWrapper) EmitStatement() (UnattributedStatement, error) {
 	// TODO(#39) consider using a [template](https://pkg.go.dev/text/template) to implement this.
 	endorsementPrincipal := fmt.Sprintf(`"%s::EndorsementFile"`, v.AppName)
 	provenancePrincipal := fmt.Sprintf(`"%s::Provenance"`, v.AppName)
+	provenanceBuilderPrincipal := fmt.Sprintf(`"%s::ProvenanceBuilder"`, v.AppName)
 	binaryPrincipal := fmt.Sprintf(`"%s::Binary"`, v.AppName)
 	appPrincipal := fmt.Sprintf(`"%s"`, v.AppName)
 
@@ -52,13 +53,13 @@ func (v VerifierWrapper) EmitStatement() (UnattributedStatement, error) {
 	// this we add a second argument to the predicate to track the original
 	// speaker.
 
-	endorsementHashDelegation :=
-		fmt.Sprintf(endorsementHashDelegationInner,
-			endorsementPrincipal, binaryPrincipal, endorsementPrincipal)
+	endorsementHashDelegation := fmt.Sprintf(endorsementHashDelegationInner, endorsementPrincipal, binaryPrincipal, endorsementPrincipal)
 
-	provenanceHashDelegation :=
-		fmt.Sprintf(provenanceHashDelegationInner,
-			provenancePrincipal, binaryPrincipal, provenancePrincipal)
+	provenanceHashDelegation := fmt.Sprintf(provenanceHashDelegationInner, provenancePrincipal, binaryPrincipal, provenancePrincipal)
+
+  provenanceDelegation := fmt.Sprintf(provenanceDelegationInner, provenanceBuilderPrincipal)
+  hashMeasurementDelegation := fmt.Sprintf(hashMeasurementDelegationInner, provenanceBuilderPrincipal)
+      
 
 	binaryIdentificationRule :=
 		binaryPrincipal + " canActAs " + appPrincipal + " :-\n" +

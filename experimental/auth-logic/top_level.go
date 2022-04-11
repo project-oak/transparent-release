@@ -29,7 +29,7 @@ const relationDeclarations = ".decl attribute has_expected_hash_from(hash : Sha2
 // for that application, the path to a provenance file for that application,
 // and emits authorization logic code (as a string) that runs the transparent
 // release verification process.
-func verifyRelease(appName, endorsementFilePath, provenanceFilePath string) (string, error) {
+func verifyRelease(appName, endorsementFilePath, provenanceFilePath, queryName string) (string, error) {
 
 	endorsementAppName, err := wrappers.GetAppNameFromEndorsement(endorsementFilePath)
 	if err != nil {
@@ -86,8 +86,8 @@ func verifyRelease(appName, endorsementFilePath, provenanceFilePath string) (str
 		return "", fmt.Errorf("verifyRelease couldn't get verifier statement: %v", err)
 	}
 
-	topLevelQuery := fmt.Sprintf(`verification_success = query %s says "%s::Binary" canActAs "%s"?`,
-		verifierPrincipal.String(), appName, appName)
+	topLevelQuery := fmt.Sprintf(`%s = query %s says "%s::Binary" canActAs "%s"?`,
+		queryName, verifierPrincipal.String(), appName, appName)
 
 	// It's useful to run this one last because this one emits the current
 	// time, and doing this one last reduces the error between the time
