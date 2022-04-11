@@ -22,7 +22,7 @@ import (
 const (
 	endorsementHashDelegationInner = "%s canSay %s has_expected_hash_from(any_hash, %s).\n"
 	provenanceHashDelegationInner  = "%s canSay %s has_expected_hash_from(any_hash, %s).\n"
-  provenanceDelegationInner      = "%s canSay any_principal hasProvenance(any_provenance).\n"
+	provenanceDelegationInner      = "%s canSay any_principal hasProvenance(any_provenance).\n"
 	hashMeasurementDelegationInner = "%s canSay some_object has_measured_hash(some_hash).\n"
 	rekorLogCheckDelegation        = "\"RekorLogCheck\" canSay some_object canActAs \"ValidRekorEntry\".\n"
 )
@@ -57,9 +57,8 @@ func (v VerifierWrapper) EmitStatement() (UnattributedStatement, error) {
 
 	provenanceHashDelegation := fmt.Sprintf(provenanceHashDelegationInner, provenancePrincipal, binaryPrincipal, provenancePrincipal)
 
-  provenanceDelegation := fmt.Sprintf(provenanceDelegationInner, provenanceBuilderPrincipal)
-  hashMeasurementDelegation := fmt.Sprintf(hashMeasurementDelegationInner, provenanceBuilderPrincipal)
-      
+	provenanceDelegation := fmt.Sprintf(provenanceDelegationInner, provenanceBuilderPrincipal)
+	hashMeasurementDelegation := fmt.Sprintf(hashMeasurementDelegationInner, provenanceBuilderPrincipal)
 
 	binaryIdentificationRule :=
 		binaryPrincipal + " canActAs " + appPrincipal + " :-\n" +
