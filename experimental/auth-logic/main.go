@@ -30,7 +30,7 @@ func main() {
 	endorsementFilePath := os.Args[2]
 	provenanceFilePath := os.Args[3]
 	outputFilePath := os.Args[4]
-  queryName := os.Args[5]
+	queryName := os.Args[5]
 
 	// Part of the code for building a project using provenance
 	// files changes the working directory. This binary needs to keep
