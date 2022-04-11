@@ -25,7 +25,7 @@ func TestSimpleAuthLogic(t *testing.T) {
 	}
 
 	// In this case verification is expected to fail because the endorsement
-	// file has failed and the names of the app in the endorsement and provenance
+	// file has expired and the names of the app in the endorsement and provenance
 	// files are different.
 	var expectedQueryValues = map[string]bool{
 		"verification_success": false,
