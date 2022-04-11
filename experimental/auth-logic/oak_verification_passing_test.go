@@ -31,7 +31,7 @@ func TestOakVerificationPassing(t *testing.T) {
 	for query, want := range expectedQueryValues {
 		got := actualQueryValues[query]
 		if want != got {
-			t.Fatalf("Query %q failed; want %t got %t.", query, want, got)
+			t.Errorf("Query %q failed; want %t got %t.", query, want, got)
 		}
 	}
 }
