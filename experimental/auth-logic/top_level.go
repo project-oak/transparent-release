@@ -86,8 +86,8 @@ func verifyRelease(appName, endorsementFilePath, provenanceFilePath string) (str
 		return "", fmt.Errorf("verifyRelease couldn't get verifier statement: %v", err)
 	}
 
-	topLevelQuery := "verification_success = query " + verifierPrincipal.String() +
-		" says \"" + appName + "::Binary\" canActAs " + appName + "?"
+	topLevelQuery := fmt.Sprintf(`verification_success = query %s says "%s::Binary" canActAs "%s"?`,
+		verifierPrincipal.String(), appName, appName)
 
 	// It's useful to run this one last because this one emits the current
 	// time, and doing this one last reduces the error between the time

@@ -1,5 +1,4 @@
-
-
+#
 # Copyright 2022 The Project Oak Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,7 +63,51 @@ go_binary(
     "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
     "//slsa:slsa",
     "//common:common",
+  ],
+)
+
+# This rule runs transparent release verification on the oak functions
+# loader as a specific target by:
+# - calling the auth_logic_binary on the evidence for oak_functions_loader,
+# to generate an authorization logic program
+# - calling the auth logic compiler on the authorization logic program to
+# generate a souffle program
+# - calling the souffle program to generate CSV files with the results of 
+# the queries
+genrule(
+  name = "oak_auth_logic_verification",
+  tools = [
+    ":auth_logic_verification",
+    "@auth-logic-compiler//file",
+    "@souffle-bin//file",
+  ],
+  srcs = [
+    "//schema/amber-slsa-buildtype/v1:provenance.json",
+    "//schema/amber-slsa-buildtype/v1:example.json",
+    "//schema/amber-endorsement/v1:example.json",
+  ],
+  cmd = """
+  export PROVENANCE=$(location //schema/amber-slsa-buildtype/v1:example.json)
+  export ENDORSEMENT=$(location //schema/amber-endorsement/v1:example.json)
+  ./$(location :auth_logic_verification) oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62 $$ENDORSEMENT $$PROVENANCE $(RULEDIR)/oak_verification.auth_logic
+  export SOUFFLE_BIN=$(location @souffle-bin//file)
+  ./$(location @auth-logic-compiler//file) $(RULEDIR)/oak_verification.auth_logic --souffle-output-file $(RULEDIR)/oak_verification.auth_logic.dl --output_queries_directory $(RULEDIR)
+  """,
+  outs = [
+    "oak_verification.auth_logic",
+    "oak_verification.auth_logic.dl",
+    "verification_success.csv"
   ]
+)
+
+go_test(
+    name = "oak_auth_logic_verification_test",
+    size = "medium",
+    srcs = ["oak_auth_logic_verification_test.go"],
+    embed = [":auth_logic_interface"],
+    data = [
+      "verification_success.csv",
+    ],
 )
 
 # This rule runs the authorizaiton logic compiler on "simple.auth_logic"
@@ -79,8 +122,7 @@ genrule(
   ],
   cmd = """
     export SOUFFLE_BIN=$(location @souffle-bin//file)
-    export INPUT_DIR=$$(dirname $(location simple.auth_logic))
-    ./$(location @auth-logic-compiler//file) simple.auth_logic $$INPUT_DIR $(RULEDIR)
+    ./$(location @auth-logic-compiler//file) $(location simple.auth_logic) --output_queries_directory $(RULEDIR) --souffle-output-file $(RULEDIR)/simple.auth_logic.dl
   """,
   outs = ["simple.auth_logic.dl", "demo_working.csv", "demo_disappointing.csv"]
 )
