@@ -14,7 +14,7 @@ jobs:
   build-all:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
 
       - name: Mount bazel cache
         uses: actions/cache@v1
@@ -41,23 +41,40 @@ jobs:
   check-license-lines:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
       - name: Check License Lines
         uses: kt3k/license_checker@v1.0.6
 
   formatting:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v1
-      - name: Run golint
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ">=1.18"
+      - name: Run go fmt
         run: |
           ./scripts/formatting.sh
 
   linting:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ">=1.18"
       - name: Run golint
         run: |
           sudo apt-get install -y golint
           ./scripts/linting.sh
+
+  vetting:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ">=1.18"
+      - name: Run go vet
+        run: |
+          go vet ./...

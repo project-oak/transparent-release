@@ -96,7 +96,7 @@ func LoadBuildConfigFromProvenance(provenance *slsa.Provenance) (*BuildConfig, e
 
 	expectedBinarySha256Hash := provenance.Subject[0].Digest["sha256"]
 	if len(provenance.Subject) != 1 {
-		return nil, fmt.Errorf("the provenance's subject digest must specify a sha256 hash, got %d", expectedBinarySha256Hash)
+		return nil, fmt.Errorf("the provenance's subject digest must specify a sha256 hash, got %s", expectedBinarySha256Hash)
 	}
 
 	if len(provenance.Predicate.Materials) != 2 {
@@ -105,27 +105,27 @@ func LoadBuildConfigFromProvenance(provenance *slsa.Provenance) (*BuildConfig, e
 
 	builderImage := provenance.Predicate.Materials[0].URI
 	if builderImage == "" {
-		return nil, fmt.Errorf("the provenance's first material must specify a URI, got %d", builderImage)
+		return nil, fmt.Errorf("the provenance's first material must specify a URI, got %s", builderImage)
 	}
 
 	repo := provenance.Predicate.Materials[1].URI
 	if repo == "" {
-		return nil, fmt.Errorf("the provenance's second material must specify a URI, got %d", repo)
+		return nil, fmt.Errorf("the provenance's second material must specify a URI, got %s", repo)
 	}
 
 	commitHash := provenance.Predicate.Materials[1].Digest["sha1"]
 	if commitHash == "" {
-		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %d", commitHash)
+		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %s", commitHash)
 	}
 
 	command := provenance.Predicate.BuildConfig.Command
 	if command[0] == "" {
-		return nil, fmt.Errorf("the provenance's buildConfig must specify a command, got %d", command)
+		return nil, fmt.Errorf("the provenance's buildConfig must specify a command, got %s", command)
 	}
 
 	outputPath := provenance.Predicate.BuildConfig.OutputPath
 	if outputPath == "" {
-		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %d", outputPath)
+		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %s", outputPath)
 	}
 
 	config := BuildConfig{
