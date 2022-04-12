@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v1
-      - name: Run golint
+      - name: Run go fmt
         run: |
           ./scripts/formatting.sh
 
@@ -61,3 +61,11 @@ jobs:
         run: |
           sudo apt-get install -y golint
           ./scripts/linting.sh
+
+  vetting:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run go vet
+        run: |
+          go vet ./...
