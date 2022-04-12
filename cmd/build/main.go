@@ -21,6 +21,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/project-oak/transparent-release/build"
 )
@@ -30,10 +31,15 @@ func main() {
 		"Required - Path to a toml file containing the build configs.")
 	gitRootDir := flag.String("git_root_dir", "",
 		"Optional - Root of the Git repository. If not specified, sources are fetched from the repo specified in the toml file.")
-	provenancePath := flag.String("provenance_path", "",
-		"Required - Output file name for storing the generated provenance file.")
+	provenancePath := flag.String("provenance_path", "provenance.json",
+		"Optional - Output file name for storing the generated provenance file. Default: provenance.json")
 
 	flag.Parse()
+
+	absProvenancePath, err := filepath.Abs(*provenancePath)
+	if err != nil {
+		log.Fatalf("Couldn't get absolute path for storing the output provenance file: %v", err)
+	}
 
 	prov, err := build.Build(*buildConfigPath, *gitRootDir)
 	if err != nil {
@@ -46,7 +52,8 @@ func main() {
 		log.Fatalf("Couldn't marshal the provenance: %v", err)
 	}
 
-	if err := os.WriteFile(*provenancePath, bytes, 0644); err != nil {
-		log.Fatalf("Couldn't write provenance file: %v", err)
+	log.Printf("Storing the provenance in %s", absProvenancePath)
+	if err := os.WriteFile(absProvenancePath, bytes, 0644); err != nil {
+		log.Fatalf("Couldn't write the provenance file: %v", err)
 	}
 }
