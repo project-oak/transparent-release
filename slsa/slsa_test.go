@@ -34,7 +34,7 @@ func TestSlsaExampleProvenance(t *testing.T) {
 
 	assert := func(name, got, want string) {
 		if want != got {
-			t.Errorf("Unexpected %v: got %s, want %g", name, got, want)
+			t.Errorf("Unexpected %s: got %s, want %s", name, got, want)
 		}
 	}
 

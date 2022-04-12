@@ -126,7 +126,7 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 	// Verify the content of the generated provenance statement
 	assert := func(name, got, want string) {
 		if want != got {
-			t.Errorf("Unexpected %v: got %s, want %g", name, got, want)
+			t.Errorf("Unexpected %s: got %s, want %s", name, got, want)
 		}
 	}
 
