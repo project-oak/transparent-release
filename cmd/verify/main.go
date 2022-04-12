@@ -29,7 +29,11 @@ func main() {
 		"Optional - Root of the Git repository. If not specified, sources are fetched from the repo specified in the config file.")
 	flag.Parse()
 
-	if err := verify.Verify(*buildConfigPathPtr, *gitRootDirPtr); err != nil {
-		log.Fatalf("error when verifyfing the provenance: %v", err)
+	verifier := verify.ReproducibleProvenanceVerifier{
+		GitRootDir: *gitRootDirPtr,
+	}
+
+	if err := verifier.Verify(*buildConfigPathPtr); err != nil {
+		log.Fatalf("error when verifying the provenance: %v", err)
 	}
 }
