@@ -20,7 +20,7 @@ import (
 	"testing"
 )
 
-const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
+const provenanceExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
 
 func TestProvenanceWrapper(t *testing.T) {
 	want := `"oak_functions_loader::Provenance" says {
@@ -33,12 +33,12 @@ func TestProvenanceWrapper(t *testing.T) {
 	// be able to read the SLSA files.
 	os.Chdir("../../../")
 
-	testProvenance := ProvenanceWrapper{FilePath: schemaExamplePath}
+	testProvenance := ProvenanceWrapper{FilePath: provenanceExamplePath}
 
-	appName, err := GetAppNameFromProvenance(schemaExamplePath)
+	appName, err := GetAppNameFromProvenance(provenanceExamplePath)
 	if err != nil {
 		t.Fatalf("couldn't get app name from provenance file: %s, error: %v",
-			schemaExamplePath, err)
+			provenanceExamplePath, err)
 	}
 	speaker := Principal{Contents: fmt.Sprintf(`"%s::Provenance"`, SanitizeName(appName))}
 
