@@ -16,9 +16,8 @@ package wrappers
 
 import (
 	"fmt"
-
-	"github.com/project-oak/transparent-release/common"
 	"github.com/project-oak/transparent-release/slsa"
+	"github.com/project-oak/transparent-release/verify"
 )
 
 // ProvenanceBuildWrapper is a wrapper that parses a provenance file,
@@ -38,43 +37,16 @@ func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 	// Unmarshal a provenance struct from the JSON file.
 	provenance, err := slsa.ParseProvenanceFile(pbw.ProvenanceFilePath)
 	if err != nil {
-		return UnattributedStatement{},
-			fmt.Errorf("provenance build wrapper couldn't parse provenance file: %v", err)
+		return UnattributedStatement{}, fmt.Errorf("provenance build wrapper couldn't parse provenance file: %v", err)
 	}
 
 	sanitizedAppName := SanitizeName(provenance.Subject[0].Name)
-
-	// Generate a BuildConfig struct from the provenance file
-	buildConfig, err := common.LoadBuildConfigFromProvenance(provenance)
-	if err != nil {
-		return UnattributedStatement{},
-			fmt.Errorf("provenance build wrapper couldn't load build config: %v", err)
+	if err := verify.Verify(pbw.ProvenanceFilePath, ""); err != nil {
+		return UnattributedStatement{}, fmt.Errorf("verification of the provenance file failed: %v", err)
 	}
+	measuredBinaryHash := provenance.Subject[0].Digest["sha256"]
 
-	// Fetch the repository sources from the repository referenced in the
-	// BuildConfig struct.
-	_, err = common.FetchSourcesFromRepo(buildConfig.Repo, buildConfig.CommitHash)
-	if err != nil {
-		return UnattributedStatement{},
-			fmt.Errorf("provenance build wrapper couldn't fetch repo: %v", err)
-	}
-
-	// Build the binary from the fetched sources.
-	err = buildConfig.Build()
-	if err != nil {
-		return UnattributedStatement{},
-			fmt.Errorf("provenance build wrapper couldn't build repo: %v", err)
-	}
-
-	// Measure the hash of the binary.
-	measuredBinaryHash, err := buildConfig.ComputeBinarySha256Hash()
-	if err != nil {
-		return UnattributedStatement{},
-			fmt.Errorf("provenance build wrapper couldn't compute hash: %v", err)
-	}
-
-	return UnattributedStatement{
-		Contents: fmt.Sprintf(provenanceStatementInner+"\n"+hashStatementInner, sanitizedAppName, sanitizedAppName, sanitizedAppName, measuredBinaryHash),
-	}, nil
-
+	contentsTemplate := fmt.Sprintf("%s\n%s", provenanceStatementInner, hashStatementInner)
+	contents := fmt.Sprintf(contentsTemplate, sanitizedAppName, sanitizedAppName, sanitizedAppName, measuredBinaryHash)
+	return UnattributedStatement{Contents: contents}, nil
 }
