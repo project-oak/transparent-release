@@ -37,7 +37,7 @@ go_library(
     "unix_epoch_time_wrapper.go",
     "verifier_wrapper.go",
   ],
-  deps = ["//slsa:slsa", "//common:common"],
+  deps = ["//slsa:slsa", "//common:common", "//verify:verify"],
 )
 
 go_test(
@@ -48,67 +48,30 @@ go_test(
 )
 
 go_test(
-  name = "unix_epoch_time_wrapper_test",
+  name = "transparent_release_verification_wrappers_tests",
   size = "small",
   srcs = [
-    "unix_epoch_time_wrapper.go",
-    "unix_epoch_time_wrapper_test.go"
-  ],
-  embed = [":wrapper_interface"],
-)
-
-go_test(
-  name = "verifier_wrapper_test",
-  srcs = [
-    "verifier_wrapper.go",
+    "unix_epoch_time_wrapper_test.go",
     "verifier_wrapper_test.go",
-  ],
-  embed = [":wrapper_interface"],
-  data = [
-    "//experimental/auth-logic/test_data:verifier_wrapper_expected.auth_logic"
-  ]
-)
-
-go_test(
-  name = "provenance_wrapper_test",
-  size = "small",
-  srcs = [
-    "wrappers.go",
-    "provenance_wrapper.go",
     "provenance_wrapper_test.go",
+    "endorsement_wrapper_test.go",
   ],
   data = [
-      "//schema/amber-slsa-buildtype/v1:provenance.json",
-      "//schema/amber-slsa-buildtype/v1:example.json"
+    "//experimental/auth-logic/test_data:verifier_wrapper_expected.auth_logic",
+    "//schema/amber-slsa-buildtype/v1:provenance.json",
+    "//schema/amber-slsa-buildtype/v1:example.json",
+    "//schema/amber-endorsement/v1:example.json"
   ],
-  deps = ["//slsa:slsa"],
+  embed = [":transparent_release_verification_wrappers"],
 )
 
 go_test(
   name = "provenance_build_wrapper_test",
   size = "large",
-  srcs = [
-    "wrappers.go",
-    "provenance_wrapper.go",
-    "provenance_build_wrapper.go",
-    "provenance_build_wrapper_test.go",
-  ],
+  srcs = ["provenance_build_wrapper_test.go"],
   data = [
       "//schema/amber-slsa-buildtype/v1:provenance.json",
       "//schema/amber-slsa-buildtype/v1:example.json"
   ],
-  deps = ["//slsa:slsa", "//common:common"],
-)
-
-go_test(
-  name = "endorsement_wrapper_test",
-  size = "small",
-  srcs = [
-    "endorsement_wrapper.go",
-    "endorsement_wrapper_test.go"
-  ],
-  data = [
-      "//schema/amber-endorsement/v1:example.json"
-  ],
-  embed = [":wrapper_interface"]
+  embed = [":transparent_release_verification_wrappers"],
 )
