@@ -28,6 +28,7 @@ import (
 // verifying provenances.
 type ProvenanceVerifier interface {
 	// Verify verifies an Amber/SLSA provenance file in the given path.
+	// Returns an error if the verification fails, or nil if it is successful.
 	Verify(path string) error
 }
 
@@ -41,7 +42,8 @@ type ReproducibleProvenanceVerifier struct {
 
 // Verify verifies a given SLSA provenance file by running the build script in
 // it and verifying that the resulting binary has a hash equal to the one
-// specified in the subject of the given provenance file.
+// specified in the subject of the given provenance file. If the hashes are
+// different returns an error, otherwise returns nil.
 func (verifier *ReproducibleProvenanceVerifier) Verify(provenanceFilePath string) error {
 	provenance, err := slsa.ParseProvenanceFile(provenanceFilePath)
 	if err != nil {
