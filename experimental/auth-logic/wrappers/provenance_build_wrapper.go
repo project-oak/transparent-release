@@ -41,7 +41,8 @@ func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 	}
 
 	sanitizedAppName := SanitizeName(provenance.Subject[0].Name)
-	if err := verify.Verify(pbw.ProvenanceFilePath, ""); err != nil {
+	verifier := verify.ReproducibleProvenanceVerifier{}
+	if err := verifier.Verify(pbw.ProvenanceFilePath); err != nil {
 		return UnattributedStatement{}, fmt.Errorf("verification of the provenance file failed: %v", err)
 	}
 	measuredBinaryHash := provenance.Subject[0].Digest["sha256"]

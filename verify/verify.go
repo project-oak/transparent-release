@@ -24,8 +24,27 @@ import (
 	"github.com/project-oak/transparent-release/slsa"
 )
 
-// Verify verifies a given SLSA provenance file.
-func Verify(provenanceFilePath, gitRootDir string) error {
+// ProvenanceVerifier defines an interface with a single method `Verify` for
+// verifying provenances.
+type ProvenanceVerifier interface {
+	// Verify verifies an Amber/SLSA provenance file in the given path.
+	// Returns an error if the verification fails, or nil if it is successful.
+	Verify(path string) error
+}
+
+// ReproducibleProvenanceVerifier is a verifier for verifying provenances that
+// are reproducible. The provenance is verified by building the binary as
+// specified in the provenance and checking that the hash of the binary is the
+// same as the digest in the subject of the provenance file.
+type ReproducibleProvenanceVerifier struct {
+	GitRootDir string
+}
+
+// Verify verifies a given SLSA provenance file by running the build script in
+// it and verifying that the resulting binary has a hash equal to the one
+// specified in the subject of the given provenance file. If the hashes are
+// different returns an error, otherwise returns nil.
+func (verifier *ReproducibleProvenanceVerifier) Verify(provenanceFilePath string) error {
 	provenance, err := slsa.ParseProvenanceFile(provenanceFilePath)
 	if err != nil {
 		return fmt.Errorf("couldn't load the provenance file from %s: %v", provenanceFilePath, err)
@@ -36,6 +55,7 @@ func Verify(provenanceFilePath, gitRootDir string) error {
 	}
 
 	// Change to git_root_dir if it is provided, otherwise, clone the repo.
+	gitRootDir := verifier.GitRootDir
 	if gitRootDir != "" {
 		if err := os.Chdir(gitRootDir); err != nil {
 			return fmt.Errorf("couldn't change directory to %s: %v", gitRootDir, err)

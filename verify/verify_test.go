@@ -25,9 +25,10 @@ func TestVerifyProvenanceFile(t *testing.T) {
 	// In the case of running tests bazel exposes data dependencies not in the
 	// current dir, but in the parent. Hence we need to move one level up.
 	os.Chdir("../")
-	path := schemaExamplePath
 
-	if err := Verify(path, ""); err != nil {
+	verifier := ReproducibleProvenanceVerifier{}
+
+	if err := verifier.Verify(schemaExamplePath); err != nil {
 		t.Fatalf("couldn't verify the provenance file: %v", err)
 	}
 }
