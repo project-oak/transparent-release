@@ -4,7 +4,7 @@
 
 Check whether something [Needs To Be Installed](#needs-to-be-installed).
 
-### Building And Provenances
+### Building and Provenances
 
 To build a binary from the Git repository specified in [`testdata/build.toml`](../testdata/build.toml) and generate its provenance file, run either:
 
@@ -34,9 +34,9 @@ $ bazel run  //cmd/build:main -- \
   -git_root_dir <path-to-git-repo-root>
 ```
 
-### Verifying provenances
+### Verifying Provenances
 
-To verify a A SLSA provenance of the Amber build type run:
+To verify a SLSA provenance of the Amber build type run:
 
 ```bash
 $ bazel run  //cmd/verify:main -- \
@@ -52,7 +52,7 @@ the config file.
 
 ```bash
 $ bazel run  //cmd/verify:main -- \
-  -config <absolute-path-to-transparent-release>>/schema/amber-slsa-buildtype/v1/example.json \
+  -config <absolute-path-to-transparent-release>/schema/amber-slsa-buildtype/v1/example.json \
   -git_root_dir <path-to-git-repo-root>
 ```
 
@@ -64,7 +64,7 @@ You need to have:
 
 * [Bazel](https://bazel.build/), e.g., with `$ sudo apt-get install bazel`.
 
-* [`mcpp`], e.g., with `$ sudo apt-get install -y mcpp`. Otherwise, you'll get `Error what():  failed to locate mcpp pre-processor`.
+* `mcpp`, e.g., with `$ sudo apt-get install -y mcpp`. Otherwise, you'll get `Error what():  failed to locate mcpp pre-processor`.
 
 ## Some Handy Commands
 
