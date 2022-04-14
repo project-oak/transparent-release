@@ -94,6 +94,7 @@ type AmberProvenanceMetadataVerifier struct {
 // against the expected values specified in this
 // AmberProvenanceMetadataVerifier instance. Returns an error if any of the
 // values is not as expected. Otherwise returns nil, indicating success.
+// TODO(#69): Check metadata against the expected values.
 func (verifier *AmberProvenanceMetadataVerifier) Verify(provenanceFilePath string) error {
 	provenance, err := slsa.ParseProvenanceFile(provenanceFilePath)
 	if err != nil {
