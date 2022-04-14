@@ -41,7 +41,8 @@ func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 	}
 
 	sanitizedAppName := SanitizeName(provenance.Subject[0].Name)
-	verifier := verify.ReproducibleProvenanceVerifier{}
+	// TODO(#69): Set the verifier as a field in pbw, and use that here.
+	verifier := verify.AmberProvenanceMetadataVerifier{}
 	if err := verifier.Verify(pbw.ProvenanceFilePath); err != nil {
 		return UnattributedStatement{}, fmt.Errorf("verification of the provenance file failed: %v", err)
 	}
