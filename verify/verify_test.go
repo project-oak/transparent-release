@@ -21,12 +21,32 @@ import (
 
 const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
 
-func TestVerifyProvenanceFile(t *testing.T) {
-	// In the case of running tests bazel exposes data dependencies not in the
-	// current dir, but in the parent. Hence we need to move one level up.
+func TestReproducibleProvenanceVerifier(t *testing.T) {
+	// The path to provenance is specified relative to the root of the repo, so we need to go one level up.
+	// Get the current directory before that to restore the path at the end of the test.
+	currentDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("couldn't get current directory: %v", err)
+	}
+	defer os.Chdir(currentDir)
 	os.Chdir("../")
-
 	verifier := ReproducibleProvenanceVerifier{}
+
+	if err := verifier.Verify(schemaExamplePath); err != nil {
+		t.Fatalf("couldn't verify the provenance file: %v", err)
+	}
+}
+
+func TestAmberProvenanceMetadataVerifier(t *testing.T) {
+	// The path to provenance is specified relative to the root of the repo, so we need to go one level up.
+	// Get the current directory before that to restore the path at the end of the test.
+	currentDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("couldn't get current directory: %v", err)
+	}
+	defer os.Chdir(currentDir)
+	os.Chdir("../")
+	verifier := AmberProvenanceMetadataVerifier{}
 
 	if err := verifier.Verify(schemaExamplePath); err != nil {
 		t.Fatalf("couldn't verify the provenance file: %v", err)
