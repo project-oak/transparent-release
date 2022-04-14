@@ -23,10 +23,7 @@ installed. This helps with making the builds reproducible and the provenances
 verifiable. The toml file should conform to the `BuildConfig` structure defined
 in the [`common`](/common/) package.
 
-The [`cmd/build`](/cmd/build/) command line tool described above can be used for building the binaries, and at the same time for generating a		
-￼corresponding provenance file. To use this tool, the developers need to provide		 ￼a toml file similar to the one in [`testdata/build.toml`](/testdata/build.toml).		
-￼See the definition of `BuildConfig` in package [`common`](/common/) for the		
-￼description of each field.		
+The [`cmd/build`](/cmd/build/) command line tool described above can be used for building the binaries, and at the same time for generating a	corresponding provenance file. To use this tool, the developers need to provide	a toml file similar to the one in [`testdata/build.toml`](/testdata/build.toml). See the definition of `BuildConfig` in package [`common`](/common/) for the￼description of each field.		
 
 To build a binary from the Git repository specified in [`testdata/build.toml`](../testdata/build.toml) and generate its provenance file, run either:
 
@@ -68,8 +65,6 @@ and steps for building a binary from the listed materials. The verification
 logic uses the provenance file to build a binary, and checks that the binary
 has a SHA256 hash equal to the expected digest given in the provenance file.
 
-Check the [`development guidelines`](docs/development-guidelines.md) for a quick start to [`verifying provenances`](docs/development-guidelines.md#verifying-provenances).
-
 To verify a SLSA provenance of the Amber build type run:
 
 ```bash
@@ -80,6 +75,9 @@ $ bazel run  //cmd/verify:main -- \
 This fetches the sources from the Git repository specified in the SLSA
 statement file, re-runs the build, and verifies that it yields the expected
 hash. 
+
+Check the [`development guidelines`](docs/development-guidelines.md) for a quick start to [`verifying provenances`](docs/development-guidelines.md#verifying-provenances).
+
 
 To use a  local repository you can specify `-git_root_dir`. In this case, the binary will be built from the repo, only if the latest commit matches the one specified in the config file fail with an error otherwise.
 
