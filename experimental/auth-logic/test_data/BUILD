@@ -22,4 +22,5 @@ exports_files([
     "verifier_wrapper_expected.auth_logic",
     "oak_endorsement.json",
     "oak_provenance.json",
+    "rekor_entry.json",
 ])

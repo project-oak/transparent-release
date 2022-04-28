@@ -21,7 +21,7 @@ import (
 const testRekorLogPath = "experimental/auth-logic/test_data/rekor_entry.json"
 
 func TestRekoLogWrapper(t *testing.T) {
-  _, err := ParseRekorLogEntry(testRekorLogPath)
+  err := TryParsingRekorLog(testRekorLogPath)
 	if err != nil {
 		t.Fatalf("couldn't parse rekor log entry: %s, error: %v", testRekorLogPath, err)
 	}
