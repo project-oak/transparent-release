@@ -159,23 +159,3 @@ genrule(
         "@souffle-bin//file",
     ],
 )
-
-go_library(
-    name = "lib",
-    srcs = [
-        "auth_logic_interface.go",
-        "main.go",
-        "top_level.go",
-    ],
-    importpath = "",
-)
-
-go_test(
-    name = "lib_test",
-    srcs = [
-        "oak_auth_logic_verification_test.go",
-        "oak_verification_passing_test.go",
-        "simple_auth_logic_test.go",
-    ],
-    embed = [":lib"],
-)
