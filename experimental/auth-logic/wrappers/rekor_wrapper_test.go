@@ -21,8 +21,18 @@ import (
 const testRekorLogPath = "experimental/auth-logic/test_data/rekor_entry.json"
 
 func TestRekoLogWrapper(t *testing.T) {
-  err := TryParsingRekorLog(testRekorLogPath)
+	logEntryAnon, err := getLogEntryAnonFromFile(testRekorLogPath)
 	if err != nil {
-		t.Fatalf("couldn't parse rekor log entry: %s, error: %v", testRekorLogPath, err)
+		t.Fatalf("couldn't parse rekor log entry from path: %s. %v", testRekorLogPath, err)
+	}
+
+	rekordEntry, err := getRekordEntryFromAnon(*logEntryAnon)
+	if err != nil {
+		t.Fatalf("couldn't get rekordEntry from body of logEntryAnon. rekordEntry: %v, logEntryAnon: %v, rekordLogFilePath: %s. err: %v", *rekordEntry, *logEntryAnon, testRekorLogPath, err)
+	}
+
+	err = verifyRekordLogSignature(rekordEntry)
+	if err != nil {
+		t.Fatalf("couldn't validate signature in rekor log entry. rekordEntry: %v, rekordLogFilePath: %s, error: %v", rekordEntry, testRekorLogPath, err)
 	}
 }
