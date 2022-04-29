@@ -34,10 +34,20 @@ go_library(
     "endorsement_wrapper.go",
     "provenance_build_wrapper.go",
     "provenance_wrapper.go",
+    "rekor_wrapper.go",
     "unix_epoch_time_wrapper.go",
     "verifier_wrapper.go",
   ],
-  deps = ["//slsa:slsa", "//common:common", "//verify:verify"],
+  deps = [
+    "//slsa:slsa", 
+    "//common:common", 
+    "//verify:verify",
+    "@com_github_sigstore_rekor//pkg/generated/models",
+    "@com_github_sigstore_rekor//pkg/types/rekord/v0.0.1:v0_0_1",
+    "@com_github_sigstore_rekor//pkg/types",
+    "@com_github_sigstore_sigstore//pkg/cryptoutils",
+    "@com_github_go_openapi_runtime//:go_default_library",
+  ],
 )
 
 go_test(
@@ -55,8 +65,10 @@ go_test(
     "verifier_wrapper_test.go",
     "provenance_wrapper_test.go",
     "endorsement_wrapper_test.go",
+    "rekor_wrapper_test.go",
   ],
   data = [
+    "//experimental/auth-logic/test_data:rekor_entry.json",
     "//experimental/auth-logic/test_data:verifier_wrapper_expected.auth_logic",
     "//schema/amber-slsa-buildtype/v1:provenance.json",
     "//schema/amber-slsa-buildtype/v1:example.json",
