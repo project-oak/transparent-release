@@ -51,16 +51,19 @@ func getLogEntryAnonFromFile(rekorLogFilePath string) (*models.LogEntryAnon, err
 	if err != nil {
 		return nil, fmt.Errorf("could not read the rekor log file: %v", err)
 	}
+	return getLogEntryAnonFromBytes(logEntryBytes)
+}
 
+func getLogEntryAnonFromBytes(logEntryBytes []byte) (*models.LogEntryAnon, error) {
 	var logEntry models.LogEntry
 
-	err = json.Unmarshal(logEntryBytes, &logEntry)
+	err := json.Unmarshal(logEntryBytes, &logEntry)
 	if err != nil {
-		return nil, fmt.Errorf("could not unmarshal the logEntry from file: %s, err: %v", rekorLogFilePath, err)
+		return nil, fmt.Errorf("could not unmarshal the logEntry from bytes: %v", err)
 	}
 
 	if len(logEntry) != 1 {
-		return nil, fmt.Errorf("For transparent release, Rekor log entries should contain exactly one UUID: %v", logEntry)
+		return nil, fmt.Errorf("for transparent release, Rekor log entries must contain exactly one UUID: %v", logEntry)
 	}
 
 	var logEntryAnon models.LogEntryAnon
@@ -101,31 +104,32 @@ func getRekordEntryFromAnon(logEntryAnon models.LogEntryAnon) (*rekord.V001Entry
 
 // Verify signature in a rekord entry. In the context where this is used,
 // this will verify the contents of a rekord entry (an endorsement file)
-// against the product team's public key.
-func verifyRekordLogSignature(rekordEntry *rekord.V001Entry) error {
+// against the product team's public key. It returns the public key if one can
+// be parsed from the entry.
+func verifyRekordLogSignature(rekordEntry *rekord.V001Entry) (*ecdsa.PublicKey, error) {
 	publicKey := rekordEntry.RekordObj.Signature.PublicKey.Content
 	// The unused argument is for extra bytes, not an error
 	block, _ := pem.Decode(publicKey)
 	pubKeyDecoded, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		return fmt.Errorf("could not parse public key: %v", err)
+		return nil, fmt.Errorf("could not parse public key: %v", err)
 	}
 	ecdsaKey, ok := pubKeyDecoded.(*ecdsa.PublicKey)
 	if !ok {
-		return fmt.Errorf("public key is not ecdsa: %v", pubKeyDecoded)
+		return nil, fmt.Errorf("public key is not ecdsa: %v", pubKeyDecoded)
 	}
 
 	data, err := hex.DecodeString(*rekordEntry.RekordObj.Data.Hash.Value)
 	if err != nil {
-		return fmt.Errorf("could not decode hash of data: %v", rekordEntry.RekordObj.Data.Hash.Value)
+		return ecdsaKey, fmt.Errorf("could not decode hash of data: %v", rekordEntry.RekordObj.Data.Hash.Value)
 	}
 
 	sig := rekordEntry.RekordObj.Signature.Content
 
 	ok = ecdsa.VerifyASN1(ecdsaKey, data, sig)
 	if !ok {
-		return fmt.Errorf("could not verify ecdsa signature. key:%v, data:%v, sig:%v ", ecdsaKey, data, sig)
+		return ecdsaKey, fmt.Errorf("could not verify ecdsa signature. key:%v, data:%v, sig:%v ", ecdsaKey, data, sig)
 	}
 
-	return nil
+	return ecdsaKey, nil
 }
