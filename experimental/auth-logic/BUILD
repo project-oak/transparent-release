@@ -50,8 +50,16 @@ go_library(
 )
 
 go_binary(
-    name = "auth_logic_verification",
-    embed = [":lib"],
+  name = "auth_logic_verification",
+  srcs = [
+    "top_level.go",
+    "main.go",
+  ],
+  deps = [
+    "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
+    "//slsa:slsa",
+    "//common:common",
+  ],
 )
 
 # This rule runs transparent release verification on the oak functions
