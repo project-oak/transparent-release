@@ -21,7 +21,7 @@ package(default_visibility = ["//:__subpackages__"])
 go_library(
   name = "wrapper_interface",
   importpath = "github.com/project-oak/transparent-release/experimental/auth-logic/wrappers",
- srcs = [
+  srcs = [
     "wrappers.go",
   ],
 )
