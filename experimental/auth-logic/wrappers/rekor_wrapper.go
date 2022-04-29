@@ -70,11 +70,12 @@ func getLogEntryAnonFromBytes(logEntryBytes []byte) (*models.LogEntryAnon, error
 	// set logEntryAnon to the only value in LogEntry (which is a map)
 	for _, anon := range logEntry {
 		logEntryAnon = anon
+		break
 	}
 	return &logEntryAnon, nil
 }
 
-func getRekordEntryFromAnon(logEntryAnon models.LogEntryAnon) (*rekord.V001Entry, error) {
+func getEntryImplFromAnon(logEntryAnon models.LogEntryAnon) (*types.EntryImpl, error) {
 	bodyString, ok := logEntryAnon.Body.(string)
 	if !ok {
 		return nil, fmt.Errorf("could not coerce LogEntryAnon into string. LogEntryAnon: %v", logEntryAnon)
@@ -94,7 +95,10 @@ func getRekordEntryFromAnon(logEntryAnon models.LogEntryAnon) (*rekord.V001Entry
 	if err != nil {
 		return nil, fmt.Errorf("could not convert ProposedEntry into NewEntry: %v, %s", proposedEntry, err)
 	}
-	// rekord
+	return &entryImpl, nil
+}
+
+func getRekordEntryFromEntryImpl(entryImpl types.EntryImpl) (*rekord.V001Entry, error) {
 	rekordEntry, ok := entryImpl.(*rekord.V001Entry)
 	if !ok {
 		return nil, fmt.Errorf("could not convert NewEntry into rekord. NewEntry: %v,", entryImpl)
@@ -104,13 +108,13 @@ func getRekordEntryFromAnon(logEntryAnon models.LogEntryAnon) (*rekord.V001Entry
 
 // Verify signature in a rekord entry. In the context where this is used,
 // this will verify the contents of a rekord entry (an endorsement file)
-// against the product team's public key. It returns the public key if one can
-// be parsed from the entry.
+// against the product team's public key. It returns the public key if and only
+// if the signature is valid
 func verifyRekordLogSignature(rekordEntry *rekord.V001Entry) (*ecdsa.PublicKey, error) {
 	publicKey := rekordEntry.RekordObj.Signature.PublicKey.Content
 	// The unused argument is for extra bytes, not an error
-	block, _ := pem.Decode(publicKey)
-	pubKeyDecoded, err := x509.ParsePKIXPublicKey(block.Bytes)
+	pubKeyBlock, _ := pem.Decode(publicKey)
+	pubKeyDecoded, err := x509.ParsePKIXPublicKey(pubKeyBlock.Bytes)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse public key: %v", err)
 	}
@@ -121,14 +125,14 @@ func verifyRekordLogSignature(rekordEntry *rekord.V001Entry) (*ecdsa.PublicKey, 
 
 	data, err := hex.DecodeString(*rekordEntry.RekordObj.Data.Hash.Value)
 	if err != nil {
-		return ecdsaKey, fmt.Errorf("could not decode hash of data: %v", rekordEntry.RekordObj.Data.Hash.Value)
+		return nil, fmt.Errorf("could not decode hash of data: %v", rekordEntry.RekordObj.Data.Hash.Value)
 	}
 
 	sig := rekordEntry.RekordObj.Signature.Content
 
 	ok = ecdsa.VerifyASN1(ecdsaKey, data, sig)
 	if !ok {
-		return ecdsaKey, fmt.Errorf("could not verify ecdsa signature. key:%v, data:%v, sig:%v ", ecdsaKey, data, sig)
+		return nil, fmt.Errorf("could not verify ecdsa signature. key:%v, data:%v, sig:%v ", ecdsaKey, data, sig)
 	}
 
 	return ecdsaKey, nil

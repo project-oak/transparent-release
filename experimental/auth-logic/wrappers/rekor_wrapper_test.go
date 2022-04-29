@@ -26,9 +26,14 @@ func TestRekoLogWrapper(t *testing.T) {
 		t.Fatalf("couldn't parse rekor log entry from path: %s. %v", testRekorLogPath, err)
 	}
 
-	rekordEntry, err := getRekordEntryFromAnon(*logEntryAnon)
+	entryImpl, err := getEntryImplFromAnon(*logEntryAnon)
 	if err != nil {
-		t.Fatalf("couldn't get rekordEntry from body of logEntryAnon. rekordEntry: %v, logEntryAnon: %v, rekordLogFilePath: %s. err: %v", *rekordEntry, *logEntryAnon, testRekorLogPath, err)
+		t.Fatalf("couldn't get entryImpl from body of logEntryAnon logEntryAnon: %v, rekordLogFilePath: %s. err: %v", *logEntryAnon, testRekorLogPath, err)
+	}
+
+	rekordEntry, err := getRekordEntryFromEntryImpl(*entryImpl)
+	if err != nil {
+		t.Fatalf("couldn't get rekordEntry from entryImpl. entryImpl: %v, rekordLogFilePath: %s. err: %v", *entryImpl, testRekorLogPath, err)
 	}
 
 	_, err = verifyRekordLogSignature(rekordEntry)
