@@ -47,6 +47,7 @@ go_library(
     "@com_github_sigstore_rekor//pkg/types",
     "@com_github_sigstore_sigstore//pkg/cryptoutils",
     "@com_github_go_openapi_runtime//:go_default_library",
+    "@com_github_go_openapi_strfmt//:go_default_library",
   ],
 )
 
@@ -68,8 +69,10 @@ go_test(
     "rekor_wrapper_test.go",
   ],
   data = [
+    "//experimental/auth-logic/test_data:product_team_key.pub",
     "//experimental/auth-logic/test_data:rekor_entry.json",
     "//experimental/auth-logic/test_data:verifier_wrapper_expected.auth_logic",
+    "//experimental/auth-logic/test_data:oak_endorsement.json",
     "//schema/amber-slsa-buildtype/v1:provenance.json",
     "//schema/amber-slsa-buildtype/v1:example.json",
     "//schema/amber-endorsement/v1:example.json"
