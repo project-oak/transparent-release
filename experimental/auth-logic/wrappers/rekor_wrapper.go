@@ -186,7 +186,7 @@ func checkEntryPubKeyMatchesExpectedKey(rekordEntry *rekord.V001Entry, prodTeamK
 	return nil
 }
 
-// EmitStatment returns the unattributed statement for the rekor log wrapper
+// EmitStatement returns the unattributed statement for the rekor log wrapper
 func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 	// Get principal names for the endorsement file and rekor log entry
 	// by using the app name from the endorsement file
@@ -218,7 +218,7 @@ func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 	// Verify rekor log entry signature
 	_, err = verifyRekordLogSignature(rekordEntry)
 	if err != nil {
-		return UnattributedStatement{}, fmt.Errorf("couldn't validate signature in rekor log entry. rekordEntry: %v, rekordLogFilePath: %s, error: %v", rekordEntry, testRekorLogPath, err)
+		return UnattributedStatement{}, fmt.Errorf("couldn't validate signature in rekor log entry %v", err)
 	}
 	logEntrySignatureStatement := fmt.Sprintf("hasValidBodySignature(%v).", logEntryPrincipal)
 
@@ -231,13 +231,9 @@ func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 
 	// Check that the product team public key in the log entry matches
 	// the input public key
-	prodTeamKeyBytes, err := ioutil.ReadFile(testPubKeyPath)
+	err = checkEntryPubKeyMatchesExpectedKey(rekordEntry, rlw.productTeamKeyBytes)
 	if err != nil {
-		return UnattributedStatement{}, fmt.Errorf("could not parse prod team pub key from file: %s", testPubKeyPath)
-	}
-	err = checkEntryPubKeyMatchesExpectedKey(rekordEntry, prodTeamKeyBytes)
-	if err != nil {
-		return UnattributedStatement{}, fmt.Errorf("rekord entry key does not match input product team key: %v, %v, %v", rekordEntry, prodTeamKeyBytes, err)
+		return UnattributedStatement{}, fmt.Errorf("rekord entry key does not match input product team key: %v, %v, %v", rekordEntry, rlw.productTeamKeyBytes, err)
 	}
 	pubKeyMatchStatement := fmt.Sprintf("hasCorrectPubkey(%v).", logEntryPrincipal)
 
