@@ -48,6 +48,7 @@ go_library(
     "@com_github_sigstore_sigstore//pkg/cryptoutils",
     "@com_github_go_openapi_runtime//:go_default_library",
     "@com_github_go_openapi_strfmt//:go_default_library",
+    "@com_github_cyberphone_json_canonicalization//go/src/webpki.org/jsoncanonicalizer"
   ],
 )
 
@@ -70,9 +71,10 @@ go_test(
   ],
   data = [
     "//experimental/auth-logic/test_data:oak_ec_public.pem",
-    "//experimental/auth-logic/test_data:rekor_entry.json",
-    "//experimental/auth-logic/test_data:verifier_wrapper_expected.auth_logic",
     "//experimental/auth-logic/test_data:oak_endorsement.json",
+    "//experimental/auth-logic/test_data:rekor_entry.json",
+    "//experimental/auth-logic/test_data:rekor_public_key.pem",
+    "//experimental/auth-logic/test_data:verifier_wrapper_expected.auth_logic",
     "//schema/amber-slsa-buildtype/v1:provenance.json",
     "//schema/amber-slsa-buildtype/v1:example.json",
     "//schema/amber-endorsement/v1:example.json"

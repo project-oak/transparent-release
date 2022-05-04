@@ -24,4 +24,5 @@ exports_files([
     "oak_provenance.json",
     "rekor_entry.json",
     "oak_ec_public.pem",
+    "rekor_public_key.pem",
 ])

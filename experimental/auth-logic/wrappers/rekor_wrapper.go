@@ -29,6 +29,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/cyberphone/json-canonicalization/go/src/webpki.org/jsoncanonicalizer"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
 	"github.com/sigstore/rekor/pkg/generated/models"
@@ -47,6 +48,7 @@ import (
 type RekorLogWrapper struct {
 	rekorLogEntryBytes  []byte
 	productTeamKeyBytes []byte
+	rekorPublicKeyBytes []byte
 	endorsementBytes    []byte
 }
 
@@ -162,6 +164,41 @@ func checkInclusionProof(logEntryAnon *models.LogEntryAnon, registry strfmt.Regi
 	return logEntryAnon.Validate(strfmt.Default)
 }
 
+func verifySignedEntryTimestamp(logEntryAnon *models.LogEntryAnon, rekorPublicKeyBytes []byte) error {
+	// Get ECDSA key from rekord public key bytes
+	rekorEcdsaKey, err := pubKeyBytesToECDSA(rekorPublicKeyBytes)
+	if err != nil {
+		return fmt.Errorf("could not parse ecdsa key rekord public key bytes")
+	}
+
+	// Get hash of signature data
+	signatureData := models.LogEntryAnon{
+		IntegratedTime: logEntryAnon.IntegratedTime,
+		LogIndex:       logEntryAnon.LogIndex,
+		Body:           logEntryAnon.Body,
+		LogID:          logEntryAnon.LogID,
+	}
+	marshaledSignatureData, err := signatureData.MarshalBinary()
+	if err != nil {
+		return fmt.Errorf("could not marshal signature data for SignedEntryTimestamp: %v. %v", signatureData, err)
+	}
+	canonicalized, err := jsoncanonicalizer.Transform(marshaledSignatureData)
+	if err != nil {
+		return fmt.Errorf("could not canonicalize signature data for SignedEntryTimesStamp: %v. %v", signatureData, err)
+	}
+	signatureDataHash := sha256.Sum256(canonicalized)
+
+	// Get signature
+	sig := logEntryAnon.Verification.SignedEntryTimestamp
+
+	// Verify (pubkey, hash, signature) triple
+	if !ecdsa.VerifyASN1(rekorEcdsaKey, signatureDataHash[:], sig) {
+		return fmt.Errorf("could not verify SignedEntryTimestamp")
+	}
+
+	return nil
+}
+
 // checkEntryPubKeyMatchesExpectedKey compares the public key of the product
 // team in the Rekor log entry to the key of the product team passed as an
 // input to this wrapper. It returns an error if they are not equal
@@ -201,7 +238,7 @@ func compareEndorsementAndRekorHash(rekordEntry *rekord.V001Entry, endorsementBy
 // VerifyRekorEntry verifies a rekord entry by checking that the signature
 // it includes is valid, that the inclusion proof is valid, and that it
 // was created using a public key for the product team that we trust.
-func VerifyRekorEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte, endorsementFileBytes []byte) error {
+func VerifyRekorEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte, rekorPublicKeyBytes []byte, endorsementBytes []byte) error {
 	// Unpack rekord log entry from bytes into go structs
 	logEntryAnon, err := getLogEntryAnonFromBytes(rekorLogEntryBytes)
 	if err != nil {
@@ -236,9 +273,13 @@ func VerifyRekorEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte, end
 	}
 
 	// Check that hash of endorsement file matches hash of rekor log entry contents.
-	err = compareEndorsementAndRekorHash(rekordEntry, endorsementFileBytes)
+	err = compareEndorsementAndRekorHash(rekordEntry, endorsementBytes)
 	if err != nil {
-		return fmt.Errorf("hash in rekord entry did not match actual hash of endorsement file: %v", endorsementFileBytes)
+		return fmt.Errorf("hash in rekord entry did not match actual hash of endorsement file: %v", endorsementBytes)
+	}
+
+	if err = verifySignedEntryTimestamp(logEntryAnon, rekorPublicKeyBytes); err != nil {
+		return fmt.Errorf("Could not verify signedEntryTimestamp %v", err)
 	}
 
 	// Verificaton successful:
@@ -256,7 +297,7 @@ func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 	endorsementPrincipal := fmt.Sprintf(`"%s::EndorsementFile"`, SanitizeName(endorsementAppName))
 	logEntryPrincipal := fmt.Sprintf(`"%s::RekorLogEntry"`, SanitizeName(endorsementAppName))
 
-	err = VerifyRekorEntry(rlw.rekorLogEntryBytes, rlw.productTeamKeyBytes, rlw.endorsementBytes)
+	err = VerifyRekorEntry(rlw.rekorLogEntryBytes, rlw.productTeamKeyBytes, rlw.rekorPublicKeyBytes, rlw.endorsementBytes)
 	if err != nil {
 		return UnattributedStatement{}, fmt.Errorf("could not verify rekord entry: %v", err)
 	}

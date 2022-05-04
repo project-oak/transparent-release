@@ -22,6 +22,7 @@ import (
 const testRekorLogPath = "experimental/auth-logic/test_data/rekor_entry.json"
 const testPubKeyPath = "experimental/auth-logic/test_data/oak_ec_public.pem"
 const testUnexpiredEndorsementFilePath = "experimental/auth-logic/test_data/oak_endorsement.json"
+const rekorPublicKeyPath = "experimental/auth-logic/test_data/rekor_public_key.pem"
 
 func TestRekorLogWrapper(t *testing.T) {
 	rekorLogEntryBytes, err := ioutil.ReadFile(testRekorLogPath)
@@ -39,8 +40,13 @@ func TestRekorLogWrapper(t *testing.T) {
 		t.Errorf("could not read endorsement file: %s, %v", testUnexpiredEndorsementFilePath, err)
 	}
 
+	rekorKeyBytes, err := ioutil.ReadFile(rekorPublicKeyPath)
+	if err != nil {
+		t.Errorf("could not parse rekord pub key from file: %s", rekorKeyBytes)
+	}
+
 	// Test of VerifyRekordEntry
-	err = VerifyRekorEntry(rekorLogEntryBytes, prodTeamKeyBytes, endorsementBytes)
+	err = VerifyRekorEntry(rekorLogEntryBytes, prodTeamKeyBytes, rekorKeyBytes, endorsementBytes)
 	if err != nil {
 		t.Errorf("rekord entry verification should have succeeded for this test: %v", err)
 	}
@@ -58,6 +64,7 @@ contentsMatch("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Re
 	testRekorLogWrapper := RekorLogWrapper{
 		rekorLogEntryBytes:  rekorLogEntryBytes,
 		productTeamKeyBytes: prodTeamKeyBytes,
+		rekorPublicKeyBytes: rekorKeyBytes,
 		endorsementBytes:    endorsementBytes,
 	}
 
