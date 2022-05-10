@@ -251,8 +251,7 @@ func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 	// Verify inclusion proof
 	inclusionProofStatement := fmt.Sprintf("hasValidInclusionProof(%v).", logEntryPrincipal)
 
-	// Check that the product team public key in the log entry matches
-	// the input public key
+	// Check that the product team public key in the log entry matches the input public key
 	pubKeyMatchStatement := fmt.Sprintf("signerIsProductTeam(%v).", logEntryPrincipal)
 
 	//TODO(#76): check that hash of endorsement file matches hash
