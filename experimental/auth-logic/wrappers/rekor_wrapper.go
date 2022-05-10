@@ -35,16 +35,11 @@ import (
 	rekord "github.com/sigstore/rekor/pkg/types/rekord/v0.0.1"
 )
 
+// RekorLogWrapper gathers evidence related to Rekor logs to decide if an endorsement file should be considered a valid Rekor entry.
 // This wrapper is meant to be modeled after the comments here
 // https://github.com/project-oak/oak/blob/main/oak_functions/client/rust/src/rekor.rs
-// describing that verifying the log entry entails:
-//  -- verifying the signature in `signedEntryTimestamp`, using Rekor's public key,
-// -- verifying the signature in `body.RekordObj.signature`, using Oak's public key,
-// -- verifying that the content of the body matches the input `endorsement_bytes`.
-// --  validating the inclusion proof
-
-// RekorLogWrapper gathers evidence related to Rekor logs to decide if an endorsement file should be considered a valid Rekor entry. It decides this by
-//  -- verifying the signature in `signedEntryTimestamp`, using Rekor's public key, (TODO(#75): do this step)
+// It decides if an endorsement is accepted by:
+// -- verifying the signature in `signedEntryTimestamp`, using Rekor's public key, (TODO(#75): do this step)
 // -- verifying the signature in `body.RekordObj.signature`, using Oak's public key,
 // -- verifying that the contents of the body matches the input `endorsement_bytes`. (TODO(#76): do this step. To have a test that passes, we need to make a new rekor entry that uses the unexpired endorsement file here)
 // --  validating the inclusion proof
@@ -133,8 +128,7 @@ func verifyRekordLogSignature(rekordEntry *rekord.V001Entry) (*ecdsa.PublicKey, 
 
 	sig := rekordEntry.RekordObj.Signature.Content
 
-	ok := ecdsa.VerifyASN1(ecdsaKey, data, sig)
-	if !ok {
+	if !ecdsa.VerifyASN1(ecdsaKey, data, sig) {
 		return nil, fmt.Errorf("could not verify ecdsa signature. key:%v, data:%v, sig:%v ", ecdsaKey, data, sig)
 	}
 
@@ -162,7 +156,7 @@ func pubKeyBytesToECDSA(keyData []byte) (*ecdsa.PublicKey, error) {
 // is empty
 func checkInclusionProof(logEntryAnon *models.LogEntryAnon, registry strfmt.Registry) error {
 	if logEntryAnon.Verification == nil {
-		return fmt.Errorf("logEntryAnon did not have inclusion proof: %v", logEntryAnon)
+		return fmt.Errorf("logEntryAnon did not have inclusion proof")
 	}
 	return logEntryAnon.Validate(strfmt.Default)
 }
@@ -186,6 +180,45 @@ func checkEntryPubKeyMatchesExpectedKey(rekordEntry *rekord.V001Entry, prodTeamK
 	return nil
 }
 
+func VerifyRekordEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte) error {
+	// Unpack rekord log entry from bytes into go structs
+	logEntryAnon, err := getLogEntryAnonFromBytes(rekorLogEntryBytes)
+	if err != nil {
+		return fmt.Errorf("couldn't parse rekor log entry from bytes: %v, %v", rekorLogEntryBytes, err)
+	}
+	entryImpl, err := getEntryImplFromAnon(*logEntryAnon)
+	if err != nil {
+		return fmt.Errorf("couldn't get entryImpl from body of logEntryAnon: %v, %v", *logEntryAnon, err)
+	}
+
+	rekordEntry, err := getRekordEntryFromEntryImpl(*entryImpl)
+	if err != nil {
+		return fmt.Errorf("couldn't get rekordEntry from entryImpl: %v, %v", *entryImpl, err)
+	}
+
+	// Verify rekor log entry signature
+	_, err = verifyRekordLogSignature(rekordEntry)
+	if err != nil {
+		return fmt.Errorf("couldn't validate signature in rekor log entry %v", err)
+	}
+
+	// Verify inclusion proof
+	err = checkInclusionProof(logEntryAnon, strfmt.Default)
+	if err != nil {
+		return fmt.Errorf("couldn't validate logEntryAnon (which includes inclusion proof checking):%v ", err)
+	}
+
+	// Check that the product team public key in the log entry matches
+	// the input public key
+	err = checkEntryPubKeyMatchesExpectedKey(rekordEntry, productTeamKeyBytes)
+	if err != nil {
+		return fmt.Errorf("rekord entry key does not match input product team key: %v, %v, %v", rekordEntry, productTeamKeyBytes, err)
+	}
+
+	// Verificaton successful:
+	return nil
+}
+
 // EmitStatement returns the unattributed statement for the rekor log wrapper
 func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 	// Get principal names for the endorsement file and rekor log entry
@@ -197,44 +230,21 @@ func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 	endorsementPrincipal := fmt.Sprintf(`"%s::EndorsementFile"`, SanitizeName(endorsementAppName))
 	logEntryPrincipal := fmt.Sprintf(`"%s::RekorLogEntry"`, SanitizeName(endorsementAppName))
 
-	// Unpack rekord log entry from bytes into go structs
-	logEntryAnon, err := getLogEntryAnonFromBytes(rlw.rekorLogEntryBytes)
+	err = VerifyRekordEntry(rlw.rekorLogEntryBytes, rlw.productTeamKeyBytes)
 	if err != nil {
-		return UnattributedStatement{}, fmt.Errorf("couldn't parse rekor log entry from bytes: %v, %v", rlw.rekorLogEntryBytes, err)
-	}
-	entryImpl, err := getEntryImplFromAnon(*logEntryAnon)
-	if err != nil {
-		return UnattributedStatement{}, fmt.Errorf("couldn't get entryImpl from body of logEntryAnon %v: %v", *logEntryAnon, err)
+		return UnattributedStatement{}, fmt.Errorf("could not verify rekord entry: %v", err)
 	}
 
-	rekordEntry, err := getRekordEntryFromEntryImpl(*entryImpl)
-	if err != nil {
-		return UnattributedStatement{}, fmt.Errorf("couldn't get rekordEntry from entryImpl:, %v %v", *entryImpl, err)
-	}
-
-	// Authorization logic statmenets are defined next to the go code that
-	// they correspond to so that this is easier to follow along
+	// The generated authorization logic statements correspond to what `VerifyRekordEntry` checks.
 
 	// Verify rekor log entry signature
-	_, err = verifyRekordLogSignature(rekordEntry)
-	if err != nil {
-		return UnattributedStatement{}, fmt.Errorf("couldn't validate signature in rekor log entry %v", err)
-	}
 	logEntrySignatureStatement := fmt.Sprintf("hasValidBodySignature(%v).", logEntryPrincipal)
 
 	// Verify inclusion proof
-	err = checkInclusionProof(logEntryAnon, strfmt.Default)
-	if err != nil {
-		return UnattributedStatement{}, fmt.Errorf("couldn't validate logEntryAnon (which includes inclusion proof checking):%v ", err)
-	}
 	inclusionProofStatement := fmt.Sprintf("hasValidInclusionProof(%v).", logEntryPrincipal)
 
 	// Check that the product team public key in the log entry matches
 	// the input public key
-	err = checkEntryPubKeyMatchesExpectedKey(rekordEntry, rlw.productTeamKeyBytes)
-	if err != nil {
-		return UnattributedStatement{}, fmt.Errorf("rekord entry key does not match input product team key: %v, %v, %v", rekordEntry, rlw.productTeamKeyBytes, err)
-	}
 	pubKeyMatchStatement := fmt.Sprintf("hasCorrectPubkey(%v).", logEntryPrincipal)
 
 	//TODO(#76): check that hash of endorsement file matches hash
