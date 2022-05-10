@@ -192,7 +192,8 @@ func checkEntryPubKeyMatchesExpectedKey(rekordEntry *rekord.V001Entry, prodTeamK
 func compareEndorsementAndRekordHash(rekordEntry *rekord.V001Entry, endorsementBytes []byte) error {
 	endorsementHash := fmt.Sprintf("%x", sha256.Sum256(endorsementBytes))
 	if endorsementHash != *rekordEntry.RekordObj.Data.Hash.Value {
-		return fmt.Errorf("Hash values of endorsement bytes and rekor dentry not equal. endorsementBytes: %v, endorsementHash: %s, rekordEntry: %v, rekordHash: %v", endorsementBytes, endorsementHash, rekordEntry, *rekordEntry.RekordObj.Data.Hash.Value)
+		return fmt.Errorf("Hash values of endorsement bytes and rekor entry not equal. endorsementHash: %s, rekorHash: %v",
+			endorsementHash, *rekordEntry.RekordObj.Data.Hash.Value)
 	}
 	return nil
 }
