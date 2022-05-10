@@ -118,7 +118,7 @@ func verifyRekordLogSignature(rekordEntry *rekord.V001Entry) (*ecdsa.PublicKey, 
 	publicKeyBytes := rekordEntry.RekordObj.Signature.PublicKey.Content
 	ecdsaKey, err := pubKeyBytesToECDSA(publicKeyBytes)
 	if err != nil {
-		return nil, fmt.Errorf("could not parse ecdsa key from rekord entry")
+		return nil, fmt.Errorf("could not parse ecdsa key from rekor entry")
 	}
 
 	data, err := hex.DecodeString(*rekordEntry.RekordObj.Data.Hash.Value)
@@ -174,16 +174,21 @@ func checkEntryPubKeyMatchesExpectedKey(rekordEntry *rekord.V001Entry, prodTeamK
 	if err != nil {
 		return fmt.Errorf("Invalid product team public key passed as input: %v", logECDSAPubKey)
 	}
+	// Comparing the bytes of the public keys is not sufficient to check for key
+	// equality. Keys are considered equal if they are the same on the elliptic
+	// curve. Therefore, they could have different bytes, but still be the same
+	// key. The implementation of Equal from the ecdsa package checks this
+	// correctly, so it is used.
 	if !logECDSAPubKey.Equal(prodTeamECDSAPubKey) {
 		return fmt.Errorf("Input product team key does not match rekor log entry key: %v, %v", logECDSAPubKey, prodTeamECDSAPubKey)
 	}
 	return nil
 }
 
-// VerifyRekordEntry verifies a rekord entry by checking that the signature
+// VerifyRekorEntry verifies a rekord entry by checking that the signature
 // it includes is valid, that the inclusion proof is valid, and that it
 // was created using a public key for the product team that we trust.
-func VerifyRekordEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte) error {
+func VerifyRekorEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte) error {
 	// Unpack rekord log entry from bytes into go structs
 	logEntryAnon, err := getLogEntryAnonFromBytes(rekorLogEntryBytes)
 	if err != nil {
@@ -233,7 +238,7 @@ func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 	endorsementPrincipal := fmt.Sprintf(`"%s::EndorsementFile"`, SanitizeName(endorsementAppName))
 	logEntryPrincipal := fmt.Sprintf(`"%s::RekorLogEntry"`, SanitizeName(endorsementAppName))
 
-	err = VerifyRekordEntry(rlw.rekorLogEntryBytes, rlw.productTeamKeyBytes)
+	err = VerifyRekorEntry(rlw.rekorLogEntryBytes, rlw.productTeamKeyBytes)
 	if err != nil {
 		return UnattributedStatement{}, fmt.Errorf("could not verify rekord entry: %v", err)
 	}
@@ -248,7 +253,7 @@ func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 
 	// Check that the product team public key in the log entry matches
 	// the input public key
-	pubKeyMatchStatement := fmt.Sprintf("hasCorrectPubkey(%v).", logEntryPrincipal)
+	pubKeyMatchStatement := fmt.Sprintf("signerIsProductTeam(%v).", logEntryPrincipal)
 
 	//TODO(#76): check that hash of endorsement file matches hash
 	//of rekor log entry contents. To be able to test this, we need a new
@@ -258,7 +263,9 @@ func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 	// This is the policy for claiming an endorsement is a valid rekor log entry
 	// which just collects the evidence above into the more compact statement
 	// that the verifier wrapper uses.
-	rekorEntryPolicy := fmt.Sprintf("%v canActAs ValidRekorEntry :- hasValidBodySignature(%v), hasValidInclusionProof(%v), hasCorrectPubKey(%v), contentsMatch(%v, %v).", endorsementPrincipal, logEntryPrincipal, logEntryPrincipal, logEntryPrincipal, logEntryPrincipal, endorsementPrincipal)
+	rekorEntryPolicy := fmt.Sprintf("%v canActAs ValidRekorEntry :- hasValidBodySignature(%v), hasValidInclusionProof(%v), hasCorrectPubKey(%v), contentsMatch(%v, %v).",
+		endorsementPrincipal, logEntryPrincipal, logEntryPrincipal,
+		logEntryPrincipal, logEntryPrincipal, endorsementPrincipal)
 
 	return UnattributedStatement{Contents: strings.Join([]string{
 		logEntrySignatureStatement,
