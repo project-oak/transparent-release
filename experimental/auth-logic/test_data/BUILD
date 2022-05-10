@@ -23,5 +23,5 @@ exports_files([
     "oak_endorsement.json",
     "oak_provenance.json",
     "rekor_entry.json",
-    "product_team_key.pub"
+    "oak_ec_public.pem",
 ])

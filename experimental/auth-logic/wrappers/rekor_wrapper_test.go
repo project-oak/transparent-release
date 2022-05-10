@@ -20,7 +20,7 @@ import (
 )
 
 const testRekorLogPath = "experimental/auth-logic/test_data/rekor_entry.json"
-const testPubKeyPath = "experimental/auth-logic/test_data/product_team_key.pub"
+const testPubKeyPath = "experimental/auth-logic/test_data/oak_ec_public.pem"
 const testUnexpiredEndorsementFilePath = "experimental/auth-logic/test_data/oak_endorsement.json"
 
 func TestRekorLogWrapper(t *testing.T) {
@@ -37,7 +37,7 @@ func TestRekorLogWrapper(t *testing.T) {
 	}
 
 	// Test of VerifyRekordEntry
-	err = VerifyRekorEntry(rekorLogEntryBytes, prodTeamKeyBytes)
+	err = VerifyRekorEntry(rekorLogEntryBytes, prodTeamKeyBytes, testUnexpiredEndorsementFilePath)
 	if err != nil {
 		t.Errorf("rekord entry verification should have succeeded for this test: %v", err)
 	}

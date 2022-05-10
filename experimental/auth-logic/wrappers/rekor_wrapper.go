@@ -19,6 +19,7 @@ package wrappers
 import (
 	"bytes"
 	"crypto/ecdsa"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
@@ -41,7 +42,7 @@ import (
 // It decides if an endorsement is accepted by:
 // -- verifying the signature in `signedEntryTimestamp`, using Rekor's public key, (TODO(#75): do this step)
 // -- verifying the signature in `body.RekordObj.signature`, using Oak's public key,
-// -- verifying that the contents of the body matches the input `endorsement_bytes`. (TODO(#76): do this step. To have a test that passes, we need to make a new rekor entry that uses the unexpired endorsement file here)
+// -- verifying that the contents of the body matches the input `endorsement_bytes`.
 // --  validating the inclusion proof
 type RekorLogWrapper struct {
 	rekorLogEntryBytes  []byte
@@ -185,10 +186,21 @@ func checkEntryPubKeyMatchesExpectedKey(rekordEntry *rekord.V001Entry, prodTeamK
 	return nil
 }
 
+// compareEndorsementAndRekordHash compares the hash referenced in a
+// rekord entry to the hash of input bytes.  For this use-case, the input
+// bytes will be an endorsement file
+func compareEndorsementAndRekordHash(rekordEntry *rekord.V001Entry, endorsementBytes []byte) error {
+	endorsementHash := fmt.Sprintf("%x", sha256.Sum256(endorsementBytes))
+	if endorsementHash != *rekordEntry.RekordObj.Data.Hash.Value {
+		return fmt.Errorf("Hash values of endorsement bytes and rekor dentry not equal. endorsementBytes: %v, endorsementHash: %s, rekordEntry: %v, rekordHash: %v", endorsementBytes, endorsementHash, rekordEntry, *rekordEntry.RekordObj.Data.Hash.Value)
+	}
+	return nil
+}
+
 // VerifyRekorEntry verifies a rekord entry by checking that the signature
 // it includes is valid, that the inclusion proof is valid, and that it
 // was created using a public key for the product team that we trust.
-func VerifyRekorEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte) error {
+func VerifyRekorEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte, endorsementFilePath string) error {
 	// Unpack rekord log entry from bytes into go structs
 	logEntryAnon, err := getLogEntryAnonFromBytes(rekorLogEntryBytes)
 	if err != nil {
@@ -223,6 +235,17 @@ func VerifyRekorEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte) err
 		return fmt.Errorf("rekord entry key does not match input product team key: %v, %v, %v", rekordEntry, productTeamKeyBytes, err)
 	}
 
+	// Check that hash of endorsement file matches hash of rekor log entry
+	// contents.
+	endorsementBytes, err := ioutil.ReadFile(endorsementFilePath)
+	if err != nil {
+		return fmt.Errorf("could not read endorsement file: %s. %v", endorsementFilePath, err)
+	}
+	err = compareEndorsementAndRekordHash(rekordEntry, endorsementBytes)
+	if err != nil {
+		return fmt.Errorf("hash in rekord entry did not match actual hash of endorsement file: %v", endorsementBytes)
+	}
+
 	// Verificaton successful:
 	return nil
 }
@@ -238,12 +261,12 @@ func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 	endorsementPrincipal := fmt.Sprintf(`"%s::EndorsementFile"`, SanitizeName(endorsementAppName))
 	logEntryPrincipal := fmt.Sprintf(`"%s::RekorLogEntry"`, SanitizeName(endorsementAppName))
 
-	err = VerifyRekorEntry(rlw.rekorLogEntryBytes, rlw.productTeamKeyBytes)
+	err = VerifyRekorEntry(rlw.rekorLogEntryBytes, rlw.productTeamKeyBytes, rlw.endorsementFilePath)
 	if err != nil {
 		return UnattributedStatement{}, fmt.Errorf("could not verify rekord entry: %v", err)
 	}
 
-	// The generated authorization logic statements correspond to what `VerifyRekordEntry` checks.
+	// The generated authorization logic statements correspond to what `VerifyRekorEntry` checks.
 
 	// Verify rekor log entry signature
 	logEntrySignatureStatement := fmt.Sprintf("hasValidBodySignature(%v).", logEntryPrincipal)
@@ -254,9 +277,6 @@ func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 	// Check that the product team public key in the log entry matches the input public key
 	pubKeyMatchStatement := fmt.Sprintf("signerIsProductTeam(%v).", logEntryPrincipal)
 
-	//TODO(#76): check that hash of endorsement file matches hash
-	//of rekor log entry contents. To be able to test this, we need a new
-	//rekor log entry that matches the endorsement file.
 	contentsMatchStatement := fmt.Sprintf("contentsMatch(%v, %v).", logEntryPrincipal, endorsementPrincipal)
 
 	// This is the policy for claiming an endorsement is a valid rekor log entry
