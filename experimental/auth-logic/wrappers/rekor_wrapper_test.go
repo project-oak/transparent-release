@@ -15,29 +15,57 @@
 package wrappers
 
 import (
+	"io/ioutil"
 	"testing"
 )
 
 const testRekorLogPath = "experimental/auth-logic/test_data/rekor_entry.json"
+const testPubKeyPath = "experimental/auth-logic/test_data/product_team_key.pub"
+const testUnexpiredEndorsementFilePath = "experimental/auth-logic/test_data/oak_endorsement.json"
 
-func TestRekoLogWrapper(t *testing.T) {
-	logEntryAnon, err := getLogEntryAnonFromFile(testRekorLogPath)
+func TestRekorLogWrapper(t *testing.T) {
+	rekorLogEntryBytes, err := ioutil.ReadFile(testRekorLogPath)
 	if err != nil {
-		t.Fatalf("couldn't parse rekor log entry from path: %s. %v", testRekorLogPath, err)
+		t.Errorf("could not read rekor log file %v\n", testRekorLogPath)
 	}
 
-	entryImpl, err := getEntryImplFromAnon(*logEntryAnon)
+	// Check that the product team public key in the log entry matches
+	// the input public key
+	prodTeamKeyBytes, err := ioutil.ReadFile(testPubKeyPath)
 	if err != nil {
-		t.Fatalf("couldn't get entryImpl from body of logEntryAnon logEntryAnon: %v, rekordLogFilePath: %s. err: %v", *logEntryAnon, testRekorLogPath, err)
+		t.Errorf("could not parse prod team pub key from file: %s", testPubKeyPath)
 	}
 
-	rekordEntry, err := getRekordEntryFromEntryImpl(*entryImpl)
+	// Test of VerifyRekordEntry
+	err = VerifyRekorEntry(rekorLogEntryBytes, prodTeamKeyBytes)
 	if err != nil {
-		t.Fatalf("couldn't get rekordEntry from entryImpl. entryImpl: %v, rekordLogFilePath: %s. err: %v", *entryImpl, testRekorLogPath, err)
+		t.Errorf("rekord entry verification should have succeeded for this test: %v", err)
 	}
 
-	_, err = verifyRekordLogSignature(rekordEntry)
-	if err != nil {
-		t.Fatalf("couldn't validate signature in rekor log entry. rekordEntry: %v, rekordLogFilePath: %s, error: %v", rekordEntry, testRekorLogPath, err)
+	// ---- Test of RekorWrapper
+	// Expected output of wrapper:
+	want := `RekorLogCheck says {
+hasValidBodySignature("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekorLogEntry").
+hasValidInclusionProof("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekorLogEntry").
+signerIsProductTeam("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekorLogEntry").
+contentsMatch("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekorLogEntry", "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile").
+"oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile" canActAs ValidRekorEntry :- hasValidBodySignature("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekorLogEntry"), hasValidInclusionProof("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekorLogEntry"), hasCorrectPubKey("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekorLogEntry"), contentsMatch("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekorLogEntry", "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile").
+}`
+
+	testRekorLogWrapper := RekorLogWrapper{
+		rekorLogEntryBytes:  rekorLogEntryBytes,
+		productTeamKeyBytes: prodTeamKeyBytes,
+		endorsementFilePath: testUnexpiredEndorsementFilePath,
 	}
+
+	rekorLogStatement, err := EmitStatementAs(Principal{Contents: "RekorLogCheck"}, testRekorLogWrapper)
+	if err != nil {
+		t.Errorf("couldn't get rekor log statement: %v, %v", testRekorLogWrapper, err)
+	}
+
+	got := rekorLogStatement.String()
+	if got != want {
+		t.Errorf("got:\n%s\nwant:\n%s\n", got, want)
+	}
+
 }
