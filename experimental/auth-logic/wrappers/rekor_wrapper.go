@@ -180,6 +180,9 @@ func checkEntryPubKeyMatchesExpectedKey(rekordEntry *rekord.V001Entry, prodTeamK
 	return nil
 }
 
+// VerifyRekordEntry verifies a rekord entry by checking that the signature
+// it includes is valid, that the inclusion proof is valid, and that it
+// was created using a public key for the product team that we trust.
 func VerifyRekordEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte) error {
 	// Unpack rekord log entry from bytes into go structs
 	logEntryAnon, err := getLogEntryAnonFromBytes(rekorLogEntryBytes)
