@@ -79,6 +79,7 @@ func ParseEndorsementFile(path string) (*Endorsement, error) {
 	return ParseEndorsementBytes(endorsementBytes)
 }
 
+// ParseEndorsementBytes converts bytes from an endorsement file (in JSON) into an endorsement struct.
 func ParseEndorsementBytes(endorsementBytes []byte) (*Endorsement, error) {
 	var endorsement Endorsement
 
@@ -194,7 +195,7 @@ func GetAppNameFromEndorsement(endorsementFilePath string) (string, error) {
 	return validatedEndorsement.Name, nil
 }
 
-// GetAppNameFromEndorsement parses an endorsement file and returns the name
+// GetAppNameFromEndorsementBytes parses endorsement bytes returning the name
 // of the application it is about as a string. This is useful for principal
 // names, for example.
 func GetAppNameFromEndorsementBytes(endorsementBytes []byte) (string, error) {
