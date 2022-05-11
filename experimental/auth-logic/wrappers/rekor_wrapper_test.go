@@ -29,15 +29,18 @@ func TestRekorLogWrapper(t *testing.T) {
 		t.Errorf("could not read rekor log file %v\n", testRekorLogPath)
 	}
 
-	// Check that the product team public key in the log entry matches
-	// the input public key
 	prodTeamKeyBytes, err := ioutil.ReadFile(testPubKeyPath)
 	if err != nil {
 		t.Errorf("could not parse prod team pub key from file: %s", testPubKeyPath)
 	}
 
+	endorsementBytes, err := ioutil.ReadFile(testUnexpiredEndorsementFilePath)
+	if err != nil {
+		t.Errorf("could not read endorsement file: %s, %v", testUnexpiredEndorsementFilePath, err)
+	}
+
 	// Test of VerifyRekordEntry
-	err = VerifyRekorEntry(rekorLogEntryBytes, prodTeamKeyBytes, testUnexpiredEndorsementFilePath)
+	err = VerifyRekorEntry(rekorLogEntryBytes, prodTeamKeyBytes, endorsementBytes)
 	if err != nil {
 		t.Errorf("rekord entry verification should have succeeded for this test: %v", err)
 	}
@@ -55,7 +58,7 @@ contentsMatch("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Re
 	testRekorLogWrapper := RekorLogWrapper{
 		rekorLogEntryBytes:  rekorLogEntryBytes,
 		productTeamKeyBytes: prodTeamKeyBytes,
-		endorsementFilePath: testUnexpiredEndorsementFilePath,
+		endorsementBytes:    endorsementBytes,
 	}
 
 	rekorLogStatement, err := EmitStatementAs(Principal{Contents: "RekorLogCheck"}, testRekorLogWrapper)

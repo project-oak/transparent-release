@@ -47,7 +47,7 @@ import (
 type RekorLogWrapper struct {
 	rekorLogEntryBytes  []byte
 	productTeamKeyBytes []byte
-	endorsementFilePath string
+	endorsementBytes    []byte
 }
 
 func getLogEntryAnonFromFile(rekorLogFilePath string) (*models.LogEntryAnon, error) {
@@ -188,8 +188,8 @@ func checkEntryPubKeyMatchesExpectedKey(rekordEntry *rekord.V001Entry, prodTeamK
 
 // compareEndorsementAndRekordHash compares the hash referenced in a
 // rekord entry to the hash of input bytes.  For this use-case, the input
-// bytes will be an endorsement file
-func compareEndorsementAndRekordHash(rekordEntry *rekord.V001Entry, endorsementBytes []byte) error {
+// bytes will be an endorsement file.
+func compareEndorsementAndRekorHash(rekordEntry *rekord.V001Entry, endorsementBytes []byte) error {
 	endorsementHash := fmt.Sprintf("%x", sha256.Sum256(endorsementBytes))
 	if endorsementHash != *rekordEntry.RekordObj.Data.Hash.Value {
 		return fmt.Errorf("Hash values of endorsement bytes and rekor entry not equal. endorsementHash: %s, rekorHash: %v",
@@ -201,7 +201,7 @@ func compareEndorsementAndRekordHash(rekordEntry *rekord.V001Entry, endorsementB
 // VerifyRekorEntry verifies a rekord entry by checking that the signature
 // it includes is valid, that the inclusion proof is valid, and that it
 // was created using a public key for the product team that we trust.
-func VerifyRekorEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte, endorsementFilePath string) error {
+func VerifyRekorEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte, endorsementFileBytes []byte) error {
 	// Unpack rekord log entry from bytes into go structs
 	logEntryAnon, err := getLogEntryAnonFromBytes(rekorLogEntryBytes)
 	if err != nil {
@@ -229,22 +229,16 @@ func VerifyRekorEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte, end
 		return fmt.Errorf("couldn't validate logEntryAnon (which includes inclusion proof checking):%v ", err)
 	}
 
-	// Check that the product team public key in the log entry matches
-	// the input public key
+	// Check that the product team public key in the log entry matches the input public key
 	err = checkEntryPubKeyMatchesExpectedKey(rekordEntry, productTeamKeyBytes)
 	if err != nil {
 		return fmt.Errorf("rekord entry key does not match input product team key: %v, %v, %v", rekordEntry, productTeamKeyBytes, err)
 	}
 
-	// Check that hash of endorsement file matches hash of rekor log entry
-	// contents.
-	endorsementBytes, err := ioutil.ReadFile(endorsementFilePath)
+	// Check that hash of endorsement file matches hash of rekor log entry contents.
+	err = compareEndorsementAndRekorHash(rekordEntry, endorsementFileBytes)
 	if err != nil {
-		return fmt.Errorf("could not read endorsement file: %s. %v", endorsementFilePath, err)
-	}
-	err = compareEndorsementAndRekordHash(rekordEntry, endorsementBytes)
-	if err != nil {
-		return fmt.Errorf("hash in rekord entry did not match actual hash of endorsement file: %v", endorsementBytes)
+		return fmt.Errorf("hash in rekord entry did not match actual hash of endorsement file: %v", endorsementFileBytes)
 	}
 
 	// Verificaton successful:
@@ -255,14 +249,14 @@ func VerifyRekorEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte, end
 func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 	// Get principal names for the endorsement file and rekor log entry
 	// by using the app name from the endorsement file
-	endorsementAppName, err := GetAppNameFromEndorsement(rlw.endorsementFilePath)
+	endorsementAppName, err := GetAppNameFromEndorsementBytes(rlw.endorsementBytes)
 	if err != nil {
-		return UnattributedStatement{}, fmt.Errorf("could not get app name from endorsement file: %s, %v", rlw.endorsementFilePath, err)
+		return UnattributedStatement{}, fmt.Errorf("could not get app name from endorsement file: %s, %v", rlw.endorsementBytes, err)
 	}
 	endorsementPrincipal := fmt.Sprintf(`"%s::EndorsementFile"`, SanitizeName(endorsementAppName))
 	logEntryPrincipal := fmt.Sprintf(`"%s::RekorLogEntry"`, SanitizeName(endorsementAppName))
 
-	err = VerifyRekorEntry(rlw.rekorLogEntryBytes, rlw.productTeamKeyBytes, rlw.endorsementFilePath)
+	err = VerifyRekorEntry(rlw.rekorLogEntryBytes, rlw.productTeamKeyBytes, rlw.endorsementBytes)
 	if err != nil {
 		return UnattributedStatement{}, fmt.Errorf("could not verify rekord entry: %v", err)
 	}

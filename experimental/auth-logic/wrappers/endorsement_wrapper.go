@@ -76,9 +76,13 @@ func ParseEndorsementFile(path string) (*Endorsement, error) {
 		return nil, fmt.Errorf("could not read the endorsement file: %v", err)
 	}
 
+	return ParseEndorsementBytes(endorsementBytes)
+}
+
+func ParseEndorsementBytes(endorsementBytes []byte) (*Endorsement, error) {
 	var endorsement Endorsement
 
-	err = json.Unmarshal(endorsementBytes, &endorsement)
+	err := json.Unmarshal(endorsementBytes, &endorsement)
 	if err != nil {
 		return nil,
 			fmt.Errorf("could not unmarshal the endorsement file: %v", err)
@@ -180,6 +184,23 @@ func GetAppNameFromEndorsement(endorsementFilePath string) (string, error) {
 	endorsement, err := ParseEndorsementFile(endorsementFilePath)
 	if err != nil {
 		return "", fmt.Errorf("couldn't prase endorsement file: %q, %v", endorsementFilePath, err)
+	}
+
+	validatedEndorsement, err := endorsement.GenerateValidatedEndorsement()
+	if err != nil {
+		return "", fmt.Errorf("couldn't validate endorsement: %v", err)
+	}
+
+	return validatedEndorsement.Name, nil
+}
+
+// GetAppNameFromEndorsement parses an endorsement file and returns the name
+// of the application it is about as a string. This is useful for principal
+// names, for example.
+func GetAppNameFromEndorsementBytes(endorsementBytes []byte) (string, error) {
+	endorsement, err := ParseEndorsementBytes(endorsementBytes)
+	if err != nil {
+		return "", fmt.Errorf("couldn't prase endorsement bytes in GetAppNameFromEndorsementBytes: %v", err)
 	}
 
 	validatedEndorsement, err := endorsement.GenerateValidatedEndorsement()
