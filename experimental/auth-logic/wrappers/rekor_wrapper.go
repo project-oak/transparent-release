@@ -189,6 +189,10 @@ func verifySignedEntryTimestamp(logEntryAnon *models.LogEntryAnon, rekorPublicKe
 	signatureDataHash := sha256.Sum256(canonicalized)
 
 	// Get signature
+	// There does not appear to be documentation in the rekor code that
+	// specifies the hash format in models.LogEntryAnon.Verification
+	// or any fields that allow the hashing algorithm to be configured.
+	// From testng, it seems that Sha256 is supported.
 	sig := logEntryAnon.Verification.SignedEntryTimestamp
 
 	// Verify (pubkey, hash, signature) triple
