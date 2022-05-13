@@ -238,6 +238,11 @@ func compareEndorsementAndRekorHash(rekorEntry *rekord.V001Entry, endorsementByt
 	// algorithm, but at the time of writing a comment in this code says:
 	// "Enum: [sha256]" above the algorithm part of the structure,
 	// suggesting that sha256 is the only supported choice.
+	if *rekorEntry.RekordObj.Data.Hash.Algorithm != "sha256" {
+		return fmt.Errorf("Unsupported hash algorithm: %s",
+			*rekorEntry.RekordObj.Data.Hash.Algorithm)
+	}
+
 	endorsementHash := fmt.Sprintf("%x", sha256.Sum256(endorsementBytes))
 	if endorsementHash != *rekorEntry.RekordObj.Data.Hash.Value {
 		return fmt.Errorf("Hash values of endorsement bytes and rekor entry not equal. endorsementHash: %s, rekorHash: %v",
