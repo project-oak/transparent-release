@@ -3,24 +3,25 @@ module github.com/project-oak/transparent-release
 go 1.18
 
 require (
+	github.com/cyberphone/json-canonicalization v0.0.0-20210303052042-6bc126869bf4
+	github.com/go-openapi/runtime v0.23.3
+	github.com/go-openapi/strfmt v0.21.2
 	github.com/google/go-cmp v0.5.7
 	github.com/pelletier/go-toml v1.9.4
+	github.com/sigstore/rekor v0.6.0
 	github.com/xeipuuv/gojsonschema v1.2.0
 )
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
-	github.com/cyberphone/json-canonicalization v0.0.0-20210303052042-6bc126869bf4 // indirect
 	github.com/go-chi/chi v4.1.2+incompatible // indirect
 	github.com/go-openapi/analysis v0.21.2 // indirect
 	github.com/go-openapi/errors v0.20.2 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.20.0 // indirect
 	github.com/go-openapi/loads v0.21.1 // indirect
-	github.com/go-openapi/runtime v0.23.3 // indirect
 	github.com/go-openapi/spec v0.20.5 // indirect
-	github.com/go-openapi/strfmt v0.21.2 // indirect
 	github.com/go-openapi/swag v0.21.1 // indirect
 	github.com/go-openapi/validate v0.21.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
@@ -39,7 +40,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sassoftware/relic v0.0.0-20210427151427-dfb082b79b74 // indirect
 	github.com/secure-systems-lab/go-securesystemslib v0.3.1 // indirect
-	github.com/sigstore/rekor v0.6.0 // indirect
 	github.com/sigstore/sigstore v1.2.0 // indirect
 	github.com/spf13/cobra v1.4.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect

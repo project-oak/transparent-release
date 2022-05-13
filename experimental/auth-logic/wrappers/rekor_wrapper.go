@@ -29,6 +29,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/cyberphone/json-canonicalization/go/src/webpki.org/jsoncanonicalizer"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
 	"github.com/sigstore/rekor/pkg/generated/models"
@@ -47,6 +48,7 @@ import (
 type RekorLogWrapper struct {
 	rekorLogEntryBytes  []byte
 	productTeamKeyBytes []byte
+	rekorPublicKeyBytes []byte
 	endorsementBytes    []byte
 }
 
@@ -103,31 +105,31 @@ func getEntryImplFromAnon(logEntryAnon models.LogEntryAnon) (*types.EntryImpl, e
 	return &entryImpl, nil
 }
 
-func getRekordEntryFromEntryImpl(entryImpl types.EntryImpl) (*rekord.V001Entry, error) {
-	rekordEntry, ok := entryImpl.(*rekord.V001Entry)
+func getRekorEntryFromEntryImpl(entryImpl types.EntryImpl) (*rekord.V001Entry, error) {
+	rekorEntry, ok := entryImpl.(*rekord.V001Entry)
 	if !ok {
-		return nil, fmt.Errorf("could not convert NewEntry into rekord. NewEntry: %v,", entryImpl)
+		return nil, fmt.Errorf("could not convert NewEntry into rekor. NewEntry: %v,", entryImpl)
 	}
-	return rekordEntry, nil
+	return rekorEntry, nil
 }
 
-// Verify signature in a rekord entry. In the context where this is used,
-// this will verify the contents of a rekord entry (an endorsement file)
+// Verify signature in a rekor entry. In the context where this is used,
+// this will verify the contents of a rekor entry (an endorsement file)
 // against the product team's public key. It returns the public key if and only
 // if the signature is valid
-func verifyRekordLogSignature(rekordEntry *rekord.V001Entry) (*ecdsa.PublicKey, error) {
-	publicKeyBytes := rekordEntry.RekordObj.Signature.PublicKey.Content
+func verifyRekorLogSignature(rekorEntry *rekord.V001Entry) (*ecdsa.PublicKey, error) {
+	publicKeyBytes := rekorEntry.RekordObj.Signature.PublicKey.Content
 	ecdsaKey, err := pubKeyBytesToECDSA(publicKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse ecdsa key from rekor entry")
 	}
 
-	data, err := hex.DecodeString(*rekordEntry.RekordObj.Data.Hash.Value)
+	data, err := hex.DecodeString(*rekorEntry.RekordObj.Data.Hash.Value)
 	if err != nil {
-		return nil, fmt.Errorf("could not decode hash of data: %v", rekordEntry.RekordObj.Data.Hash.Value)
+		return nil, fmt.Errorf("could not decode hash of data: %v", rekorEntry.RekordObj.Data.Hash.Value)
 	}
 
-	sig := rekordEntry.RekordObj.Signature.Content
+	sig := rekorEntry.RekordObj.Signature.Content
 
 	if !ecdsa.VerifyASN1(ecdsaKey, data, sig) {
 		return nil, fmt.Errorf("could not verify ecdsa signature. key:%v, data:%v, sig:%v ", ecdsaKey, data, sig)
@@ -162,18 +164,57 @@ func checkInclusionProof(logEntryAnon *models.LogEntryAnon, registry strfmt.Regi
 	return logEntryAnon.Validate(strfmt.Default)
 }
 
+func verifySignedEntryTimestamp(logEntryAnon *models.LogEntryAnon, rekorPublicKeyBytes []byte) error {
+	// Get ECDSA key from rekor public key bytes
+	rekorEcdsaKey, err := pubKeyBytesToECDSA(rekorPublicKeyBytes)
+	if err != nil {
+		return fmt.Errorf("could not parse ecdsa key rekor public key bytes")
+	}
+
+	// Get hash of signature data
+	signatureData := models.LogEntryAnon{
+		IntegratedTime: logEntryAnon.IntegratedTime,
+		LogIndex:       logEntryAnon.LogIndex,
+		Body:           logEntryAnon.Body,
+		LogID:          logEntryAnon.LogID,
+	}
+	marshaledSignatureData, err := signatureData.MarshalBinary()
+	if err != nil {
+		return fmt.Errorf("could not marshal signature data for SignedEntryTimestamp: %v. %v", signatureData, err)
+	}
+	canonicalized, err := jsoncanonicalizer.Transform(marshaledSignatureData)
+	if err != nil {
+		return fmt.Errorf("could not canonicalize signature data for SignedEntryTimesStamp: %v. %v", signatureData, err)
+	}
+	signatureDataHash := sha256.Sum256(canonicalized)
+
+	// Get signature
+	// There does not appear to be documentation in the rekor code that
+	// specifies the hash format in models.LogEntryAnon.Verification
+	// or any fields that allow the hashing algorithm to be configured.
+	// From testng, it seems that Sha256 is supported.
+	sig := logEntryAnon.Verification.SignedEntryTimestamp
+
+	// Verify (pubkey, hash, signature) triple
+	if !ecdsa.VerifyASN1(rekorEcdsaKey, signatureDataHash[:], sig) {
+		return fmt.Errorf("could not verify SignedEntryTimestamp")
+	}
+
+	return nil
+}
+
 // checkEntryPubKeyMatchesExpectedKey compares the public key of the product
 // team in the Rekor log entry to the key of the product team passed as an
 // input to this wrapper. It returns an error if they are not equal
 // (or if valid keys could not be constructed)
-func checkEntryPubKeyMatchesExpectedKey(rekordEntry *rekord.V001Entry, prodTeamKeyBytes []byte) error {
-	logECDSAPubKey, err := pubKeyBytesToECDSA(rekordEntry.RekordObj.Signature.PublicKey.Content)
+func checkEntryPubKeyMatchesExpectedKey(rekorEntry *rekord.V001Entry, prodTeamKeyBytes []byte) error {
+	logECDSAPubKey, err := pubKeyBytesToECDSA(rekorEntry.RekordObj.Signature.PublicKey.Content)
 	if err != nil {
-		return fmt.Errorf("Invalid product team key in rekor log entry: %v", logECDSAPubKey)
+		return fmt.Errorf("invalid product team key in rekor log entry: %v", logECDSAPubKey)
 	}
 	prodTeamECDSAPubKey, err := pubKeyBytesToECDSA(prodTeamKeyBytes)
 	if err != nil {
-		return fmt.Errorf("Invalid product team public key passed as input: %v", logECDSAPubKey)
+		return fmt.Errorf("invalid product team public key passed as input: %v", logECDSAPubKey)
 	}
 	// Comparing the bytes of the public keys is not sufficient to check for key
 	// equality. Keys are considered equal if they are the same on the elliptic
@@ -181,28 +222,40 @@ func checkEntryPubKeyMatchesExpectedKey(rekordEntry *rekord.V001Entry, prodTeamK
 	// key. The implementation of Equal from the ecdsa package checks this
 	// correctly, so it is used.
 	if !logECDSAPubKey.Equal(prodTeamECDSAPubKey) {
-		return fmt.Errorf("Input product team key does not match rekor log entry key: %v, %v", logECDSAPubKey, prodTeamECDSAPubKey)
+		return fmt.Errorf("input product team key does not match rekor log entry key: %v, %v", logECDSAPubKey, prodTeamECDSAPubKey)
 	}
 	return nil
 }
 
 // compareEndorsementAndRekordHash compares the hash referenced in a
-// rekord entry to the hash of input bytes.  For this use-case, the input
+// rekor entry to the hash of input bytes.  For this use-case, the input
 // bytes will be an endorsement file.
-func compareEndorsementAndRekorHash(rekordEntry *rekord.V001Entry, endorsementBytes []byte) error {
+func compareEndorsementAndRekorHash(rekorEntry *rekord.V001Entry, endorsementBytes []byte) error {
+	// The choice of hashing algorithm depends on the hashing algorithm used
+	// within the rekor entry which is defined in the structure
+	// RekordV001SchemaDataHash defined in rekord_v001_schema.go of the rekor
+	// source. This data structure uses a string to identify the hashing
+	// algorithm, but at the time of writing a comment in this code says:
+	// "Enum: [sha256]" above the algorithm part of the structure,
+	// suggesting that sha256 is the only supported choice.
+	if *rekorEntry.RekordObj.Data.Hash.Algorithm != "sha256" {
+		return fmt.Errorf("unsupported hash algorithm: %s",
+			*rekorEntry.RekordObj.Data.Hash.Algorithm)
+	}
+
 	endorsementHash := fmt.Sprintf("%x", sha256.Sum256(endorsementBytes))
-	if endorsementHash != *rekordEntry.RekordObj.Data.Hash.Value {
+	if endorsementHash != *rekorEntry.RekordObj.Data.Hash.Value {
 		return fmt.Errorf("Hash values of endorsement bytes and rekor entry not equal. endorsementHash: %s, rekorHash: %v",
-			endorsementHash, *rekordEntry.RekordObj.Data.Hash.Value)
+			endorsementHash, *rekorEntry.RekordObj.Data.Hash.Value)
 	}
 	return nil
 }
 
-// VerifyRekorEntry verifies a rekord entry by checking that the signature
+// VerifyRekorEntry verifies a rekor entry by checking that the signature
 // it includes is valid, that the inclusion proof is valid, and that it
 // was created using a public key for the product team that we trust.
-func VerifyRekorEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte, endorsementFileBytes []byte) error {
-	// Unpack rekord log entry from bytes into go structs
+func VerifyRekorEntry(rekorLogEntryBytes, productTeamKeyBytes, rekorPublicKeyBytes, endorsementBytes []byte) error {
+	// Unpack rekor log entry from bytes into go structs
 	logEntryAnon, err := getLogEntryAnonFromBytes(rekorLogEntryBytes)
 	if err != nil {
 		return fmt.Errorf("couldn't parse rekor log entry from bytes: %v, %v", rekorLogEntryBytes, err)
@@ -212,13 +265,13 @@ func VerifyRekorEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte, end
 		return fmt.Errorf("couldn't get entryImpl from body of logEntryAnon: %v, %v", *logEntryAnon, err)
 	}
 
-	rekordEntry, err := getRekordEntryFromEntryImpl(*entryImpl)
+	rekorEntry, err := getRekorEntryFromEntryImpl(*entryImpl)
 	if err != nil {
-		return fmt.Errorf("couldn't get rekordEntry from entryImpl: %v, %v", *entryImpl, err)
+		return fmt.Errorf("couldn't get rekorEntry from entryImpl: %v, %v", *entryImpl, err)
 	}
 
 	// Verify rekor log entry signature
-	_, err = verifyRekordLogSignature(rekordEntry)
+	_, err = verifyRekorLogSignature(rekorEntry)
 	if err != nil {
 		return fmt.Errorf("couldn't validate signature in rekor log entry %v", err)
 	}
@@ -230,15 +283,19 @@ func VerifyRekorEntry(rekorLogEntryBytes []byte, productTeamKeyBytes []byte, end
 	}
 
 	// Check that the product team public key in the log entry matches the input public key
-	err = checkEntryPubKeyMatchesExpectedKey(rekordEntry, productTeamKeyBytes)
+	err = checkEntryPubKeyMatchesExpectedKey(rekorEntry, productTeamKeyBytes)
 	if err != nil {
-		return fmt.Errorf("rekord entry key does not match input product team key: %v, %v, %v", rekordEntry, productTeamKeyBytes, err)
+		return fmt.Errorf("rekor entry key does not match input product team key: %v, %v, %v", rekorEntry, productTeamKeyBytes, err)
 	}
 
 	// Check that hash of endorsement file matches hash of rekor log entry contents.
-	err = compareEndorsementAndRekorHash(rekordEntry, endorsementFileBytes)
+	err = compareEndorsementAndRekorHash(rekorEntry, endorsementBytes)
 	if err != nil {
-		return fmt.Errorf("hash in rekord entry did not match actual hash of endorsement file: %v", endorsementFileBytes)
+		return fmt.Errorf("hash in rekor entry did not match actual hash of endorsement file: %v", endorsementBytes)
+	}
+
+	if err = verifySignedEntryTimestamp(logEntryAnon, rekorPublicKeyBytes); err != nil {
+		return fmt.Errorf("could not verify signedEntryTimestamp %v", err)
 	}
 
 	// Verificaton successful:
@@ -256,9 +313,9 @@ func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 	endorsementPrincipal := fmt.Sprintf(`"%s::EndorsementFile"`, SanitizeName(endorsementAppName))
 	logEntryPrincipal := fmt.Sprintf(`"%s::RekorLogEntry"`, SanitizeName(endorsementAppName))
 
-	err = VerifyRekorEntry(rlw.rekorLogEntryBytes, rlw.productTeamKeyBytes, rlw.endorsementBytes)
+	err = VerifyRekorEntry(rlw.rekorLogEntryBytes, rlw.productTeamKeyBytes, rlw.rekorPublicKeyBytes, rlw.endorsementBytes)
 	if err != nil {
-		return UnattributedStatement{}, fmt.Errorf("could not verify rekord entry: %v", err)
+		return UnattributedStatement{}, fmt.Errorf("could not verify rekor entry: %v", err)
 	}
 
 	// The generated authorization logic statements correspond to what `VerifyRekorEntry` checks.
