@@ -79,3 +79,26 @@ contentsMatch("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Re
 	}
 
 }
+
+func TestVerifySignedEntryTimestamp(t *testing.T) {
+	rekorLogEntryBytes, err := ioutil.ReadFile(testRekorLogPath)
+	if err != nil {
+		t.Errorf("could not read rekor log file %v\n", testRekorLogPath)
+	}
+
+	rekorKeyBytes, err := ioutil.ReadFile(rekorPublicKeyPath)
+	if err != nil {
+		t.Errorf("could not parse rekord pub key from file: %s", rekorKeyBytes)
+	}
+
+	logEntryAnon, err := getLogEntryAnonFromBytes(rekorLogEntryBytes)
+	if err != nil {
+		t.Errorf("could not get logEntryAnon: %v", err)
+	}
+
+	err = verifySignedEntryTimestamp(logEntryAnon, rekorKeyBytes)
+	if err != nil {
+		t.Fatalf("could not verify signed entry timestamp: %v", err)
+	}
+
+}
