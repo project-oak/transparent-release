@@ -239,7 +239,7 @@ func compareEndorsementAndRekorHash(rekorEntry *rekord.V001Entry, endorsementByt
 	// "Enum: [sha256]" above the algorithm part of the structure,
 	// suggesting that sha256 is the only supported choice.
 	if *rekorEntry.RekordObj.Data.Hash.Algorithm != "sha256" {
-		return fmt.Errorf("Unsupported hash algorithm: %s",
+		return fmt.Errorf("unsupported hash algorithm: %s",
 			*rekorEntry.RekordObj.Data.Hash.Algorithm)
 	}
 
