@@ -19,7 +19,7 @@ import (
 	"testing"
 )
 
-const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
+const schemaExamplePath = "schema/oak-slsa-buildtype/v1/example.json"
 
 func TestSlsaExampleProvenance(t *testing.T) {
 	// The path to provenance is specified relative to the root of the repo, so we need to go one level up.

@@ -30,8 +30,8 @@ go_test(
     size = "small",
     srcs = ["endorsement_test.go"],
     data = [
-        "//schema/amber-endorsement/v1:example.json",
-        "//schema/amber-endorsement/v1:statement.json"
+        "//schema/oak-endorsement/v1:example.json",
+        "//schema/oak-endorsement/v1:statement.json"
     ],
     deps = ["@com_github_xeipuuv_gojsonschema//:go_default_library"],
 )

@@ -24,7 +24,7 @@ go_library(
     importpath = "github.com/project-oak/transparent-release/slsa",
     deps = ["@com_github_xeipuuv_gojsonschema//:go_default_library"],
     data = [
-        "//schema/amber-slsa-buildtype/v1:provenance.json"
+        "//schema/oak-slsa-buildtype/v1:provenance.json"
     ],
 )
 
@@ -33,8 +33,8 @@ go_test(
     size = "small",
     srcs = ["slsa_test.go"],
     data = [
-        "//schema/amber-slsa-buildtype/v1:provenance.json",
-        "//schema/amber-slsa-buildtype/v1:example.json"
+        "//schema/oak-slsa-buildtype/v1:provenance.json",
+        "//schema/oak-slsa-buildtype/v1:example.json"
     ],
     embed = [":slsa"],
     deps = [

@@ -38,8 +38,8 @@ const (
 	InTotoStatementV01 = "https://in-toto.io/Statement/v0.1"
 	// SLSAPredicateV02 is the predicate type for the SLSA v0.2 Provenance predicate type.
 	SLSAPredicateV02 = "https://slsa.dev/provenance/v0.2"
-	// AmberBuildTypeV1 is the SLSA BuildType for Amber builds.
-	AmberBuildTypeV1 = "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json"
+	// OakBuildTypeV1 is the SLSA BuildType for Oak builds.
+	OakBuildTypeV1 = "https://github.com/project-oak/transparent-release/schema/oak-slsa-buildtype/v1/provenance.json"
 )
 
 // BuildConfig is a struct wrapping arguments for building a binary from source.
@@ -282,7 +282,7 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*slsa.Provenance, error) {
 	}
 
 	predicate := slsa.Predicate{
-		BuildType: AmberBuildTypeV1,
+		BuildType: OakBuildTypeV1,
 		BuildConfig: slsa.BuildConfig{
 			Command:    b.Command,
 			OutputPath: b.OutputPath,

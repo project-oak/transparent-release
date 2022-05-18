@@ -1,7 +1,7 @@
 {
   "definitions": {},
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Amber Endorsement v0.1",
+  "title": "Oak Endorsement v0.1",
   "type": "object",
   "required": ["validityPeriod"],
   "properties": {

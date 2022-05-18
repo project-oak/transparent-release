@@ -75,9 +75,9 @@ go_test(
     "//experimental/auth-logic/test_data:rekor_entry.json",
     "//experimental/auth-logic/test_data:rekor_public_key.pem",
     "//experimental/auth-logic/test_data:verifier_wrapper_expected.auth_logic",
-    "//schema/amber-slsa-buildtype/v1:provenance.json",
-    "//schema/amber-slsa-buildtype/v1:example.json",
-    "//schema/amber-endorsement/v1:example.json"
+    "//schema/oak-slsa-buildtype/v1:provenance.json",
+    "//schema/oak-slsa-buildtype/v1:example.json",
+    "//schema/oak-endorsement/v1:example.json"
   ],
   embed = [":transparent_release_verification_wrappers"],
 )
@@ -87,8 +87,8 @@ go_test(
   size = "large",
   srcs = ["provenance_build_wrapper_test.go"],
   data = [
-      "//schema/amber-slsa-buildtype/v1:provenance.json",
-      "//schema/amber-slsa-buildtype/v1:example.json"
+      "//schema/oak-slsa-buildtype/v1:provenance.json",
+      "//schema/oak-slsa-buildtype/v1:example.json"
   ],
   embed = [":transparent_release_verification_wrappers"],
 )

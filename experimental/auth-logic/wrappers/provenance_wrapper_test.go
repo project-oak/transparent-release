@@ -20,7 +20,7 @@ import (
 	"testing"
 )
 
-const provenanceExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
+const provenanceExamplePath = "schema/oak-slsa-buildtype/v1/example.json"
 
 func TestProvenanceWrapper(t *testing.T) {
 	want := `"oak_functions_loader::Provenance" says {

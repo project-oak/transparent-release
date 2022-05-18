@@ -19,7 +19,7 @@ import (
 	"testing"
 )
 
-const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
+const schemaExamplePath = "schema/oak-slsa-buildtype/v1/example.json"
 
 func TestReproducibleProvenanceVerifier(t *testing.T) {
 	// The path to provenance is specified relative to the root of the repo, so we need to go one level up.
@@ -37,7 +37,7 @@ func TestReproducibleProvenanceVerifier(t *testing.T) {
 	}
 }
 
-func TestAmberProvenanceMetadataVerifier(t *testing.T) {
+func TestOakProvenanceMetadataVerifier(t *testing.T) {
 	// The path to provenance is specified relative to the root of the repo, so we need to go one level up.
 	// Get the current directory before that to restore the path at the end of the test.
 	currentDir, err := os.Getwd()
@@ -46,7 +46,7 @@ func TestAmberProvenanceMetadataVerifier(t *testing.T) {
 	}
 	defer os.Chdir(currentDir)
 	os.Chdir("../")
-	verifier := AmberProvenanceMetadataVerifier{}
+	verifier := OakProvenanceMetadataVerifier{}
 
 	if err := verifier.Verify(schemaExamplePath); err != nil {
 		t.Fatalf("couldn't verify the provenance file: %v", err)

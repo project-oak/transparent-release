@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package slsa provides functionality for parsing SLSA provenance files of the
-// Amber buildType.
+// Oak buildType.
 //
 // This package provides a utility function for loading and parsing a
 // JSON-formatted SLSA provenance file into an instance of Provenance.
@@ -28,7 +28,7 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-// Provenance represents an in-toto statement of the Amber SLSA buildType.
+// Provenance represents an in-toto statement of the Oak buildType.
 type Provenance struct {
 	Type          string    `json:"_type"`
 	Subject       []Subject `json:"subject"`
@@ -37,18 +37,18 @@ type Provenance struct {
 }
 
 // Subject represents the Subject of the SLSA buildType. See the corresponding JSON
-// key in the Amber buildType schema.
+// key in the Oak buildType schema.
 type Subject struct {
 	Name   string `json:"name"`
 	Digest Digest `json:"digest"`
 }
 
 // Digest represents a Digest in the SLSA buildType. See the corresponding JSON
-// key in the Amber buildType schema.
+// key in the Oak buildType schema.
 type Digest map[string]string
 
 // Predicate represents the Predicate in the SLSA buildType. See the corresponding
-// JSON key in the Amber buildType schema.
+// JSON key in the Oak buildType schema.
 type Predicate struct {
 	BuildType   string      `json:"buildType"`
 	BuildConfig BuildConfig `json:"buildConfig"`
@@ -56,21 +56,21 @@ type Predicate struct {
 }
 
 // BuildConfig represents the BuildConfig in the SLSA buildType. See the corresponding
-// JSON key in the Amber buildType schema.
+// JSON key in the Oak buildType schema.
 type BuildConfig struct {
 	Command    []string `json:"command"`
 	OutputPath string   `json:"outputPath"`
 }
 
 // Material represents the Materials in the SLSA buildType. See the corresponding
-// JSON key in the Amber buildType schema.
+// JSON key in the Oak buildType schema.
 type Material struct {
 	URI    string `json:"uri"`
 	Digest Digest `json:"digest,omitempty"`
 }
 
-// SchemaPath is the path to Amber SLSA buildType schema
-const SchemaPath = "schema/amber-slsa-buildtype/v1/provenance.json"
+// SchemaPath is the path to Oak SLSA buildType schema
+const SchemaPath = "schema/oak-slsa-buildtype/v1/provenance.json"
 
 func validateJSON(provenanceFile []byte) error {
 	schemaFile, err := ioutil.ReadFile(SchemaPath)
@@ -99,7 +99,7 @@ func validateJSON(provenanceFile []byte) error {
 	return nil
 }
 
-// ParseProvenanceFile reads a JSON file from a given path, validates it against the Amber
+// ParseProvenanceFile reads a JSON file from a given path, validates it against the Oak
 // buildType schema, parses it into an instance of the Provenance struct.
 func ParseProvenanceFile(path string) (*Provenance, error) {
 	provenanceFile, readErr := ioutil.ReadFile(path)

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// TODO(#23): Move this to the `amber` package.
+// TODO(#23): Move this to the `schema` package.
 package schema
 
 import (
@@ -24,7 +24,7 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-func TestExampleAmberEndorsement(t *testing.T) {
+func TestExampleOakEndorsement(t *testing.T) {
 	schemaPath := "statement.json"
 	examplePath := "example.json"
 

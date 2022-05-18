@@ -73,9 +73,9 @@ go_binary(
 genrule(
     name = "oak_auth_logic_verification",
     srcs = [
-        "//schema/amber-slsa-buildtype/v1:provenance.json",
-        "//schema/amber-slsa-buildtype/v1:example.json",
-        "//schema/amber-endorsement/v1:example.json",
+        "//schema/oak-slsa-buildtype/v1:provenance.json",
+        "//schema/oak-slsa-buildtype/v1:example.json",
+        "//schema/oak-endorsement/v1:example.json",
     ],
     outs = [
         "oak_verification.auth_logic",
@@ -83,8 +83,8 @@ genrule(
         "verification_success.csv",
     ],
     cmd = """
-  export PROVENANCE=$(location //schema/amber-slsa-buildtype/v1:example.json)
-  export ENDORSEMENT=$(location //schema/amber-endorsement/v1:example.json)
+  export PROVENANCE=$(location //schema/oak-slsa-buildtype/v1:example.json)
+  export ENDORSEMENT=$(location //schema/oak-endorsement/v1:example.json)
   ./$(location :auth_logic_verification) oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62 $$ENDORSEMENT $$PROVENANCE $(RULEDIR)/oak_verification.auth_logic verification_success
   export SOUFFLE_BIN=$(location @souffle-bin//file)
   ./$(location @auth-logic-compiler//file) $(RULEDIR)/oak_verification.auth_logic --souffle-output-file $(RULEDIR)/oak_verification.auth_logic.dl --output_queries_directory $(RULEDIR)
@@ -103,7 +103,7 @@ genrule(
     name = "oak_verification_passing",
     testonly = True,
     srcs = [
-        "//schema/amber-slsa-buildtype/v1:provenance.json",
+        "//schema/oak-slsa-buildtype/v1:provenance.json",
         "//experimental/auth-logic/test_data:oak_endorsement.json",
         "//experimental/auth-logic/test_data:oak_provenance.json",
     ],

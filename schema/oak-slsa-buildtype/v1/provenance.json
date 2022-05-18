@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Amber SLSA buildType",
-  "description": "This schema describes the Amber SLSA buildType. It can be used to test whether a given SLSA predicate follows this buildType. It does not test compliance to the SLSA spec itself.",
+  "title": "Oak buildType",
+  "description": "This schema describes the Oak buildType. It can be used to test whether a given SLSA predicate follows this buildType. It does not test compliance to the SLSA spec itself.",
   "type": "object",
   "properties": {
     "predicateType": {
@@ -16,7 +16,7 @@
       ],
       "properties": {
         "buildType": {
-          "const": "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json"
+          "const": "https://github.com/project-oak/transparent-release/schema/oak-slsa-buildtype/v1/provenance.json"
         },
         "buildConfig": {
           "type": "object",

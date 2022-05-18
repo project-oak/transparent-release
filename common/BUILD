@@ -34,8 +34,8 @@ go_test(
     srcs = ["common_test.go"],
     data = [
         "//testdata:build.toml",
-        "//schema/amber-slsa-buildtype/v1:provenance.json",
-        "//schema/amber-slsa-buildtype/v1:example.json"
+        "//schema/oak-slsa-buildtype/v1:provenance.json",
+        "//schema/oak-slsa-buildtype/v1:example.json"
     ],
     embed = [":common"],
     deps = [

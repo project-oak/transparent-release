@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package main contains a command-line tool for building banaries and
-// generating SLSA provenance files, with Amber buildType.
+// generating SLSA provenance files, with Oak buildType.
 package main
 
 import (

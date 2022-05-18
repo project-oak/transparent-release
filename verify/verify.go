@@ -27,7 +27,7 @@ import (
 // ProvenanceVerifier defines an interface with a single method `Verify` for
 // verifying provenances.
 type ProvenanceVerifier interface {
-	// Verify verifies an Amber/SLSA provenance file in the given path.
+	// Verify verifies a SLSA provenance (with Oak build type) file in the given path.
 	// Returns an error if the verification fails, or nil if it is successful.
 	Verify(path string) error
 }
@@ -84,25 +84,25 @@ func (verifier *ReproducibleProvenanceVerifier) Verify(provenanceFilePath string
 	return nil
 }
 
-// AmberProvenanceMetadataVerifier verifies Amber provenances by comparing the
+// OakProvenanceMetadataVerifier verifies Oak provenances by comparing the
 // content of the provenance predicate against a given set of expected values.
-type AmberProvenanceMetadataVerifier struct {
+type OakProvenanceMetadataVerifier struct {
 	// TODO(#69): Add metadata fields.
 }
 
-// Verify verifies a given Amber provenance file by checking its content
+// Verify verifies a given Oak provenance file by checking its content
 // against the expected values specified in this
-// AmberProvenanceMetadataVerifier instance. Returns an error if any of the
+// OakProvenanceMetadataVerifier instance. Returns an error if any of the
 // values is not as expected. Otherwise returns nil, indicating success.
 // TODO(#69): Check metadata against the expected values.
-func (verifier *AmberProvenanceMetadataVerifier) Verify(provenanceFilePath string) error {
+func (verifier *OakProvenanceMetadataVerifier) Verify(provenanceFilePath string) error {
 	provenance, err := slsa.ParseProvenanceFile(provenanceFilePath)
 	if err != nil {
 		return fmt.Errorf("couldn't load the provenance file from %s: %v", provenanceFilePath, err)
 	}
 
-	if provenance.Predicate.BuildType != common.AmberBuildTypeV1 {
-		return fmt.Errorf("incorrect BuildType: got %s, want %v", provenance.Predicate.BuildType, common.AmberBuildTypeV1)
+	if provenance.Predicate.BuildType != common.OakBuildTypeV1 {
+		return fmt.Errorf("incorrect BuildType: got %s, want %v", provenance.Predicate.BuildType, common.OakBuildTypeV1)
 	}
 
 	// TODO(#69): Check metadata against the expected values.
