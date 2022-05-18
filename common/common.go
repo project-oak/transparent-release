@@ -372,11 +372,11 @@ func FetchSourcesFromRepo(repoURL, commitHash string) (*RepoCheckoutInfo, error)
 	}
 
 	// Clone the repo.
-	tmpfileName, err := cloneGitRepo(repoURL)
+	logsFileName, err := cloneGitRepo(repoURL)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't clone the Git repo: %v", err)
 	}
-	log.Printf("'git clone' completed. See %s for any error logs.", tmpfileName)
+	log.Printf("'git clone' completed. See %s for any error logs.", logsFileName)
 
 	// Change directory to the root of the cloned repo.
 	repoName := path.Base(repoURL)
@@ -390,14 +390,14 @@ func FetchSourcesFromRepo(repoURL, commitHash string) (*RepoCheckoutInfo, error)
 	}
 
 	// Checkout the commit.
-	tmpfileName, err = checkoutGitCommit(commitHash)
+	logsFileName, err = checkoutGitCommit(commitHash)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't checkout the Git commit %q: %v", commitHash, err)
 	}
 
 	info := RepoCheckoutInfo{
 		RepoRoot: cwd,
-		Logs:     tmpfileName,
+		Logs:     logsFileName,
 	}
 
 	return &info, nil
