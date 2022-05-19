@@ -43,18 +43,14 @@ func Build(buildFilePath, gitRootDir string) (*slsa.Provenance, error) {
 		return nil, fmt.Errorf("couldn't load build file %q: %v", buildFilePath, err)
 	}
 
-	if gitRootDir != "" {
-		if err := os.Chdir(gitRootDir); err != nil {
-			return nil, fmt.Errorf("couldn't change directory to %s: %v", gitRootDir, err)
-		}
-	} else {
-		// Fetch sources from the repo.
-		log.Printf("No gitRootDir specified. Fetching sources from %s.", buildConfig.Repo)
-		repoInfo, err := common.FetchSourcesFromRepo(buildConfig.Repo, buildConfig.CommitHash)
-		if err != nil {
-			return nil, fmt.Errorf("couldn't fetch sources from %s: %v", buildConfig.Repo, err)
-		}
-		log.Printf("Fetched the repo into %q. See %q for any error logs.", repoInfo.RepoRoot, repoInfo.Logs)
+	// Change to gitRootDir if it is provided, otherwise, clone the repo.
+	repoInfo, err := buildConfig.ChangeDirToGitRoot(gitRootDir)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't change to a valid Git repo root: %v", err)
+	}
+	if repoInfo != nil {
+		// If the repo was cloned, remove all the temp files at the end.
+		defer repoInfo.Cleanup()
 	}
 
 	cwd, err := os.Getwd()
@@ -62,10 +58,6 @@ func Build(buildFilePath, gitRootDir string) (*slsa.Provenance, error) {
 		return nil, fmt.Errorf("couldn't get current working directory: %v", err)
 	}
 	log.Printf("Building the binary in %q.", cwd)
-
-	if err := buildConfig.VerifyCommit(); err != nil {
-		return nil, fmt.Errorf("Git commit hashes do not match: %v", err)
-	}
 
 	if err := buildConfig.Build(); err != nil {
 		return nil, fmt.Errorf("couldn't build the binary: %v", err)

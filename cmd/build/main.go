@@ -32,7 +32,7 @@ func main() {
 	gitRootDir := flag.String("git_root_dir", "",
 		"Optional - Root of the Git repository. If not specified, sources are fetched from the repo specified in the toml file.")
 	provenancePath := flag.String("provenance_path", "provenance.json",
-		"Optional - Output file name for storing the generated provenance file. Default: provenance.json")
+		"Optional - Output file name for storing the generated provenance file.")
 
 	flag.Parse()
 
