@@ -17,15 +17,15 @@ package wrappers
 // This file contains a wrapper for endorsement files.
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"text/template"
 	"time"
 )
 
-// EndorsementWrapper is a wrapper that emits an authorization logic
-// statement based on the contents of an endorsement file it parses.
-type EndorsementWrapper struct{ EndorsementFilePath string }
+const endorsement_policy = "experimental/auth-logic/templates/endorsement_policy.auth.tmpl"
 
 // Endorsement is a struct for holding data parsed from
 // endorsement files which are JSON
@@ -137,6 +137,10 @@ func (endorsement Endorsement) GenerateValidatedEndorsement() (ValidatedEndorsem
 
 }
 
+// EndorsementWrapper is a wrapper that emits an authorization logic
+// statement based on the contents of an endorsement file it parses.
+type EndorsementWrapper struct{ EndorsementFilePath string }
+
 // EmitStatement implements the Wrapper interface for EndorsementWrapper
 // by producing the authorization logic statement.
 func (ew EndorsementWrapper) EmitStatement() (UnattributedStatement, error) {
@@ -152,30 +156,19 @@ func (ew EndorsementWrapper) EmitStatement() (UnattributedStatement, error) {
 			fmt.Errorf("Endorsement file wrapper couldn't validate endorsement: %v", err)
 	}
 
-	sanitizedAppName := SanitizeName(validatedEndorsement.Name)
+	validatedEndorsement.Name = SanitizeName(validatedEndorsement.Name)
 
-	binaryPrincipal := fmt.Sprintf(`"%s::Binary"`, sanitizedAppName)
-	endorsementWrapperName := fmt.Sprintf(`"%s::EndorsementFile"`,
-		sanitizedAppName)
+	endorsement_template, err := template.ParseFiles(endorsement_policy)
+	if err != nil {
+		return UnattributedStatement{}, fmt.Errorf("Could not load endorsement policy template %s", err)
+	}
 
-	hasExpectedHash := fmt.Sprintf(`%s has_expected_hash_from("sha256:%s", %s)`,
-		binaryPrincipal, validatedEndorsement.Sha256, endorsementWrapperName)
+	var policyBytes bytes.Buffer
+	if err := endorsement_template.Execute(&policyBytes, validatedEndorsement); err != nil {
+		return UnattributedStatement{}, err
+	}
 
-	expirationCondition := fmt.Sprintf(
-		`RealTimeNsecIs(current_time), current_time >= %d, current_time < %d`,
-		validatedEndorsement.ReleaseTime.Unix(),
-		validatedEndorsement.ExpiryTime.Unix())
-
-	hashRule := fmt.Sprintf("%s :-\n    %s.\n", hasExpectedHash,
-		expirationCondition)
-
-	timePrincipalName := `"UnixEpochTime"`
-	timeDelegation := fmt.Sprintf("%s canSay RealTimeNsecIs(any_time).\n",
-		timePrincipalName)
-
-	return UnattributedStatement{
-		Contents: hashRule + timeDelegation,
-	}, nil
+	return UnattributedStatement{Contents: policyBytes.String()}, nil
 }
 
 // GetAppNameFromEndorsement parses an endorsement file and returns the name

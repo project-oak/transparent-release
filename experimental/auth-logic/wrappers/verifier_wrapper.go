@@ -15,17 +15,12 @@
 package wrappers
 
 import (
+	"bytes"
 	"fmt"
-	"strings"
+	"text/template"
 )
 
-const (
-	endorsementHashDelegationInner = "%s canSay %s has_expected_hash_from(any_hash, %s).\n"
-	provenanceHashDelegationInner  = "%s canSay %s has_expected_hash_from(any_hash, %s).\n"
-	provenanceDelegationInner      = "%s canSay any_principal hasProvenance(any_provenance).\n"
-	hashMeasurementDelegationInner = "%s canSay some_object has_measured_hash(some_hash).\n"
-	rekorLogCheckDelegation        = "\"RekorLogCheck\" canSay some_object canActAs \"ValidRekorEntry\".\n"
-)
+const verifier_policy = "../templates/verifier_policy.auth.tmpl"
 
 // VerifierWrapper is a wrapper that emits an authorization logic statement
 // for a named application that includes all the requirements that the
@@ -36,46 +31,33 @@ type VerifierWrapper struct{ AppName string }
 // EmitStatement implements the wrapper interface for VerifierWrapper by
 // emitting the authorization logic statement.
 func (v VerifierWrapper) EmitStatement() (UnattributedStatement, error) {
-	// TODO(#39) consider using a [template](https://pkg.go.dev/text/template) to implement this.
-	endorsementPrincipal := fmt.Sprintf(`"%s::EndorsementFile"`, v.AppName)
-	provenancePrincipal := fmt.Sprintf(`"%s::Provenance"`, v.AppName)
-	provenanceBuilderPrincipal := fmt.Sprintf(`"%s::ProvenanceBuilder"`, v.AppName)
-	binaryPrincipal := fmt.Sprintf(`"%s::Binary"`, v.AppName)
-	appPrincipal := fmt.Sprintf(`"%s"`, v.AppName)
-
+	// Note about a quirk in the policy (in the template that is loaded):
 	// The verifier needs to import expected hashes from both the endorsement
 	// and provenance files. If we use the same predicate to represent both of
 	// these statements in this SecPal-based syntax for authorization logic, we
 	// will lose track of who originated each statement. For example, if we just
 	// used `Binary has_expected_hash(<hash>)` and the verifier delegates this
 	// predicate to both the endorsement file and the provenance file, we cannot
-	// write a policy that looks for the same predicate from both. To work around
-	// this we add a second argument to the predicate to track the original
-	// speaker.
+	// write a policy that looks for the same predicate from both. To work
+	// around this we add a second argument to the predicate to track the
+	// original speaker.
 
-	endorsementHashDelegation := fmt.Sprintf(endorsementHashDelegationInner, endorsementPrincipal, binaryPrincipal, endorsementPrincipal)
+	// In future iterations of our authorization logic we are likely to support
+	// "says" on the RHS, which would allow us to write this more naturally.
+	// Roughly:
+	// "verifier" says binary canActAs app :-
+	//     "endorsement" says binary hasHash(x),
+	//     "provenance" says binary hashHash(x).
 
-	provenanceHashDelegation := fmt.Sprintf(provenanceHashDelegationInner, provenancePrincipal, binaryPrincipal, provenancePrincipal)
+	verifier_template, err := template.ParseFiles(verifier_policy)
+	if err != nil {
+		return UnattributedStatement{}, fmt.Errorf("Could not load verifier policy template %s", err)
+	}
 
-	provenanceDelegation := fmt.Sprintf(provenanceDelegationInner, provenanceBuilderPrincipal)
-	hashMeasurementDelegation := fmt.Sprintf(hashMeasurementDelegationInner, provenanceBuilderPrincipal)
+	var policyBytes bytes.Buffer
+	if err := verifier_template.Execute(&policyBytes, v); err != nil {
+		return UnattributedStatement{}, err
+	}
 
-	binaryIdentificationRule :=
-		binaryPrincipal + " canActAs " + appPrincipal + " :-\n" +
-			"\t" + binaryPrincipal + " hasProvenance(" + provenancePrincipal + "),\n" +
-			// TODO: re-enable this. This is temporarily disabled to allow writing
-			// and testing the top-level function call before writing a wrapper
-			// for rekor log entries
-			// "\t" + endorsementPrincipal + " canActAs \"ValidRekorEntry\",\n" +
-			"\t" + binaryPrincipal + " has_expected_hash_from(binary_hash, " + endorsementPrincipal + "),\n" +
-			"\t" + binaryPrincipal + " has_expected_hash_from(binary_hash, " + provenancePrincipal + "),\n" +
-			"\t" + binaryPrincipal + " has_measured_hash(binary_hash).\n"
-
-	return UnattributedStatement{Contents: strings.Join([]string{
-		endorsementHashDelegation,
-		provenanceHashDelegation,
-		provenanceDelegation,
-		hashMeasurementDelegation,
-		rekorLogCheckDelegation,
-		binaryIdentificationRule}[:], "\n")}, nil
+	return UnattributedStatement{Contents: policyBytes.String()}, nil
 }

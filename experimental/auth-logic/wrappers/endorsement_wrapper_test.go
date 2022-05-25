@@ -16,18 +16,21 @@ package wrappers
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 )
 
 const testEndorsementPath = "schema/amber-endorsement/v1/example.json"
+const endorsementExpectedFile = "experimental/auth-logic/test_data/endorsement_wrapper_expected.auth_logic"
 
 func TestEndorsementWrapper(t *testing.T) {
-	want := `"oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile" says {
-"oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Binary" has_expected_hash_from("sha256:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c", "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile") :-
-    RealTimeNsecIs(current_time), current_time >= 1643710850, current_time < 1646130050.
-"UnixEpochTime" canSay RealTimeNsecIs(any_time).
 
-}`
+	wantFileBytes, err := os.ReadFile(endorsementExpectedFile)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	want := strings.TrimSuffix(string(wantFileBytes), "\n")
 
 	testEndorsementWrapper := EndorsementWrapper{
 		EndorsementFilePath: testEndorsementPath,

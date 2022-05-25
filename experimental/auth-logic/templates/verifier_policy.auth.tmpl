@@ -1,19 +1,18 @@
-"OakFunctionsLoader::Verifier" says {
     // The verification policy trusts the endorsement file wrapper to give
     // the expected hash of the binary from the endorsement file.
-    "OakFunctionsLoader::Endorsement" canSay "OakFunctionsLoader::Binary" has_expected_hash_from(any_hash, "OakFunctionsLoader::Endorsement").
+    "{{.AppName}}::Endorsement" canSay "{{.AppName}}::Binary" has_expected_hash_from(any_hash, "{{.AppName}}::Endorsement").
     
     // The verification policy trusts the provenance file wrapper to give the
     // expected hash of the binary from the provenance file.
-    "OakFunctionsLoader::Provenance" canSay "OakFunctionsLoader::Binary" has_expected_hash_from(any_hash, "OakFunctionsLoader::Provenance").
+    "{{.AppName}}::Provenance" canSay "{{.AppName}}::Binary" has_expected_hash_from(any_hash, "{{.AppName}}::Provenance").
     
     // The verification policy trusts the provenance file builder to 
     // check when a binary can be successfully built from a provenance file.
-    "OakFunctionsLoader::ProvenanceBuilder" canSay any_principal hasProvenance(any_provenance).
+    "{{.AppName}}::ProvenanceBuilder" canSay any_principal hasProvenance(any_provenance).
     
     // The verification policy trusts the provenance file builder to measure
     // the real hashes of any object.
-    "OakFunctionsLoader::ProvenanceBuilder" canSay some_object has_measured_hash(some_hash).
+    "{{.AppName}}::ProvenanceBuilder" canSay some_object has_measured_hash(some_hash).
     
     // The verification policy trusts the rekor log checking policy (which 
     // internally depends on the rekor log wrapper) to accurately 
@@ -22,14 +21,13 @@
     
     // The verification policy claims that a binary can assume the identity
     // of an application when ...
-    "OakFunctionsLoader::Binary" canActAs "OakFunctionsLoader" :-
+    "{{.AppName}}::Binary" canActAs "{{.AppName}}" :-
         // ... that binary can be built with some provenance file ...
-        "OakFunctionsLoader::Binary" hasProvenance("OakFunctionsLoader::Provenance"),
+        "{{.AppName}}::Binary" hasProvenance("{{.AppName}}::Provenance"),
         // ... and an endorsement file and provenance file both give the same
         // expected hash for the binary ...
-        "OakFunctionsLoader::Binary" has_expected_hash_from(binary_hash, "OakFunctionsLoader::EndorsementFile"),
-        "OakFunctionsLoader::Binary" has_expected_hash_from(binary_hash, "OakFunctionsLoader::Provenance"),
+        "{{.AppName}}::Binary" has_expected_hash_from(binary_hash, "{{.AppName}}::EndorsementFile"),
+        "{{.AppName}}::Binary" has_expected_hash_from(binary_hash, "{{.AppName}}::Provenance"),
         // ... and the binary has the measured hash claimed by the endorsement/
         /// provenance files.
-        "OakFunctionsLoader::Binary" hash_measured_hash(binary_hash).
-}
+        "{{.AppName}}::Binary" hash_measured_hash(binary_hash).
