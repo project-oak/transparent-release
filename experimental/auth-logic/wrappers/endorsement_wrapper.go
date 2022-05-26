@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-const endorsement_policy = "experimental/auth-logic/templates/endorsement_policy.auth.tmpl"
+const endorsementPolicy = "experimental/auth-logic/templates/endorsement_policy.auth.tmpl"
 
 // Endorsement is a struct for holding data parsed from
 // endorsement files which are JSON
@@ -158,13 +158,13 @@ func (ew EndorsementWrapper) EmitStatement() (UnattributedStatement, error) {
 
 	validatedEndorsement.Name = SanitizeName(validatedEndorsement.Name)
 
-	endorsement_template, err := template.ParseFiles(endorsement_policy)
+	endorsementTemplate, err := template.ParseFiles(endorsementPolicy)
 	if err != nil {
 		return UnattributedStatement{}, fmt.Errorf("Could not load endorsement policy template %s", err)
 	}
 
 	var policyBytes bytes.Buffer
-	if err := endorsement_template.Execute(&policyBytes, validatedEndorsement); err != nil {
+	if err := endorsementTemplate.Execute(&policyBytes, validatedEndorsement); err != nil {
 		return UnattributedStatement{}, err
 	}
 

@@ -20,7 +20,7 @@ import (
 	"text/template"
 )
 
-const verifier_policy = "../templates/verifier_policy.auth.tmpl"
+const verifierPolicy = "../templates/verifier_policy.auth.tmpl"
 
 // VerifierWrapper is a wrapper that emits an authorization logic statement
 // for a named application that includes all the requirements that the
@@ -49,7 +49,7 @@ func (v VerifierWrapper) EmitStatement() (UnattributedStatement, error) {
 	//     "endorsement" says binary hasHash(x),
 	//     "provenance" says binary hashHash(x).
 
-	policyTemplate, err := template.ParseFiles(verifier_policy)
+	policyTemplate, err := template.ParseFiles(verifierPolicy)
 	if err != nil {
 		return UnattributedStatement{}, fmt.Errorf("Could not load verifier policy template %s", err)
 	}
