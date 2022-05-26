@@ -20,5 +20,7 @@ licenses(["notice"])
 
 exports_files([
     "verifier_policy.auth.tmpl",
-    "endorsement_policy.auth.tmpl"
+    "endorsement_policy.auth.tmpl",
+    "provenance_builder_policy.auth.tmpl",
+    "rekor_verifier_policy.auth.tmpl" 
 ])

@@ -1,0 +1,31 @@
+    // The Rekor verifier claims the signature triple in the rekord log entry 
+    // is valid.
+    hasValidBodySignature("{{.RekorLogEntryName}}::RekordLogEntry").
+
+    // The Rekor verifier claims the inclusion proof in the rekord entry is 
+    // valid.
+    hasValidInclusionProof("{{.RekorLogEntryName}}::RekordLogEntry").
+    
+    // The Rekor verifier claims the key used in the rekord log entry 
+    // is the one corresponding to the product team.
+    signerIsProductTeam("{{.RekorLogEntryName}}::RekordLogEntry").
+
+    // The Rekor verifier claims that the body of the log matches
+    // an input endorsement file.
+    contentsMatch("{{.RekorLogEntryName}}::RekordLogEntry", 
+        "{{.RekorLogEntryName}}::EndorsementFile").
+    
+    // The Rekor verifier will claim that an (input) endorsement file is
+    // a valid Rekor entry if ...
+    "{{.RekorLogEntryName}}::EndorsementFile" canActAs "ValidRekorEntry" :-
+        // ... the input rekor log entry has a valid signature triple ...
+        hasValidBodySignature("{{.RekorLogEntryName}}::RekordLogEntry"),
+        // ... the input rekor log entry has a valid inclusion proof ...
+        hasValidInclusionProof("{{.RekorLogEntryName}}::RekordLogEntry"),
+        // ... the public key used to sign the rekor log entry is
+        // an input key that is trusted to belong to the product team ...
+        signerIsProductTeam("{{.RekorLogEntryName}}::RekordLogEntry"),
+        // ... and the body of the rekord log entry matches the 
+        // contents of the endorsement file.
+        contentsMatch("{{.RekorLogEntryName}}::RekordLogEntry",
+            "{{.RekorLogEntryName}}::EndorsementFile").

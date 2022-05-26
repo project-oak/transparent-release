@@ -49,13 +49,13 @@ func (v VerifierWrapper) EmitStatement() (UnattributedStatement, error) {
 	//     "endorsement" says binary hasHash(x),
 	//     "provenance" says binary hashHash(x).
 
-	verifier_template, err := template.ParseFiles(verifier_policy)
+	policyTemplate, err := template.ParseFiles(verifier_policy)
 	if err != nil {
 		return UnattributedStatement{}, fmt.Errorf("Could not load verifier policy template %s", err)
 	}
 
 	var policyBytes bytes.Buffer
-	if err := verifier_template.Execute(&policyBytes, v); err != nil {
+	if err := policyTemplate.Execute(&policyBytes, v); err != nil {
 		return UnattributedStatement{}, err
 	}
 

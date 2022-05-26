@@ -1,0 +1,33 @@
+"RekorLogCheck" says {
+    // The Rekor verifier claims the signature triple in the rekord log entry 
+    // is valid.
+    hasValidBodySignature("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekordLogEntry").
+
+    // The Rekor verifier claims the inclusion proof in the rekord entry is 
+    // valid.
+    hasValidInclusionProof("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekordLogEntry").
+    
+    // The Rekor verifier claims the key used in the rekord log entry 
+    // is the one corresponding to the product team.
+    signerIsProductTeam("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekordLogEntry").
+
+    // The Rekor verifier claims that the body of the log matches
+    // an input endorsement file.
+    contentsMatch("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekordLogEntry", 
+        "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile").
+    
+    // The Rekor verifier will claim that an (input) endorsement file is
+    // a valid Rekor entry if ...
+    "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile" canActAs "ValidRekorEntry" :-
+        // ... the input rekor log entry has a valid signature triple ...
+        hasValidBodySignature("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekordLogEntry"),
+        // ... the input rekor log entry has a valid inclusion proof ...
+        hasValidInclusionProof("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekordLogEntry"),
+        // ... the public key used to sign the rekor log entry is
+        // an input key that is trusted to belong to the product team ...
+        signerIsProductTeam("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekordLogEntry"),
+        // ... and the body of the rekord log entry matches the 
+        // contents of the endorsement file.
+        contentsMatch("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekordLogEntry",
+            "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile").
+}

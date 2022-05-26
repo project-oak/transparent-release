@@ -15,10 +15,15 @@
 package wrappers
 
 import (
+	"bytes"
 	"fmt"
+	"text/template"
+
 	"github.com/project-oak/transparent-release/slsa"
 	"github.com/project-oak/transparent-release/verify"
 )
+
+const provenanceBuilderTemplate = "experimental/auth-logic/templates/provenance_builder_policy.auth.tmpl"
 
 // ProvenanceBuildWrapper is a wrapper that parses a provenance file,
 // uses this to build a binary, generates a hash of the binary, and
@@ -26,10 +31,10 @@ import (
 // hash to the provenance file.
 type ProvenanceBuildWrapper struct{ ProvenanceFilePath string }
 
-const (
-	provenanceStatementInner = `"%v::Binary" hasProvenance("%v::Provenance").`
-	hashStatementInner       = `"%v::Binary" has_measured_hash("sha256:%v").`
-)
+type simplifiedProvenance struct {
+	AppName        string
+	MeasuredSha256 string
+}
 
 // EmitStatement implements the Wrapper interface for ProvenanceBuildWrapper
 // by emitting the authorization logic statement.
@@ -40,15 +45,26 @@ func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 		return UnattributedStatement{}, fmt.Errorf("provenance build wrapper couldn't parse provenance file: %v", err)
 	}
 
-	sanitizedAppName := SanitizeName(provenance.Subject[0].Name)
 	// TODO(#69): Set the verifier as a field in pbw, and use that here.
 	verifier := verify.AmberProvenanceMetadataVerifier{}
 	if err := verifier.Verify(pbw.ProvenanceFilePath); err != nil {
 		return UnattributedStatement{}, fmt.Errorf("verification of the provenance file failed: %v", err)
 	}
-	measuredBinaryHash := provenance.Subject[0].Digest["sha256"]
 
-	contentsTemplate := fmt.Sprintf("%s\n%s", provenanceStatementInner, hashStatementInner)
-	contents := fmt.Sprintf(contentsTemplate, sanitizedAppName, sanitizedAppName, sanitizedAppName, measuredBinaryHash)
-	return UnattributedStatement{Contents: contents}, nil
+	simpleProv := simplifiedProvenance{
+		AppName:        SanitizeName(provenance.Subject[0].Name),
+		MeasuredSha256: provenance.Subject[0].Digest["sha256"],
+	}
+
+	policyTemplate, err := template.ParseFiles(provenanceBuilderTemplate)
+	if err != nil {
+		return UnattributedStatement{}, fmt.Errorf("Could not load provenance builder policy template %s", err)
+	}
+
+	var policyBytes bytes.Buffer
+	if err := policyTemplate.Execute(&policyBytes, simpleProv); err != nil {
+		return UnattributedStatement{}, err
+	}
+
+	return UnattributedStatement{Contents: policyBytes.String()}, nil
 }
