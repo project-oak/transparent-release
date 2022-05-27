@@ -55,6 +55,12 @@ go_binary(
     "top_level.go",
     "main.go",
   ],
+  data = [
+    "//experimental/auth-logic/templates:verifier_policy.auth.tmpl",
+    "//experimental/auth-logic/templates:endorsement_policy.auth.tmpl",
+    "//experimental/auth-logic/templates:provenance_builder_policy.auth.tmpl",
+    "//experimental/auth-logic/templates:rekor_verifier_policy.auth.tmpl"
+  ],
   deps = [
     "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
     "//slsa:slsa",
@@ -106,6 +112,10 @@ genrule(
         "//schema/amber-slsa-buildtype/v1:provenance.json",
         "//experimental/auth-logic/test_data:oak_endorsement.json",
         "//experimental/auth-logic/test_data:oak_provenance.json",
+        "//experimental/auth-logic/templates:verifier_policy.auth.tmpl",
+        "//experimental/auth-logic/templates:endorsement_policy.auth.tmpl",
+        "//experimental/auth-logic/templates:provenance_builder_policy.auth.tmpl",
+        "//experimental/auth-logic/templates:rekor_verifier_policy.auth.tmpl"
     ],
     outs = [
         "oak_verification_passing.auth_logic",

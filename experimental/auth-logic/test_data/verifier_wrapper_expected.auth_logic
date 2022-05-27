@@ -1,7 +1,7 @@
 "OakFunctionsLoader::Verifier" says {
     // The verification policy trusts the endorsement file wrapper to give
     // the expected hash of the binary from the endorsement file.
-    "OakFunctionsLoader::Endorsement" canSay "OakFunctionsLoader::Binary" has_expected_hash_from(any_hash, "OakFunctionsLoader::Endorsement").
+    "OakFunctionsLoader::EndorsementFile" canSay "OakFunctionsLoader::Binary" has_expected_hash_from(any_hash, "OakFunctionsLoader::EndorsementFile").
     
     // The verification policy trusts the provenance file wrapper to give the
     // expected hash of the binary from the provenance file.
@@ -31,5 +31,5 @@
         "OakFunctionsLoader::Binary" has_expected_hash_from(binary_hash, "OakFunctionsLoader::Provenance"),
         // ... and the binary has the measured hash claimed by the endorsement/
         /// provenance files.
-        "OakFunctionsLoader::Binary" hash_measured_hash(binary_hash).
+        "OakFunctionsLoader::Binary" has_measured_hash(binary_hash).
 }

@@ -70,8 +70,8 @@ go_test(
   size = "small",
   srcs = [
     "unix_epoch_time_wrapper_test.go",
-    "verifier_wrapper_test.go",
     "provenance_wrapper_test.go",
+    "verifier_wrapper_test.go",
     "endorsement_wrapper_test.go",
     "rekor_wrapper_test.go",
   ],
