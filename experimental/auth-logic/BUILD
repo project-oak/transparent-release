@@ -82,6 +82,10 @@ genrule(
         "//schema/amber-slsa-buildtype/v1:provenance.json",
         "//schema/amber-slsa-buildtype/v1:example.json",
         "//schema/amber-endorsement/v1:example.json",
+        "//experimental/auth-logic/templates:verifier_policy.auth.tmpl",
+        "//experimental/auth-logic/templates:endorsement_policy.auth.tmpl",
+        "//experimental/auth-logic/templates:provenance_builder_policy.auth.tmpl",
+        "//experimental/auth-logic/templates:rekor_verifier_policy.auth.tmpl"
     ],
     outs = [
         "oak_verification.auth_logic",
