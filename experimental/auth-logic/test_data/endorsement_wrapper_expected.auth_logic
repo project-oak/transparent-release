@@ -8,4 +8,5 @@
     // The endorsement policy trusts a time measurement policy called
     // "UnixEpoch" to get the current time. (This just uses the local clock)
     "UnixEpochTime" canSay RealTimeNsecIs(any_time).
+
 }

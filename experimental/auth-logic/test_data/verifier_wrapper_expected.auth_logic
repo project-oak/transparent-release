@@ -32,4 +32,5 @@
         // ... and the binary has the measured hash claimed by the endorsement/
         /// provenance files.
         "OakFunctionsLoader::Binary" has_measured_hash(binary_hash).
+
 }

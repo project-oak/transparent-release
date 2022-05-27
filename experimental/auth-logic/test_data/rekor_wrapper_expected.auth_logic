@@ -30,4 +30,5 @@
         // contents of the endorsement file.
         contentsMatch("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekordLogEntry",
             "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile").
+
 }
