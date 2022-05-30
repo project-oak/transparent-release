@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-const endorsementPolicy = "experimental/auth-logic/templates/endorsement_policy.auth.tmpl"
+const endorsementPolicyTemplate = "experimental/auth-logic/templates/endorsement_policy.auth.tmpl"
 
 // Endorsement is a struct for holding data parsed from
 // endorsement files which are JSON
@@ -98,14 +98,14 @@ func (endorsement Endorsement) GenerateValidatedEndorsement() (ValidatedEndorsem
 
 	if len(endorsement.Subject) != 1 {
 		return ValidatedEndorsement{},
-			fmt.Errorf("Endorsement file missing subject: %s", endorsement)
+			fmt.Errorf("endorsement file missing subject: %s", endorsement)
 	}
 	appName := endorsement.Subject[0].Name
 
 	expectedHash, ok := endorsement.Subject[0].Digest["sha256"]
 	if !ok {
 		return ValidatedEndorsement{},
-			fmt.Errorf("Endorsement file did not give an expected hash: %s",
+			fmt.Errorf("endorsement file did not give an expected hash: %s",
 				endorsement)
 	}
 
@@ -113,7 +113,7 @@ func (endorsement Endorsement) GenerateValidatedEndorsement() (ValidatedEndorsem
 	releaseTime, err := time.Parse(time.RFC3339, releaseTimeText)
 	if err != nil {
 		return ValidatedEndorsement{},
-			fmt.Errorf("Endorsement file release time had invalid format: %v", err)
+			fmt.Errorf("endorsement file release time had invalid format: %v", err)
 	}
 
 	expiryTimeText := endorsement.Predicate.ValidityPeriod.ExpiryTime
@@ -147,20 +147,20 @@ func (ew EndorsementWrapper) EmitStatement() (UnattributedStatement, error) {
 	endorsement, err := ParseEndorsementFile(ew.EndorsementFilePath)
 	if err != nil {
 		return UnattributedStatement{},
-			fmt.Errorf("Endorsement file wrapper couldn't parse file: %v", err)
+			fmt.Errorf("endorsement file wrapper couldn't parse file: %v", err)
 	}
 
 	validatedEndorsement, err := endorsement.GenerateValidatedEndorsement()
 	if err != nil {
 		return UnattributedStatement{},
-			fmt.Errorf("Endorsement file wrapper couldn't validate endorsement: %v", err)
+			fmt.Errorf("endorsement file wrapper couldn't validate endorsement: %v", err)
 	}
 
 	validatedEndorsement.Name = SanitizeName(validatedEndorsement.Name)
 
-	endorsementTemplate, err := template.ParseFiles(endorsementPolicy)
+	endorsementTemplate, err := template.ParseFiles(endorsementPolicyTemplate)
 	if err != nil {
-		return UnattributedStatement{}, fmt.Errorf("Could not load endorsement policy template %s", err)
+		return UnattributedStatement{}, fmt.Errorf("could not load endorsement policy template %s", err)
 	}
 
 	var policyBytes bytes.Buffer

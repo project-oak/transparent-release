@@ -58,7 +58,7 @@ func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 
 	policyTemplate, err := template.ParseFiles(provenanceBuilderTemplate)
 	if err != nil {
-		return UnattributedStatement{}, fmt.Errorf("Could not load provenance builder policy template %s", err)
+		return UnattributedStatement{}, fmt.Errorf("could not load provenance builder policy template %s", err)
 	}
 
 	var policyBytes bytes.Buffer

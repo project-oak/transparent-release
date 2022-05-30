@@ -90,7 +90,7 @@ func TestVerifySignedEntryTimestamp(t *testing.T) {
 
 	rekorKeyBytes, err := ioutil.ReadFile(rekorPublicKeyPath)
 	if err != nil {
-		t.Errorf("could not parse rekord pub key from file: %s", rekorKeyBytes)
+		t.Errorf("could not parse rekor pub key from file: %s", rekorKeyBytes)
 	}
 
 	logEntryAnon, err := getLogEntryAnonFromBytes(rekorLogEntryBytes)

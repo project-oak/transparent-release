@@ -42,7 +42,8 @@ import (
 // https://github.com/project-oak/oak/blob/main/oak_functions/client/rust/src/rekor.rs
 // It decides if an endorsement is accepted by:
 // -- verifying the signature in `body.RekordObj.signature`, using Oak's public key,
-// -- verifying that the contents of the body matches the input `endorsement_bytes`.
+// -- verifying that the contents of the body matches the input `endorsement_bytes`
+// -- verifying the signature in `signedEntryTimestamp`, using Rekor's public key
 // --  validating the inclusion proof
 type RekorLogWrapper struct {
 	rekorLogEntryBytes  []byte
@@ -303,7 +304,7 @@ func VerifyRekorEntry(rekorLogEntryBytes, productTeamKeyBytes, rekorPublicKeyByt
 	return nil
 }
 
-// This is just a holder struct that includes a sanitized name
+// logEntryNameHolder is just a holder struct that includes a sanitized name
 // parsed from the rekor log entry under inspection. This
 // exists only to make the policy template easier to read.
 type logEntryNameHolder struct {
@@ -330,7 +331,7 @@ func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 
 	policyTemplate, err := template.ParseFiles(rekorVerifierTemplate)
 	if err != nil {
-		return UnattributedStatement{}, fmt.Errorf("Could not load rekor log policy template %s", err)
+		return UnattributedStatement{}, fmt.Errorf("could not load rekor log policy template %s", err)
 	}
 
 	var policyBytes bytes.Buffer

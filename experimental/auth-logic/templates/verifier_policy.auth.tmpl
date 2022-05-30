@@ -1,6 +1,6 @@
     // The verification policy trusts the endorsement file wrapper to give
     // the expected hash of the binary from the endorsement file.
-    "{{.AppName}}::EndorsementFile" canSay "{{.AppName}}::Binary" has_expected_hash_from(any_hash, "{{.AppName}}::EndorsementFile").
+    "{{.AppName}}::Endorsement" canSay "{{.AppName}}::Binary" has_expected_hash_from(any_hash, "{{.AppName}}::Endorsement").
     
     // The verification policy trusts the provenance file wrapper to give the
     // expected hash of the binary from the provenance file.
@@ -26,7 +26,7 @@
         "{{.AppName}}::Binary" hasProvenance("{{.AppName}}::Provenance"),
         // ... and an endorsement file and provenance file both give the same
         // expected hash for the binary ...
-        "{{.AppName}}::Binary" has_expected_hash_from(binary_hash, "{{.AppName}}::EndorsementFile"),
+        "{{.AppName}}::Binary" has_expected_hash_from(binary_hash, "{{.AppName}}::Endorsement"),
         "{{.AppName}}::Binary" has_expected_hash_from(binary_hash, "{{.AppName}}::Provenance"),
         // ... and the binary has the measured hash claimed by the endorsement/
         /// provenance files.

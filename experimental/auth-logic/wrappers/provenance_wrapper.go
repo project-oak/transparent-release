@@ -37,14 +37,14 @@ func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 	}
 
 	if len(provenance.Subject) != 1 {
-		return UnattributedStatement{}, fmt.Errorf("Provenance file missing subject")
+		return UnattributedStatement{}, fmt.Errorf("provenance file missing subject")
 	}
 
 	sanitizedAppName := SanitizeName(provenance.Subject[0].Name)
 	expectedHash, hashOk := provenance.Subject[0].Digest["sha256"]
 
 	if !hashOk {
-		return UnattributedStatement{}, fmt.Errorf("Provenance file did not give an expected hash")
+		return UnattributedStatement{}, fmt.Errorf("provenance file did not give an expected hash")
 	}
 
 	return UnattributedStatement{
@@ -65,7 +65,7 @@ func GetAppNameFromProvenance(provenanceFilePath string) (string, error) {
 	}
 
 	if len(provenance.Subject) != 1 {
-		return "", fmt.Errorf("Provenance file missing subject")
+		return "", fmt.Errorf("provenance file missing subject")
 	}
 
 	return provenance.Subject[0].Name, nil

@@ -51,7 +51,7 @@ func (v VerifierWrapper) EmitStatement() (UnattributedStatement, error) {
 
 	policyTemplate, err := template.ParseFiles(verifierPolicy)
 	if err != nil {
-		return UnattributedStatement{}, fmt.Errorf("Could not load verifier policy template %s", err)
+		return UnattributedStatement{}, fmt.Errorf("could not load verifier policy template %s", err)
 	}
 
 	var policyBytes bytes.Buffer

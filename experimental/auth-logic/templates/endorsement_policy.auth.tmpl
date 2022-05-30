@@ -1,5 +1,5 @@
     // The endorsement policy claims a binary has an expected hash if... 
-    "{{.Name}}::Binary" has_expected_hash_from("sha256:{{.Sha256}}", "{{.Name}}::EndorsementFile") :-
+    "{{.Name}}::Binary" has_expected_hash_from("sha256:{{.Sha256}}", "{{.Name}}::Endorsement") :-
         // ... the real time is less than the given expiry time and greater
         // than the release time stated in the endorsement file.
         RealTimeNsecIs(current_time), current_time >= {{.ReleaseTime.Unix}}, current_time < {{.ExpiryTime.Unix}}.
