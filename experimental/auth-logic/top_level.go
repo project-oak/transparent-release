@@ -16,8 +16,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/project-oak/transparent-release/experimental/auth-logic/wrappers"
 	"strings"
+
+	"github.com/project-oak/transparent-release/experimental/auth-logic/wrappers"
 )
 
 const relationDeclarations = ".decl attribute has_expected_hash_from(hash : Sha256Hash, expecter : Principal)\n" +
@@ -37,7 +38,7 @@ func verifyRelease(appName, endorsementFilePath, provenanceFilePath, queryName s
 	}
 	endorsementStatement, err := wrappers.EmitStatementAs(
 		wrappers.Principal{
-			Contents: fmt.Sprintf(`"%s::EndorsementFile"`, wrappers.SanitizeName(endorsementAppName)),
+			Contents: fmt.Sprintf(`"%s::Endorsement"`, wrappers.SanitizeName(endorsementAppName)),
 		},
 		wrappers.EndorsementWrapper{
 			EndorsementFilePath: endorsementFilePath,
