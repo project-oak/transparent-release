@@ -15,6 +15,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 )
@@ -25,11 +26,14 @@ import (
 // process for the application using this evidence. The authorization logic
 // compiler can then run on the generated code.
 func main() {
-	appName := os.Args[1]
-	endorsementFilePath := os.Args[2]
-	provenanceFilePath := os.Args[3]
-	outputFilePath := os.Args[4]
-	queryName := os.Args[5]
+
+	appName := flag.String("app_name", "", "set name of application to be released")
+	endorsementFilePath := flag.String("endorsement", "", "set path of endorsement file")
+	provenanceFilePath := flag.String("provenance", "", "set path of provenance file")
+	outputFilePath := flag.String("out", *appName+"_tr_verification.auth_logic", "set path for generated output authorization logic verification code")
+	queryName := flag.String("query_name", "verification_success", "set name of query in generated authorization logic code")
+
+	flag.Parse()
 
 	// Part of the code for building a project using provenance
 	// files changes the working directory. This binary needs to keep
@@ -40,7 +44,7 @@ func main() {
 		log.Fatalf("Couldn't get working directory before verifying: %v", err)
 	}
 
-	out, err := verifyRelease(appName, endorsementFilePath, provenanceFilePath, queryName)
+	out, err := verifyRelease(*appName, *endorsementFilePath, *provenanceFilePath, *queryName)
 	if err != nil {
 		log.Fatalf("Couldn't verify release: %v", err)
 	}
@@ -51,7 +55,7 @@ func main() {
 		log.Fatalf("Couldn't restore old working directory: %v", err)
 	}
 
-	file, err := os.Create(outputFilePath)
+	file, err := os.Create(*outputFilePath)
 	defer file.Close()
 	if err != nil {
 		log.Fatalf("Couldn't create file for generated authorizaiton logic: %v\nThe generated auth logic was this:\n%s", err, out)
