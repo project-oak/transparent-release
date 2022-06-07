@@ -17,15 +17,15 @@ package wrappers
 // This file contains a wrapper for endorsement files.
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"text/template"
 	"time"
 )
 
-// EndorsementWrapper is a wrapper that emits an authorization logic
-// statement based on the contents of an endorsement file it parses.
-type EndorsementWrapper struct{ EndorsementFilePath string }
+const endorsementPolicyTemplate = "experimental/auth-logic/templates/endorsement_policy.auth.tmpl"
 
 // Endorsement is a struct for holding data parsed from
 // endorsement files which are JSON
@@ -98,14 +98,14 @@ func (endorsement Endorsement) GenerateValidatedEndorsement() (ValidatedEndorsem
 
 	if len(endorsement.Subject) != 1 {
 		return ValidatedEndorsement{},
-			fmt.Errorf("Endorsement file missing subject: %s", endorsement)
+			fmt.Errorf("endorsement file missing subject: %s", endorsement)
 	}
 	appName := endorsement.Subject[0].Name
 
 	expectedHash, ok := endorsement.Subject[0].Digest["sha256"]
 	if !ok {
 		return ValidatedEndorsement{},
-			fmt.Errorf("Endorsement file did not give an expected hash: %s",
+			fmt.Errorf("endorsement file did not give an expected hash: %s",
 				endorsement)
 	}
 
@@ -113,7 +113,7 @@ func (endorsement Endorsement) GenerateValidatedEndorsement() (ValidatedEndorsem
 	releaseTime, err := time.Parse(time.RFC3339, releaseTimeText)
 	if err != nil {
 		return ValidatedEndorsement{},
-			fmt.Errorf("Endorsement file release time had invalid format: %v", err)
+			fmt.Errorf("endorsement file release time had invalid format: %v", err)
 	}
 
 	expiryTimeText := endorsement.Predicate.ValidityPeriod.ExpiryTime
@@ -137,45 +137,38 @@ func (endorsement Endorsement) GenerateValidatedEndorsement() (ValidatedEndorsem
 
 }
 
+// EndorsementWrapper is a wrapper that emits an authorization logic
+// statement based on the contents of an endorsement file it parses.
+type EndorsementWrapper struct{ EndorsementFilePath string }
+
 // EmitStatement implements the Wrapper interface for EndorsementWrapper
 // by producing the authorization logic statement.
 func (ew EndorsementWrapper) EmitStatement() (UnattributedStatement, error) {
 	endorsement, err := ParseEndorsementFile(ew.EndorsementFilePath)
 	if err != nil {
 		return UnattributedStatement{},
-			fmt.Errorf("Endorsement file wrapper couldn't parse file: %v", err)
+			fmt.Errorf("endorsement file wrapper couldn't parse file: %v", err)
 	}
 
 	validatedEndorsement, err := endorsement.GenerateValidatedEndorsement()
 	if err != nil {
 		return UnattributedStatement{},
-			fmt.Errorf("Endorsement file wrapper couldn't validate endorsement: %v", err)
+			fmt.Errorf("endorsement file wrapper couldn't validate endorsement: %v", err)
 	}
 
-	sanitizedAppName := SanitizeName(validatedEndorsement.Name)
+	validatedEndorsement.Name = SanitizeName(validatedEndorsement.Name)
 
-	binaryPrincipal := fmt.Sprintf(`"%s::Binary"`, sanitizedAppName)
-	endorsementWrapperName := fmt.Sprintf(`"%s::EndorsementFile"`,
-		sanitizedAppName)
+	endorsementTemplate, err := template.ParseFiles(endorsementPolicyTemplate)
+	if err != nil {
+		return UnattributedStatement{}, fmt.Errorf("could not load endorsement policy template %s", err)
+	}
 
-	hasExpectedHash := fmt.Sprintf(`%s has_expected_hash_from("sha256:%s", %s)`,
-		binaryPrincipal, validatedEndorsement.Sha256, endorsementWrapperName)
+	var policyBytes bytes.Buffer
+	if err := endorsementTemplate.Execute(&policyBytes, validatedEndorsement); err != nil {
+		return UnattributedStatement{}, err
+	}
 
-	expirationCondition := fmt.Sprintf(
-		`RealTimeNsecIs(current_time), current_time >= %d, current_time < %d`,
-		validatedEndorsement.ReleaseTime.Unix(),
-		validatedEndorsement.ExpiryTime.Unix())
-
-	hashRule := fmt.Sprintf("%s :-\n    %s.\n", hasExpectedHash,
-		expirationCondition)
-
-	timePrincipalName := `"UnixEpochTime"`
-	timeDelegation := fmt.Sprintf("%s canSay RealTimeNsecIs(any_time).\n",
-		timePrincipalName)
-
-	return UnattributedStatement{
-		Contents: hashRule + timeDelegation,
-	}, nil
+	return UnattributedStatement{Contents: policyBytes.String()}, nil
 }
 
 // GetAppNameFromEndorsement parses an endorsement file and returns the name

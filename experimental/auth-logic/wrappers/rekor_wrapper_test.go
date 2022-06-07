@@ -16,6 +16,8 @@ package wrappers
 
 import (
 	"io/ioutil"
+	"os"
+	"strings"
 	"testing"
 )
 
@@ -23,6 +25,7 @@ const testRekorLogPath = "experimental/auth-logic/test_data/rekor_entry.json"
 const testPubKeyPath = "experimental/auth-logic/test_data/oak_ec_public.pem"
 const testUnexpiredEndorsementFilePath = "experimental/auth-logic/test_data/oak_endorsement.json"
 const rekorPublicKeyPath = "experimental/auth-logic/test_data/rekor_public_key.pem"
+const rekorWrapperExpectedFile = "experimental/auth-logic/test_data/rekor_wrapper_expected.auth_logic"
 
 func TestRekorLogWrapper(t *testing.T) {
 	rekorLogEntryBytes, err := ioutil.ReadFile(testRekorLogPath)
@@ -53,13 +56,12 @@ func TestRekorLogWrapper(t *testing.T) {
 
 	// ---- Test of RekorWrapper
 	// Expected output of wrapper:
-	want := `RekorLogCheck says {
-hasValidBodySignature("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekorLogEntry").
-hasValidInclusionProof("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekorLogEntry").
-signerIsProductTeam("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekorLogEntry").
-contentsMatch("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekorLogEntry", "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile").
-"oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile" canActAs ValidRekorEntry :- hasValidBodySignature("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekorLogEntry"), hasValidInclusionProof("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekorLogEntry"), hasCorrectPubKey("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekorLogEntry"), contentsMatch("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::RekorLogEntry", "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::EndorsementFile").
-}`
+
+	wantFileBytes, err := os.ReadFile(rekorWrapperExpectedFile)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	want := strings.TrimSuffix(string(wantFileBytes), "\n")
 
 	testRekorLogWrapper := RekorLogWrapper{
 		rekorLogEntryBytes:  rekorLogEntryBytes,
@@ -68,7 +70,7 @@ contentsMatch("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Re
 		endorsementBytes:    endorsementBytes,
 	}
 
-	rekorLogStatement, err := EmitStatementAs(Principal{Contents: "RekorLogCheck"}, testRekorLogWrapper)
+	rekorLogStatement, err := EmitStatementAs(Principal{Contents: `"RekorLogCheck"`}, testRekorLogWrapper)
 	if err != nil {
 		t.Errorf("couldn't get rekor log statement: %v, %v", testRekorLogWrapper, err)
 	}
@@ -88,7 +90,7 @@ func TestVerifySignedEntryTimestamp(t *testing.T) {
 
 	rekorKeyBytes, err := ioutil.ReadFile(rekorPublicKeyPath)
 	if err != nil {
-		t.Errorf("could not parse rekord pub key from file: %s", rekorKeyBytes)
+		t.Errorf("could not parse rekor pub key from file: %s", rekorKeyBytes)
 	}
 
 	logEntryAnon, err := getLogEntryAnonFromBytes(rekorLogEntryBytes)

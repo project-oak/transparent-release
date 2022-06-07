@@ -38,6 +38,12 @@ go_library(
     "unix_epoch_time_wrapper.go",
     "verifier_wrapper.go",
   ],
+  data =[
+    "//experimental/auth-logic/templates:verifier_policy.auth.tmpl",
+    "//experimental/auth-logic/templates:endorsement_policy.auth.tmpl",
+    "//experimental/auth-logic/templates:provenance_builder_policy.auth.tmpl",
+    "//experimental/auth-logic/templates:rekor_verifier_policy.auth.tmpl",
+  ],
   deps = [
     "//slsa:slsa", 
     "//common:common", 
@@ -64,8 +70,8 @@ go_test(
   size = "small",
   srcs = [
     "unix_epoch_time_wrapper_test.go",
-    "verifier_wrapper_test.go",
     "provenance_wrapper_test.go",
+    "verifier_wrapper_test.go",
     "endorsement_wrapper_test.go",
     "rekor_wrapper_test.go",
   ],
@@ -75,9 +81,11 @@ go_test(
     "//experimental/auth-logic/test_data:rekor_entry.json",
     "//experimental/auth-logic/test_data:rekor_public_key.pem",
     "//experimental/auth-logic/test_data:verifier_wrapper_expected.auth_logic",
+    "//experimental/auth-logic/test_data:endorsement_wrapper_expected.auth_logic",
+    "//experimental/auth-logic/test_data:rekor_wrapper_expected.auth_logic",
     "//schema/amber-slsa-buildtype/v1:provenance.json",
     "//schema/amber-slsa-buildtype/v1:example.json",
-    "//schema/amber-endorsement/v1:example.json"
+    "//schema/amber-endorsement/v1:example.json",
   ],
   embed = [":transparent_release_verification_wrappers"],
 )

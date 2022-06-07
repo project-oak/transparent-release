@@ -25,7 +25,6 @@ import (
 // process for the application using this evidence. The authorization logic
 // compiler can then run on the generated code.
 func main() {
-
 	appName := os.Args[1]
 	endorsementFilePath := os.Args[2]
 	provenanceFilePath := os.Args[3]

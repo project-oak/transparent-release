@@ -19,12 +19,8 @@ package(default_visibility = ["//:__subpackages__"])
 licenses(["notice"])
 
 exports_files([
-    "verifier_wrapper_expected.auth_logic",
-    "endorsement_wrapper_expected.auth_logic",
-    "rekor_wrapper_expected.auth_logic",
-    "oak_endorsement.json",
-    "oak_provenance.json",
-    "rekor_entry.json",
-    "oak_ec_public.pem",
-    "rekor_public_key.pem",
+    "verifier_policy.auth.tmpl",
+    "endorsement_policy.auth.tmpl",
+    "provenance_builder_policy.auth.tmpl",
+    "rekor_verifier_policy.auth.tmpl" 
 ])
