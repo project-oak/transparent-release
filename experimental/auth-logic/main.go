@@ -27,11 +27,11 @@ import (
 // compiler can then run on the generated code.
 func main() {
 
-	appName := flag.String("app-name", "", "set name of application to be released")
+	appName := flag.String("app_name", "", "set name of application to be released")
 	endorsementFilePath := flag.String("endorsement", "", "set path of endorsement file")
 	provenanceFilePath := flag.String("provenance", "", "set path of provenance file")
 	outputFilePath := flag.String("out", *appName+"_tr_verification.auth_logic", "set path for generated output authorization logic verification code")
-	queryName := flag.String("query-name", "verification_success", "set name of query in generated authorization logic code")
+	queryName := flag.String("query_name", "verification_success", "set name of query in generated authorization logic code")
 
 	flag.Parse()
 
