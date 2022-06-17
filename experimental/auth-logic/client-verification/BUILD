@@ -139,25 +139,3 @@ go_test(
     ],
     embed = ["//experimental/auth-logic/common:auth_logic_interface"],
 )
-
-# This rule runs the authorizaiton logic compiler on "simple.auth_logic"
-# as an input and produces the resulting souffle code and CSVs containing the
-# results of queries. These outputs are used by "simple_auth_logic_test"
-genrule(
-    name = "compile_simple_auth_logic",
-    testonly = True,
-    srcs = ["simple.auth_logic"],
-    outs = [
-        "simple.auth_logic.dl",
-        "demo_working.csv",
-        "demo_disappointing.csv",
-    ],
-    cmd = """
-    export SOUFFLE_BIN=$(location @souffle-bin//file)
-    ./$(location @auth-logic-compiler//file) $(location simple.auth_logic) --output_queries_directory $(RULEDIR) --souffle-output-file $(RULEDIR)/simple.auth_logic.dl
-  """,
-    tools = [
-        "@auth-logic-compiler//file",
-        "@souffle-bin//file",
-    ],
-)
