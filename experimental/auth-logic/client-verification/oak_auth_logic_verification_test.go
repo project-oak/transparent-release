@@ -16,10 +16,12 @@ package main
 
 import (
 	"testing"
+
+	"github.com/project-oak/transparent-release/experimental/auth-logic/common"
 )
 
 func TestOakVerification(t *testing.T) {
-	actualQueryValues, err := emitOutputQueries(".")
+	actualQueryValues, err := common.EmitOutputQueries(".")
 	if actualQueryValues == nil || err != nil {
 		t.Fatalf("Could not parse verification query results for oak_functions_loader: %v", err)
 	}

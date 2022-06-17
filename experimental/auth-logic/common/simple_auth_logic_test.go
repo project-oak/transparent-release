@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package common
 
 import (
 	"testing"
@@ -28,7 +28,7 @@ func TestSimpleAuthLogic(t *testing.T) {
 	// As long as the CSVs for the queries are in the data field for
 	// the bazel rule that invokes this, the CSVs will all be
 	// in the working directory when this test is run.
-	actualQueryValues, err := emitOutputQueries(".")
+	actualQueryValues, err := EmitOutputQueries(".")
 	if actualQueryValues == nil || err != nil {
 		t.Fatalf("Could not parse query results for %s",
 			"simple.auth_logic")

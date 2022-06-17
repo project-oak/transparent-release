@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package common
 
 import (
 	"io/ioutil"
@@ -20,7 +20,7 @@ import (
 	"strings"
 )
 
-// This function returns the results of queries in the authorization logic
+// EmitOutputQueries returns the results of queries in the authorization logic
 // program as a map from the names of the queries to a boolean value which is
 // true if the query can be proven and false otherwise. This function uses the
 // current output interface from authorization logic which is quite likely to
@@ -33,7 +33,7 @@ import (
 // "dummy_var". These predicates are declared as
 // [outputs](https://souffle-lang.github.io/execute) which causes a CSV to be
 // emitted.
-func emitOutputQueries(outputDirectoryName string) (map[string]bool, error) {
+func EmitOutputQueries(outputDirectoryName string) (map[string]bool, error) {
 	ret := make(map[string]bool)
 	items, err := ioutil.ReadDir(outputDirectoryName)
 	if err != nil {
