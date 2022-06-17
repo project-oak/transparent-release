@@ -19,26 +19,6 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 package(default_visibility = ["//:__subpackages__"])
 
 go_library(
-    name = "auth_logic_interface",
-    srcs = ["auth_logic_interface.go"],
-    data = [
-        "@auth-logic-compiler//file",
-    ],
-    importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
-)
-
-go_test(
-    name = "simple_auth_logic_test",
-    size = "small",
-    srcs = ["simple_auth_logic_test.go"],
-    data = [
-        "demo_disappointing.csv",
-        "demo_working.csv",
-    ],
-    embed = [":auth_logic_interface"],
-)
-
-go_library(
     name = "top_level",
     srcs = ["top_level.go"],
     importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
@@ -147,7 +127,7 @@ go_test(
     data = [
         "verification_success.csv",
     ],
-    embed = [":auth_logic_interface"],
+    embed = ["//experimental/auth-logic/common:auth_logic_interface"],
 )
 
 go_test(
@@ -157,7 +137,7 @@ go_test(
     data = [
         "oak_verification_passing.csv",
     ],
-    embed = [":auth_logic_interface"],
+    embed = ["//experimental/auth-logic/common:auth_logic_interface"],
 )
 
 # This rule runs the authorizaiton logic compiler on "simple.auth_logic"
