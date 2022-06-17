@@ -127,7 +127,7 @@ go_test(
     data = [
         "verification_success.csv",
     ],
-    embed = ["//experimental/auth-logic/common:auth_logic_interface"],
+    deps = ["//experimental/auth-logic/common:auth_logic_interface"],
 )
 
 go_test(
@@ -137,5 +137,5 @@ go_test(
     data = [
         "oak_verification_passing.csv",
     ],
-    embed = ["//experimental/auth-logic/common:auth_logic_interface"],
+    deps = ["//experimental/auth-logic/common:auth_logic_interface"],
 )

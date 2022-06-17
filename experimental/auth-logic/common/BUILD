@@ -24,7 +24,7 @@ go_library(
     data = [
         "@auth-logic-compiler//file",
     ],
-    importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
+    importpath = "github.com/project-oak/transparent-release/experimental/auth-logic/common",
 )
 
 go_test(
