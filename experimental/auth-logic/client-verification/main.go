@@ -35,24 +35,9 @@ func main() {
 
 	flag.Parse()
 
-	// Part of the code for building a project using provenance
-	// files changes the working directory. This binary needs to keep
-	// the working directory as-is, so the old working directory is saved
-	// before running verifyRelease.
-	oldWorkingDirectory, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("Couldn't get working directory before verifying: %v", err)
-	}
-
 	out, err := verifyRelease(*appName, *endorsementFilePath, *provenanceFilePath, *queryName)
 	if err != nil {
 		log.Fatalf("Couldn't verify release: %v", err)
-	}
-
-	// Restore old working directory
-	err = os.Chdir(oldWorkingDirectory)
-	if err != nil {
-		log.Fatalf("Couldn't restore old working directory: %v", err)
 	}
 
 	file, err := os.Create(*outputFilePath)

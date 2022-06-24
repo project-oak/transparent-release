@@ -22,7 +22,7 @@ import (
 )
 
 // This program accepts multiple auth logic files as input by passing them
-// into an array variable. To allow a []string to be used in flag.var, it must
+// into an array variable. To allow a []string to be used in flag.Var, it must
 // implement flag.Value, which includes String() and Set(). And to be able to
 // define these, it must be given a type name.
 type stringArray []string
@@ -40,31 +40,16 @@ func main() {
 
 	var authLogicInputs stringArray
 
-	appName := flag.String("app_name", "", "set name of application to be released")
-	provenanceFilePath := flag.String("provenance", "", "set path of provenance file")
-	outputAuthLogicFilePath := flag.String("auth_logic_out", *appName+"_endorsement_release_policy.auth_logic", "set path for generated output authorization logic verification code")
-	flag.Var(&authLogicInputs, "auth_logic_inputs", "set one or more auth logic input files; to provide multiple inputs, call the parameter more than once with each input, for example, `--auth_logic_inputs file1 --auth_logic_inputs file2`")
+	appName := flag.String("app_name", "", "name of application to be released")
+	provenanceFilePath := flag.String("provenance", "", "path of provenance file")
+	outputAuthLogicFilePath := flag.String("auth_logic_out", *appName+"_endorsement_release_policy.auth_logic", "path for generated output authorization logic verification code")
+	flag.Var(&authLogicInputs, "auth_logic_inputs", "one or more auth logic input files; to provide multiple inputs, call the parameter more than once with each input, for example, `--auth_logic_inputs file1 --auth_logic_inputs file2`")
 
 	flag.Parse()
-
-	// Part of the code for building a project using provenance
-	// files changes the working directory. This binary needs to keep
-	// the working directory as-is, so the old working directory is saved
-	// before running generateEndorsement.
-	oldWorkingDirectory, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("couldn't get working directory before verifying: %v", err)
-	}
 
 	out, err := generateEndorsement(authLogicInputs, *appName, *provenanceFilePath)
 	if err != nil {
 		log.Fatalf("couldn't generate auth logic policy for endorsement file: %v", err)
-	}
-
-	// Restore old working directory
-	err = os.Chdir(oldWorkingDirectory)
-	if err != nil {
-		log.Fatalf("couldn't restore old working directory: %v", err)
 	}
 
 	file, err := os.Create(*outputAuthLogicFilePath)
