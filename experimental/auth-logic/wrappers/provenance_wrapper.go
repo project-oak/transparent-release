@@ -49,10 +49,12 @@ func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 
 	return UnattributedStatement{
 		Contents: fmt.Sprintf(
-			`"%s::Binary" has_expected_hash_from("sha256:%s", "%s::Provenance").`,
+			`"%s::Binary" has_expected_hash_from("sha256:%s", "%s::Provenance").`+"\n"+`"%s::Binary" has_builder_id("%s").`,
 			sanitizedAppName,
 			expectedHash,
-			sanitizedAppName)}, nil
+			sanitizedAppName,
+			sanitizedAppName,
+			provenance.Predicate.Builder.Id)}, nil
 }
 
 // GetAppNameFromProvenance parses a provenance file and emits the name of the

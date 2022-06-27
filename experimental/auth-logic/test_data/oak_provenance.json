@@ -11,7 +11,7 @@
   "predicateType": "https://slsa.dev/provenance/v0.2",
   "predicate": {
     "builder": {
-      "id": "https://github.com/project-oak/transparent-release"
+      "id": "https://github.com/Attestations/GitHubHostedActions@v1"
     },
     "buildType": "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json",
     "buildConfig": {
