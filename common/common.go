@@ -52,6 +52,23 @@ type BuildConfig struct {
 	// The path, relative to the root of the git repository, where the binary
 	// built by the `docker run` command is expected to be found.
 	OutputPath string `toml:"output_path"`
+	// BuilderID maps to `builder.id` in a SLSA provenance predicate.
+	BuilderID string `toml:"builderId"`
+	// Invocation maps to `invocation` in a SLSA provenance predicate.
+	Invocation Invocation `toml:"invocation"`
+}
+
+// Invocation maps to `invocation` in a SLSA predicate, and identifies the
+// event that kicked off the build.
+type Invocation struct {
+	// URI to the script or tool that triggered the build.
+	URI string `toml:"configSource.uri"`
+	// Digest is the SHA256 digest of the config source.
+	Digest string `toml:"configSource.sha256"`
+	// EntryPoint to the invoked config source. Could be an empty string
+	EntryPoint string `toml:"configSource.entryPoint"`
+	// Parameters passed to the invoked config source.
+	Parameters []string `toml:"parameters"`
 }
 
 // RepoCheckoutInfo contains info about the location of a locally checked out
