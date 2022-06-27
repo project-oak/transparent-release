@@ -60,7 +60,7 @@ type Predicate struct {
 // The builder is the entity that produced the provenance file. Examples include
 // GitHub Actions and Google Cloud Build. See also [Salsa provenance files](https://slsa.dev/provenance/v0.2)
 type Builder struct {
-	Id string `json:"id"`
+	ID string `json:"id"`
 }
 
 // BuildConfig represents the BuildConfig in the SLSA buildType. See the corresponding

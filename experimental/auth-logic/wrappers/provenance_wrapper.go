@@ -47,7 +47,7 @@ func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 		return UnattributedStatement{}, fmt.Errorf("provenance file did not give an expected hash")
 	}
 
-	sanitizedBuilderName := SanitizeName(provenance.Predicate.Builder.Id)
+	sanitizedBuilderName := SanitizeName(provenance.Predicate.Builder.ID)
 
 	return UnattributedStatement{
 		Contents: fmt.Sprintf(
