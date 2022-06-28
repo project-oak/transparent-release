@@ -53,4 +53,5 @@ func TestSlsaExampleProvenance(t *testing.T) {
 	assert("outputPath", provenance.Predicate.BuildConfig.OutputPath, "./oak_functions/loader/bin/oak_functions_loader")
 	assert("command[0]", provenance.Predicate.BuildConfig.Command[0], "./scripts/runner")
 	assert("command[1]", provenance.Predicate.BuildConfig.Command[1], "build-functions-server")
+	assert("builderId", provenance.Predicate.Builder.ID, "https://github.com/project-oak/transparent-release")
 }

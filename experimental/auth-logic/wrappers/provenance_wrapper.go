@@ -47,12 +47,16 @@ func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 		return UnattributedStatement{}, fmt.Errorf("provenance file did not give an expected hash")
 	}
 
+	sanitizedBuilderName := SanitizeName(provenance.Predicate.Builder.ID)
+
 	return UnattributedStatement{
 		Contents: fmt.Sprintf(
-			`"%s::Binary" has_expected_hash_from("sha256:%s", "%s::Provenance").`,
+			`"%s::Binary" has_expected_hash_from("sha256:%s", "%s::Provenance").`+"\n"+`"%s::Binary" has_builder_id("%s").`,
 			sanitizedAppName,
 			expectedHash,
-			sanitizedAppName)}, nil
+			sanitizedAppName,
+			sanitizedAppName,
+			sanitizedBuilderName)}, nil
 }
 
 // GetAppNameFromProvenance parses a provenance file and emits the name of the
