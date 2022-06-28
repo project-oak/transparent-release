@@ -1,0 +1,65 @@
+.decl attribute has_expected_hash_from(hash : Sha256Hash, expecter : Principal)
+.decl attribute has_measured_hash(hash : Sha256Hash)
+.decl attribute hasProvenance(provenance : Principal)
+.decl RealTimeNsecIs(time : Number)
+
+"oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Endorsement" says {
+    // The endorsement policy claims a binary has an expected hash if... 
+    "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Binary" has_expected_hash_from("sha256:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c", "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Endorsement") :-
+        // ... the real time is less than the given expiry time and greater
+        // than the release time stated in the endorsement file.
+        RealTimeNsecIs(current_time), current_time >= 1643710850, current_time < 1961749250.
+
+    // The endorsement policy trusts a time measurement policy called
+    // "UnixEpoch" to get the current time. (This just uses the local clock)
+    "UnixEpochTime" canSay RealTimeNsecIs(any_time).
+
+}
+"oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Provenance" says {
+"oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Binary" has_expected_hash_from("sha256:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c", "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Provenance").
+}
+"oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::ProvenanceBuilder" says {
+"oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Binary" hasProvenance("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Provenance").
+"oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Binary" has_measured_hash("sha256:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c").
+
+}
+"UnixEpochTime" says {
+RealTimeNsecIs(1655899225).
+}
+"oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Verifier" says {
+    // The verification policy trusts the endorsement file wrapper to give
+    // the expected hash of the binary from the endorsement file.
+    "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Endorsement" canSay "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Binary" has_expected_hash_from(any_hash, "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Endorsement").
+    
+    // The verification policy trusts the provenance file wrapper to give the
+    // expected hash of the binary from the provenance file.
+    "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Provenance" canSay "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Binary" has_expected_hash_from(any_hash, "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Provenance").
+    
+    // The verification policy trusts the provenance file builder to 
+    // check when a binary can be successfully built from a provenance file.
+    "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::ProvenanceBuilder" canSay any_principal hasProvenance(any_provenance).
+    
+    // The verification policy trusts the provenance file builder to measure
+    // the real hashes of any object.
+    "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::ProvenanceBuilder" canSay some_object has_measured_hash(some_hash).
+    
+    // The verification policy trusts the rekor log checking policy (which 
+    // internally depends on the rekor log wrapper) to accurately 
+    // determine when an object is really a valid rekor log entry
+    "RekorLogCheck" canSay some_object canActAs "ValidRekorEntry".
+    
+    // The verification policy claims that a binary can assume the identity
+    // of an application when ...
+    "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Binary" canActAs "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62" :-
+        // ... that binary can be built with some provenance file ...
+        "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Binary" hasProvenance("oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Provenance"),
+        // ... and an endorsement file and provenance file both give the same
+        // expected hash for the binary ...
+        "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Binary" has_expected_hash_from(binary_hash, "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Endorsement"),
+        "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Binary" has_expected_hash_from(binary_hash, "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Provenance"),
+        // ... and the binary has the measured hash claimed by the endorsement/
+        /// provenance files.
+        "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Binary" has_measured_hash(binary_hash).
+
+}
+oak_verification_passing = query "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Verifier" says "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62::Binary" canActAs "oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62"?
