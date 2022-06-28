@@ -47,7 +47,7 @@ func main() {
 
 	flag.Parse()
 
-	out, err := generateEndorsement(authLogicInputs, *appName, *provenanceFilePath)
+	out, err := verifyRelease(authLogicInputs, *appName, *provenanceFilePath)
 	if err != nil {
 		log.Fatalf("couldn't generate auth logic policy for endorsement file: %v", err)
 	}

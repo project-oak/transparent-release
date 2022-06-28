@@ -27,11 +27,11 @@ const relationDeclarations = ".decl BuildPolicyAllowRelease(binary : Principal, 
 	".decl RealTimeNsecIs(time : Number)\n" +
 	".decl attribute hasPublicKey(hash : Sha256Hash)\n"
 
-// generateEndorsenent takes an application name, the path to an endorsement
-// file for that application, the path to a provenance file for that
-// application, and emits authorization logic code (as a string) that runs the
-// transparent release verification process.
-func generateEndorsement(authLogicInputs []string, appName, provenanceFilePath string) (string, error) {
+// verifyRelease takes one or more authorization logic files specifying policies
+// for verifying release and a path to a provenance file. It emits authorization
+// logic code that verifies the release (by concatenating the input files with
+// the outputs the necessary wrappers).
+func verifyRelease(authLogicInputs []string, appName, provenanceFilePath string) (string, error) {
 
 	var authLogicFileContents = ""
 	for _, authLogicInputFile := range authLogicInputs {

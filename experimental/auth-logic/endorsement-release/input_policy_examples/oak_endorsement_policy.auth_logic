@@ -8,7 +8,7 @@
     // Product teams will usually not want to write much authorization logic. 
     // So we offer policy principals that encode these common options. The 
     // product team can pick one of these options by _delegating_ to principals
-    // that encodes one of these policy choices. Product teams with different needs
+    // that encode one of these policy choices. Product teams with different needs
     // can also choose not to delegate to one of these policies and write a complete
     // policy on their own
 
