@@ -50,9 +50,17 @@ type Digest map[string]string
 // Predicate represents the Predicate in the SLSA buildType. See the corresponding
 // JSON key in the Amber buildType schema.
 type Predicate struct {
+	Builder     Builder     `json:"builder"`
 	BuildType   string      `json:"buildType"`
 	BuildConfig BuildConfig `json:"buildConfig"`
 	Materials   []Material  `json:"materials"`
+}
+
+// Builder represents the builder ID in the SLSA schema for provenance files.
+// The builder is the entity that produced the provenance file. Examples include
+// GitHub Actions and Google Cloud Build. See also [Salsa provenance files](https://slsa.dev/provenance/v0.2)
+type Builder struct {
+	ID string `json:"id"`
 }
 
 // BuildConfig represents the BuildConfig in the SLSA buildType. See the corresponding
