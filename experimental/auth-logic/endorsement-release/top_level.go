@@ -42,16 +42,8 @@ func verifyRelease(authLogicInputs []string, appName, provenanceFilePath string)
 		authLogicFileContents = authLogicFileContents + string(fileContents) + "\n"
 	}
 
-	provenanceAppName, err := wrappers.GetAppNameFromProvenance(provenanceFilePath)
-
-	if err != nil {
-		return "", fmt.Errorf("generateEndorsement couldn't get app name in provenance file: %v", err)
-	}
-
 	provenanceStatement, err := wrappers.EmitStatementAs(
-		wrappers.Principal{
-			Contents: fmt.Sprintf(`"%s::Provenance"`, wrappers.SanitizeName(provenanceAppName)),
-		},
+		wrappers.Principal{"Provenance"},
 		wrappers.ProvenanceWrapper{FilePath: provenanceFilePath},
 	)
 	if err != nil {

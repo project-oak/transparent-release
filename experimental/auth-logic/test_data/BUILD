@@ -24,7 +24,9 @@ exports_files([
     "rekor_wrapper_expected.auth_logic",
     "oak_endorsement.json",
     "oak_provenance.json",
+    "oak_provenance_github_actions.json",
     "rekor_entry.json",
     "oak_ec_public.pem",
     "rekor_public_key.pem",
+    "release_verification_test_query.auth_logic",
 ])
