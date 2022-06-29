@@ -5045,8 +5045,8 @@ http_file(
     name = "auth-logic-compiler",
     downloaded_file_path = "auth-logic-compiler",
     executable = True,
-    sha256 = "200f8b479d89ba7afa7515a698ad93c8df77fb8cf49950f242acdcbdc3c1e512",
-    urls = ["https://github.com/google-research/raksha/releases/download/v0.1.1-Linux/auth-logic-prototype"],
+    sha256 = "18b296ac5aa085a46804f1e46451e5e5e9bf64c027383de7c6fec7e9cca8868c",
+    urls = ["https://github.com/google-research/raksha/releases/download/Linux/auth-logic-prototype"]
 )
 
 # This fetches a pre-built souffle binary from the Raksha repository
