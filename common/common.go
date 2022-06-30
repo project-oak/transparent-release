@@ -28,16 +28,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	intoto "github.com/in-toto/in-toto-golang/in_toto"
+	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 	toml "github.com/pelletier/go-toml"
-	"github.com/project-oak/transparent-release/slsa"
+
+	amber "github.com/project-oak/transparent-release/slsa"
 )
 
 const (
-	// InTotoStatementV01 is the statement type for the generalized link format
-	// containing statements. This is constant for all predicate types.
-	InTotoStatementV01 = "https://in-toto.io/Statement/v0.1"
-	// SLSAPredicateV02 is the predicate type for the SLSA v0.2 Provenance predicate type.
-	SLSAPredicateV02 = "https://slsa.dev/provenance/v0.2"
 	// AmberBuildTypeV1 is the SLSA BuildType for Amber builds.
 	AmberBuildTypeV1 = "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json"
 )
@@ -100,7 +98,7 @@ func LoadBuildConfigFromFile(path string) (*BuildConfig, error) {
 }
 
 // LoadBuildConfigFromProvenance loads build configuration from a SLSA Provenance object.
-func LoadBuildConfigFromProvenance(provenance *slsa.Provenance) (*BuildConfig, error) {
+func LoadBuildConfigFromProvenance(provenance *amber.Provenance) (*BuildConfig, error) {
 	if len(provenance.Subject) != 1 {
 		return nil, fmt.Errorf("the provenance must have exactly one Subject, got %d", len(provenance.Subject))
 	}
@@ -268,7 +266,7 @@ func (b *BuildConfig) VerifyBinarySha256Hash() error {
 // GenerateProvenanceStatement generates a provenance statement from this config. If
 // `ExpectedBinarySha256Hash` is non-empty, the provenance statement is generated only if the
 // SHA256 hash of the generated binary is equal to `ExpectedBinarySha256Hash`.
-func (b *BuildConfig) GenerateProvenanceStatement() (*slsa.Provenance, error) {
+func (b *BuildConfig) GenerateProvenanceStatement() (*intoto.Statement, error) {
 	binarySha256Hash, err := b.ComputeBinarySha256Hash()
 	if err != nil {
 		return nil, err
@@ -281,10 +279,10 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*slsa.Provenance, error) {
 			binarySha256Hash, b.ExpectedBinarySha256Hash)
 	}
 
-	subject := slsa.Subject{
+	subject := intoto.Subject{
 		// TODO(#57): Get the name as an input in the TOML file.
 		Name:   fmt.Sprintf("%s-%s", filepath.Base(b.OutputPath), b.CommitHash),
-		Digest: map[string]string{"sha256": string(binarySha256Hash)},
+		Digest: slsa.DigestSet{"sha256": string(binarySha256Hash)},
 	}
 
 	alg, digest, err := parseBuilderImageURI(b.BuilderImage)
@@ -292,31 +290,35 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*slsa.Provenance, error) {
 		return nil, fmt.Errorf("malformed builder image URI: %v", err)
 	}
 
-	predicate := slsa.Predicate{
+	predicate := slsa.ProvenancePredicate{
 		BuildType: AmberBuildTypeV1,
-		BuildConfig: slsa.BuildConfig{
+		BuildConfig: amber.BuildConfig{
 			Command:    b.Command,
 			OutputPath: b.OutputPath,
 		},
-		Materials: []slsa.Material{
+		Materials: []slsa.ProvenanceMaterial{
 			// Builder image
-			slsa.Material{
+			slsa.ProvenanceMaterial{
 				URI:    b.BuilderImage,
-				Digest: map[string]string{alg: digest},
+				Digest: slsa.DigestSet{alg: digest},
 			},
 			// Source code
-			slsa.Material{
+			slsa.ProvenanceMaterial{
 				URI:    b.Repo,
-				Digest: map[string]string{"sha1": b.CommitHash},
+				Digest: slsa.DigestSet{"sha1": b.CommitHash},
 			},
 		},
 	}
 
-	return &slsa.Provenance{
-		Type:          InTotoStatementV01,
-		Subject:       []slsa.Subject{subject},
-		PredicateType: SLSAPredicateV02,
-		Predicate:     predicate,
+	statementHeader := intoto.StatementHeader{
+		Type:          intoto.StatementInTotoV01,
+		PredicateType: slsa.PredicateSLSAProvenance,
+		Subject:       []intoto.Subject{subject},
+	}
+
+	return &intoto.Statement{
+		StatementHeader: statementHeader,
+		Predicate:       predicate,
 	}, nil
 }
 

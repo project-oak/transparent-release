@@ -23,6 +23,8 @@ go_library(
     srcs = ["common.go"],
     deps = [
         "@com_github_pelletier_toml//:go_default_library",
+        "@com_github_in_toto_in_toto_golang//in_toto:go_default_library",
+        "@com_github_in_toto_in_toto_golang//in_toto/slsa_provenance/v0.2:go_default_library",
         "//slsa:slsa",
     ],
     importpath = "github.com/project-oak/transparent-release/common",
