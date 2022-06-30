@@ -131,8 +131,8 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 		}
 	}
 
-	predicate := prov.Predicate.(*slsa.ProvenancePredicate)
-	buildConfig := predicate.BuildConfig.(*amber.BuildConfig)
+	predicate := prov.Predicate.(slsa.ProvenancePredicate)
+	buildConfig := predicate.BuildConfig.(amber.BuildConfig)
 
 	// Check that the provenance is generated correctly
 	assert("repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")
