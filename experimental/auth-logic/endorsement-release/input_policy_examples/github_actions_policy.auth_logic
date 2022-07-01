@@ -1,11 +1,9 @@
 "GithubActionsPolicy" says {
-    "Provenance" canSay any_app
-        has_expected_hash_from(any_hash, "Provenance").
+    "Provenance" canSay any_app has_expected_hash_from(any_hash, "Provenance").
 
-    "Provenance" canSay any_app
-        has_builder_id(any_builder).
+    "Provenance" canSay any_app has_builder_id(any_builder).
 
     BuildPolicyAllowRelease(any_app, any_hash) :-
-        any_app has_expected_hash_from(any_hash, "Provenance")
-        has_builder_id("https://github.com/Attestations/GitHubHostedActions@v1")
+        any_app has_expected_hash_from(any_hash, "Provenance"),
+        any_app has_builder_id("https://github.com/Attestations/GitHubHostedActions@v1").
 }
