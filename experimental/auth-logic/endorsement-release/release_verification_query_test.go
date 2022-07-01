@@ -26,14 +26,10 @@ func TestEndorsementReleaseVerification(t *testing.T) {
 		t.Fatalf("Could not parse verification query results for oak_functions_loader: %v", err)
 	}
 
-	var expectedQueryValues = map[string]bool{
-		"releaseEndorsement": true,
+	got := actualQueryValues["testEndorsementReleaseQuery"]
+	want := true
+	if want != got {
+		t.Errorf("Query releaseEndorsement failed; want %t got %t.", want, got)
 	}
 
-	for query, want := range expectedQueryValues {
-		got := actualQueryValues[query]
-		if want != got {
-			t.Errorf("Query %q failed; want %t got %t.", query, want, got)
-		}
-	}
 }

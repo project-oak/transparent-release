@@ -87,3 +87,13 @@ genrule(
     "@souffle-bin//file",
   ]
 )
+
+go_test(
+  name = "oak_endorsement_release_test",
+  size = "medium",
+  srcs = ["release_verification_query_test.go"],
+  data = [
+    "testEndorsementReleaseQuery.csv",
+  ],
+  deps = ["//experimental/auth-logic/common:auth_logic_interface"],
+)
