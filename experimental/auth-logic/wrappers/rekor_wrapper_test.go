@@ -28,6 +28,18 @@ const rekorPublicKeyPath = "experimental/auth-logic/test_data/rekor_public_key.p
 const rekorWrapperExpectedFile = "experimental/auth-logic/test_data/rekor_wrapper_expected.auth_logic"
 
 func TestRekorLogWrapper(t *testing.T) {
+	// When running tests, bazel exposes data dependencies relative to
+	// the directory structure of the WORKSPACE, so we need to change
+	// to the root directory of the transparent-release project to
+	// be able to read the resource files.
+	// Get the current directory before that to restore the path at the end of the test.
+	currentDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("couldn't get current directory: %v", err)
+	}
+	defer os.Chdir(currentDir)
+	os.Chdir("../../../")
+
 	rekorLogEntryBytes, err := ioutil.ReadFile(testRekorLogPath)
 	if err != nil {
 		t.Errorf("could not read rekor log file %v\n", testRekorLogPath)
@@ -83,6 +95,18 @@ func TestRekorLogWrapper(t *testing.T) {
 }
 
 func TestVerifySignedEntryTimestamp(t *testing.T) {
+	// When running tests, bazel exposes data dependencies relative to
+	// the directory structure of the WORKSPACE, so we need to change
+	// to the root directory of the transparent-release project to
+	// be able to read the resource files.
+	// Get the current directory before that to restore the path at the end of the test.
+	currentDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("couldn't get current directory: %v", err)
+	}
+	defer os.Chdir(currentDir)
+	os.Chdir("../../../")
+
 	rekorLogEntryBytes, err := ioutil.ReadFile(testRekorLogPath)
 	if err != nil {
 		t.Errorf("could not read rekor log file %v\n", testRekorLogPath)
