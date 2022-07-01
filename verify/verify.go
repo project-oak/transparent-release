@@ -18,8 +18,9 @@ package verify
 import (
 	"fmt"
 
+	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 	"github.com/project-oak/transparent-release/common"
-	"github.com/project-oak/transparent-release/slsa"
+	amber "github.com/project-oak/transparent-release/slsa"
 )
 
 // ProvenanceVerifier defines an interface with a single method `Verify` for
@@ -43,7 +44,7 @@ type ReproducibleProvenanceVerifier struct {
 // specified in the subject of the given provenance file. If the hashes are
 // different returns an error, otherwise returns nil.
 func (verifier *ReproducibleProvenanceVerifier) Verify(provenanceFilePath string) error {
-	provenance, err := slsa.ParseProvenanceFile(provenanceFilePath)
+	provenance, err := amber.ParseProvenanceFile(provenanceFilePath)
 	if err != nil {
 		return fmt.Errorf("couldn't load the provenance file from %s: %v", provenanceFilePath, err)
 	}
@@ -85,13 +86,15 @@ type AmberProvenanceMetadataVerifier struct {
 // values is not as expected. Otherwise returns nil, indicating success.
 // TODO(#69): Check metadata against the expected values.
 func (verifier *AmberProvenanceMetadataVerifier) Verify(provenanceFilePath string) error {
-	provenance, err := slsa.ParseProvenanceFile(provenanceFilePath)
+	provenance, err := amber.ParseProvenanceFile(provenanceFilePath)
 	if err != nil {
 		return fmt.Errorf("couldn't load the provenance file from %s: %v", provenanceFilePath, err)
 	}
 
-	if provenance.Predicate.BuildType != common.AmberBuildTypeV1 {
-		return fmt.Errorf("incorrect BuildType: got %s, want %v", provenance.Predicate.BuildType, common.AmberBuildTypeV1)
+	predicate := provenance.Predicate.(slsa.ProvenancePredicate)
+
+	if predicate.BuildType != common.AmberBuildTypeV1 {
+		return fmt.Errorf("incorrect BuildType: got %s, want %v", predicate.BuildType, common.AmberBuildTypeV1)
 	}
 
 	// TODO(#69): Check metadata against the expected values.

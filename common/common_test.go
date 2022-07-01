@@ -26,7 +26,7 @@ import (
 )
 
 const testdataPath = "../testdata/"
-const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
+const provenanceExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
 
 func TestComputeBinarySha256Hash(t *testing.T) {
 	want := "56893dbba5667a305894b424c1fa58a0b51f994b117e62296fb6ee5986683856"
@@ -60,7 +60,7 @@ func TestLoadBuildConfigFromProvenance(t *testing.T) {
 	defer os.Chdir(currentDir)
 	os.Chdir("../")
 
-	provenance, err := amber.ParseProvenanceFile(schemaExamplePath)
+	provenance, err := amber.ParseProvenanceFile(provenanceExamplePath)
 	if err != nil {
 		t.Fatalf("couldn't parse the provenance file: %v", err)
 	}

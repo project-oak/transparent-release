@@ -98,47 +98,49 @@ func LoadBuildConfigFromFile(path string) (*BuildConfig, error) {
 }
 
 // LoadBuildConfigFromProvenance loads build configuration from a SLSA Provenance object.
-func LoadBuildConfigFromProvenance(provenance *amber.Provenance) (*BuildConfig, error) {
-	if len(provenance.Subject) != 1 {
-		return nil, fmt.Errorf("the provenance must have exactly one Subject, got %d", len(provenance.Subject))
+func LoadBuildConfigFromProvenance(statement *intoto.Statement) (*BuildConfig, error) {
+	if len(statement.Subject) != 1 {
+		return nil, fmt.Errorf("the provenance statement must have exactly one Subject, got %d", len(statement.Subject))
 	}
 
-	expectedBinarySha256Hash := provenance.Subject[0].Digest["sha256"]
-	if len(provenance.Subject) != 1 {
+	expectedBinarySha256Hash := statement.Subject[0].Digest["sha256"]
+	if len(statement.Subject) != 1 {
 		return nil, fmt.Errorf("the provenance's subject digest must specify a sha256 hash, got %s", expectedBinarySha256Hash)
 	}
 
-	if len(provenance.Predicate.Materials) != 2 {
-		return nil, fmt.Errorf("the provenance must have exactly two Materials, got %d", len(provenance.Predicate.Materials))
+	predicate := statement.Predicate.(slsa.ProvenancePredicate)
+	if len(predicate.Materials) != 2 {
+		return nil, fmt.Errorf("the provenance must have exactly two Materials, got %d", len(predicate.Materials))
 	}
 
-	builderImage := provenance.Predicate.Materials[0].URI
+	builderImage := predicate.Materials[0].URI
 	if builderImage == "" {
 		return nil, fmt.Errorf("the provenance's first material must specify a URI, got %s", builderImage)
 	}
 
-	repo := provenance.Predicate.Materials[1].URI
+	repo := predicate.Materials[1].URI
 	if repo == "" {
 		return nil, fmt.Errorf("the provenance's second material must specify a URI, got %s", repo)
 	}
 
-	commitHash := provenance.Predicate.Materials[1].Digest["sha1"]
+	commitHash := predicate.Materials[1].Digest["sha1"]
 	if commitHash == "" {
 		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %s", commitHash)
 	}
 
-	command := provenance.Predicate.BuildConfig.Command
+	buildConfig := predicate.BuildConfig.(amber.BuildConfig)
+	command := buildConfig.Command
 	if command[0] == "" {
 		return nil, fmt.Errorf("the provenance's buildConfig must specify a command, got %s", command)
 	}
 
-	outputPath := provenance.Predicate.BuildConfig.OutputPath
+	outputPath := buildConfig.OutputPath
 	if outputPath == "" {
 		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %s", outputPath)
 	}
 
 	config := BuildConfig{
-		Repo:                     provenance.Predicate.Materials[1].URI,
+		Repo:                     predicate.Materials[1].URI,
 		CommitHash:               commitHash,
 		BuilderImage:             builderImage,
 		Command:                  command,
