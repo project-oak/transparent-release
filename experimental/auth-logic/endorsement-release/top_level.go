@@ -46,7 +46,7 @@ func verifyRelease(authLogicInputs []string, appName, provenanceFilePath string)
 	}
 
 	provenanceStatement, err := wrappers.EmitStatementAs(
-		wrappers.Principal{`"Provenance"`},
+		wrappers.Principal{Contents: `"Provenance"`},
 		wrappers.ProvenanceWrapper{FilePath: provenanceFilePath},
 	)
 	if err != nil {
