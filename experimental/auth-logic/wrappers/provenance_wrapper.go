@@ -53,10 +53,9 @@ func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 
 	return UnattributedStatement{
 		Contents: fmt.Sprintf(
-			`"%s::Binary" has_expected_hash_from("sha256:%s", "%s::Provenance").`+"\n"+`"%s::Binary" has_builder_id("%s").`,
+			`"%s::Binary" has_expected_hash_from("sha256:%s", "Provenance").`+"\n"+`"%s::Binary" has_builder_id("%s").`,
 			sanitizedAppName,
 			expectedHash,
-			sanitizedAppName,
 			sanitizedAppName,
 			builderName)}, nil
 }
