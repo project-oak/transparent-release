@@ -21,11 +21,12 @@ package(default_visibility = ["//:__subpackages__"])
 go_library(
     name = "verify",
     srcs = ["verify.go"],
-    deps = [
-        "//common:common",
-        "//slsa:slsa",
-    ],
     importpath = "github.com/project-oak/transparent-release/verify",
+    deps = [
+        "//common",
+        "//slsa",
+        "@com_github_in_toto_in_toto_golang//in_toto/slsa_provenance/v0.2:go_default_library",
+    ],
 )
 
 go_test(
@@ -33,8 +34,8 @@ go_test(
     size = "large",
     srcs = ["verify_test.go"],
     data = [
+        "//schema/amber-slsa-buildtype/v1:example.json",
         "//schema/amber-slsa-buildtype/v1:provenance.json",
-        "//schema/amber-slsa-buildtype/v1:example.json"
     ],
     embed = [":verify"],
 )
