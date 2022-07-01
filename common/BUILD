@@ -21,13 +21,13 @@ package(default_visibility = ["//:__subpackages__"])
 go_library(
     name = "common",
     srcs = ["common.go"],
+    importpath = "github.com/project-oak/transparent-release/common",
     deps = [
-        "@com_github_pelletier_toml//:go_default_library",
+        "//slsa",
         "@com_github_in_toto_in_toto_golang//in_toto:go_default_library",
         "@com_github_in_toto_in_toto_golang//in_toto/slsa_provenance/v0.2:go_default_library",
-        "//slsa:slsa",
+        "@com_github_pelletier_toml//:go_default_library",
     ],
-    importpath = "github.com/project-oak/transparent-release/common",
 )
 
 go_test(
@@ -35,13 +35,13 @@ go_test(
     size = "small",
     srcs = ["common_test.go"],
     data = [
-        "//testdata:build.toml",
+        "//schema/amber-slsa-buildtype/v1:example.json",
         "//schema/amber-slsa-buildtype/v1:provenance.json",
-        "//schema/amber-slsa-buildtype/v1:example.json"
+        "//testdata:build.toml",
     ],
     embed = [":common"],
     deps = [
+        "//slsa",
         "@com_github_google_go_cmp//cmp:go_default_library",
-        "//slsa:slsa",
     ],
 )

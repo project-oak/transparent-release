@@ -20,8 +20,8 @@ import (
 	"log"
 	"os"
 
+	intoto "github.com/in-toto/in-toto-golang/in_toto"
 	"github.com/project-oak/transparent-release/common"
-	"github.com/project-oak/transparent-release/slsa"
 )
 
 // Build automates the steps for building a binary from a Git repository, and
@@ -36,7 +36,7 @@ import (
 // `expected_binary_sha256_hash`. If these hashes are not equal this function
 // returns an error. Otherwise, it generates a SLSA provenance file based on
 // the given build config.
-func Build(buildFilePath, gitRootDir string) (*slsa.Provenance, error) {
+func Build(buildFilePath, gitRootDir string) (*intoto.Statement, error) {
 
 	buildConfig, err := common.LoadBuildConfigFromFile(buildFilePath)
 	if err != nil {

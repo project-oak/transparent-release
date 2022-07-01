@@ -28,10 +28,10 @@ import (
 // sequence of statements) without a principal. These statements might
 // include rules or predicates. For example, the following is an unattributed
 // statement:
-// ```
-// foo("bar").
-// "SomePrincipal" canActAs baz("bar") :- foo("bar").
-// ```
+//
+//	foo("bar").
+//	"SomePrincipal" canActAs baz("bar") :- foo("bar").
+//
 // NOTE: Because wrappers will generally emit UnattributedStatements,
 // it might be useful to also give a field for the relation declarations
 // for the relations referenced in the statement. Without this, the

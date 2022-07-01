@@ -8,6 +8,10 @@ You need to have:
 - [Bazel](https://bazel.build/), e.g., with `$ sudo apt-get install bazel`.
 - `mcpp`, e.g., with `$ sudo apt-get install -y mcpp`. Otherwise, you'll get `Error what(): failed to locate mcpp pre-processor`.
 
+And optionally:
+
+- [Buildifier](https://github.com/bazelbuild/buildtools/blob/master/buildifier/), e.g., with `$ go install github.com/bazelbuild/buildtools/buildifier@latest`.
+
 ## Some Handy Commands
 
 - Build all targets: `bazel build //...`
@@ -15,6 +19,7 @@ You need to have:
 - Format files: `./scripts/formatting.sh`
 - Check linting: `./scripts/linting.sh`
 - Additional checks: `go vet ./...`
+- Format Bazel build files: `buildifier path/to/file1 path/to/file2`
 
 ## Add a new dependency
 
