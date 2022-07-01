@@ -82,7 +82,7 @@ func ParseProvenanceFile(path string) (*intoto.Statement, error) {
 	}
 
 	if err := json.Unmarshal(statementBytes, &statement); err != nil {
-		return nil, fmt.Errorf("could unmarshal the provenance file:\n%v", err)
+		return nil, fmt.Errorf("could not unmarshal the provenance file:\n%v", err)
 	}
 
 	// statement.Predicate is now just a map, we have to parse it into an instance of slsa.ProvenancePredicate
@@ -96,7 +96,7 @@ func ParseProvenanceFile(path string) (*intoto.Statement, error) {
 		return nil, fmt.Errorf("could not unmarshal JSON bytes into a slsa.ProvenancePredicate: %v", err)
 	}
 
-	// now predicate.BuildConfig is just a map, we have to parse it into an instance of BuildConfig
+	// Now predicate.BuildConfig is just a map, we have to parse it into an instance of BuildConfig
 	buildConfigBytes, err := json.Marshal(predicate.BuildConfig)
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal BuildConfig map into JSON bytes: %v", err)
