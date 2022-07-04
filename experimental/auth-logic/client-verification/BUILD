@@ -25,7 +25,7 @@ go_library(
     deps = [
         "//common",
         "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
-        "//slsa",
+        "//amber",
     ],
 )
 
@@ -43,7 +43,7 @@ go_binary(
   ],
   deps = [
     "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
-    "//slsa:slsa",
+    "//amber",
     "//common:common",
   ],
 )

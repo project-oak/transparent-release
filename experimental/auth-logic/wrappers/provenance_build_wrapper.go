@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"text/template"
 
-	"github.com/project-oak/transparent-release/slsa"
+	"github.com/project-oak/transparent-release/amber"
 	"github.com/project-oak/transparent-release/verify"
 )
 
@@ -40,7 +40,7 @@ type simplifiedProvenance struct {
 // by emitting the authorization logic statement.
 func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error) {
 	// Unmarshal a provenance struct from the JSON file.
-	provenance, err := slsa.ParseProvenanceFile(pbw.ProvenanceFilePath)
+	provenance, err := amber.ParseProvenanceFile(pbw.ProvenanceFilePath)
 	if err != nil {
 		return UnattributedStatement{}, fmt.Errorf("provenance build wrapper couldn't parse provenance file: %v", err)
 	}

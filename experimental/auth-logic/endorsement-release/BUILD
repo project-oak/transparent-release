@@ -29,7 +29,7 @@ go_binary(
   ],
   deps = [
     "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
-    "//slsa:slsa",
+    "//amber",
     "//common:common",
   ],
 )

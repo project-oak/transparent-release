@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package slsa provides functionality for parsing SLSA provenance files of the
+// Package amber provides functionality for parsing SLSA provenance files of the
 // Amber buildType.
 //
 // This package provides a utility function for loading and parsing a
 // JSON-formatted SLSA provenance file into an instance of Provenance.
-package slsa
+package amber
 
 import (
 	"bytes"
@@ -26,11 +26,11 @@ import (
 	"io/ioutil"
 
 	intoto "github.com/in-toto/in-toto-golang/in_toto"
-	slsa2 "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
+	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 	"github.com/xeipuuv/gojsonschema"
 )
 
-// BuildConfig represents the BuildConfig in the SLSA buildType. See the corresponding
+// BuildConfig represents the BuildConfig in the SLSA Provenance predicate. See the corresponding
 // JSON key in the Amber buildType schema.
 type BuildConfig struct {
 	Command    []string `json:"command"`
@@ -91,7 +91,7 @@ func ParseProvenanceFile(path string) (*intoto.Statement, error) {
 		return nil, fmt.Errorf("could not marshal Predicate map into JSON bytes: %v", err)
 	}
 
-	var predicate slsa2.ProvenancePredicate
+	var predicate slsa.ProvenancePredicate
 	if err = json.Unmarshal(predicateBytes, &predicate); err != nil {
 		return nil, fmt.Errorf("could not unmarshal JSON bytes into a slsa.ProvenancePredicate: %v", err)
 	}

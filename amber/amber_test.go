@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package slsa
+package amber
 
 import (
 	"os"
 	"testing"
 
-	slsa2 "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
+	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 )
 
 const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
 
-func TestSlsaExampleProvenance(t *testing.T) {
+func TestExampleProvenance(t *testing.T) {
 	// The path to provenance is specified relative to the root of the repo, so we need to go one level up.
 	// Get the current directory before that to restore the path at the end of the test.
 	currentDir, err := os.Getwd()
@@ -45,7 +45,7 @@ func TestSlsaExampleProvenance(t *testing.T) {
 		}
 	}
 
-	predicate := provenance.Predicate.(slsa2.ProvenancePredicate)
+	predicate := provenance.Predicate.(slsa.ProvenancePredicate)
 	buildConfig := predicate.BuildConfig.(BuildConfig)
 
 	// Check that the provenance parses correctly
