@@ -30,6 +30,9 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
+// SchemaPath is the path to Amber SLSA buildType schema
+const SchemaPath = "schema/amber-slsa-buildtype/v1/provenance.json"
+
 // BuildConfig represents the BuildConfig in the SLSA Provenance predicate. See the corresponding
 // JSON key in the Amber buildType schema.
 type BuildConfig struct {
@@ -37,10 +40,7 @@ type BuildConfig struct {
 	OutputPath string   `json:"outputPath"`
 }
 
-// SchemaPath is the path to Amber SLSA buildType schema
-const SchemaPath = "schema/amber-slsa-buildtype/v1/provenance.json"
-
-func validateJSON(provenanceFile []byte) error {
+func validateSLSAProvenanceJSON(provenanceFile []byte) error {
 	schemaFile, err := os.ReadFile(SchemaPath)
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func ParseProvenanceFile(path string) (*intoto.Statement, error) {
 
 	var statement intoto.Statement
 
-	if err := validateJSON(statementBytes); err != nil {
+	if err := validateSLSAProvenanceJSON(statementBytes); err != nil {
 		return nil, err
 	}
 
