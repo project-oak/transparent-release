@@ -23,8 +23,8 @@ go_library(
     srcs = ["build.go"],
     importpath = "github.com/project-oak/transparent-release/build",
     deps = [
-        "//common",
         "//amber",
+        "//common",
         "@com_github_in_toto_in_toto_golang//in_toto:go_default_library",
     ],
 )
