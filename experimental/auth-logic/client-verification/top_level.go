@@ -56,7 +56,7 @@ func verifyRelease(appName, endorsementFilePath, provenanceFilePath, queryName s
 
 	provenanceStatement, err := wrappers.EmitStatementAs(
 		wrappers.Principal{
-			Contents: fmt.Sprintf(`"%s::Provenance"`, wrappers.SanitizeName(provenanceAppName)),
+			Contents: `"Provenance"`,
 		},
 		wrappers.ProvenanceWrapper{FilePath: provenanceFilePath},
 	)
