@@ -23,7 +23,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	intoto "github.com/in-toto/in-toto-golang/in_toto"
 	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
@@ -41,7 +41,7 @@ type BuildConfig struct {
 const SchemaPath = "schema/amber-slsa-buildtype/v1/provenance.json"
 
 func validateJSON(provenanceFile []byte) error {
-	schemaFile, err := ioutil.ReadFile(SchemaPath)
+	schemaFile, err := os.ReadFile(SchemaPath)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func validateJSON(provenanceFile []byte) error {
 // ParseProvenanceFile reads a JSON file from a given path, validates it against the Amber
 // buildType schema, and parses it into an instance of intoto.Statement.
 func ParseProvenanceFile(path string) (*intoto.Statement, error) {
-	statementBytes, readErr := ioutil.ReadFile(path)
+	statementBytes, readErr := os.ReadFile(path)
 	if readErr != nil {
 		return nil, fmt.Errorf("could not read the provenance file: %v", readErr)
 	}
