@@ -21,10 +21,14 @@ package(default_visibility = ["//:__subpackages__"])
 go_library(
     name = "slsa",
     srcs = ["slsa.go"],
-    importpath = "github.com/project-oak/transparent-release/slsa",
-    deps = ["@com_github_xeipuuv_gojsonschema//:go_default_library"],
     data = [
-        "//schema/amber-slsa-buildtype/v1:provenance.json"
+        "//schema/amber-slsa-buildtype/v1:provenance.json",
+    ],
+    importpath = "github.com/project-oak/transparent-release/slsa",
+    deps = [
+        "@com_github_in_toto_in_toto_golang//in_toto:go_default_library",
+        "@com_github_in_toto_in_toto_golang//in_toto/slsa_provenance/v0.2:go_default_library",
+        "@com_github_xeipuuv_gojsonschema//:go_default_library",
     ],
 )
 
@@ -33,11 +37,12 @@ go_test(
     size = "small",
     srcs = ["slsa_test.go"],
     data = [
+        "//schema/amber-slsa-buildtype/v1:example.json",
         "//schema/amber-slsa-buildtype/v1:provenance.json",
-        "//schema/amber-slsa-buildtype/v1:example.json"
     ],
     embed = [":slsa"],
     deps = [
-        "@com_github_google_go_cmp//cmp:go_default_library"
+        "@com_github_google_go_cmp//cmp:go_default_library",
+        "@com_github_in_toto_in_toto_golang//in_toto/slsa_provenance/v0.2:go_default_library",
     ],
 )

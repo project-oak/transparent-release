@@ -20,7 +20,8 @@ package wrappers
 import (
 	"fmt"
 
-	"github.com/project-oak/transparent-release/slsa"
+	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
+	amber "github.com/project-oak/transparent-release/slsa"
 )
 
 // ProvenanceWrapper is a wrapper that parses a provenance file
@@ -31,7 +32,7 @@ type ProvenanceWrapper struct{ FilePath string }
 // EmitStatement implements the wrapper interface for ProvenanceWrapper
 // by emitting the authorization logic statement.
 func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
-	provenance, err := slsa.ParseProvenanceFile(p.FilePath)
+	provenance, err := amber.ParseProvenanceFile(p.FilePath)
 	if err != nil {
 		return UnattributedStatement{}, fmt.Errorf("provenance wrapper couldn't prase provenance file: %v", err)
 	}
@@ -47,7 +48,8 @@ func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 		return UnattributedStatement{}, fmt.Errorf("provenance file did not give an expected hash")
 	}
 
-	sanitizedBuilderName := SanitizeName(provenance.Predicate.Builder.ID)
+	predicate := provenance.Predicate.(slsa.ProvenancePredicate)
+	sanitizedBuilderName := SanitizeName(predicate.Builder.ID)
 
 	return UnattributedStatement{
 		Contents: fmt.Sprintf(
@@ -63,7 +65,7 @@ func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 // application it is about. This is useful for generating principal names,
 // for example.
 func GetAppNameFromProvenance(provenanceFilePath string) (string, error) {
-	provenance, provenanceErr := slsa.ParseProvenanceFile(provenanceFilePath)
+	provenance, provenanceErr := amber.ParseProvenanceFile(provenanceFilePath)
 	if provenanceErr != nil {
 		return "", provenanceErr
 	}

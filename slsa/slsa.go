@@ -25,56 +25,16 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	intoto "github.com/in-toto/in-toto-golang/in_toto"
+	slsa2 "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 	"github.com/xeipuuv/gojsonschema"
 )
-
-// Provenance represents an in-toto statement of the Amber SLSA buildType.
-type Provenance struct {
-	Type          string    `json:"_type"`
-	Subject       []Subject `json:"subject"`
-	PredicateType string    `json:"predicateType"`
-	Predicate     Predicate `json:"predicate"`
-}
-
-// Subject represents the Subject of the SLSA buildType. See the corresponding JSON
-// key in the Amber buildType schema.
-type Subject struct {
-	Name   string `json:"name"`
-	Digest Digest `json:"digest"`
-}
-
-// Digest represents a Digest in the SLSA buildType. See the corresponding JSON
-// key in the Amber buildType schema.
-type Digest map[string]string
-
-// Predicate represents the Predicate in the SLSA buildType. See the corresponding
-// JSON key in the Amber buildType schema.
-type Predicate struct {
-	Builder     Builder     `json:"builder"`
-	BuildType   string      `json:"buildType"`
-	BuildConfig BuildConfig `json:"buildConfig"`
-	Materials   []Material  `json:"materials"`
-}
-
-// Builder represents the builder ID in the SLSA schema for provenance files.
-// The builder is the entity that produced the provenance file. Examples include
-// GitHub Actions and Google Cloud Build. See also [Salsa provenance files](https://slsa.dev/provenance/v0.2)
-type Builder struct {
-	ID string `json:"id"`
-}
 
 // BuildConfig represents the BuildConfig in the SLSA buildType. See the corresponding
 // JSON key in the Amber buildType schema.
 type BuildConfig struct {
 	Command    []string `json:"command"`
 	OutputPath string   `json:"outputPath"`
-}
-
-// Material represents the Materials in the SLSA buildType. See the corresponding
-// JSON key in the Amber buildType schema.
-type Material struct {
-	URI    string `json:"uri"`
-	Digest Digest `json:"digest,omitempty"`
 }
 
 // SchemaPath is the path to Amber SLSA buildType schema
@@ -101,31 +61,55 @@ func validateJSON(provenanceFile []byte) error {
 			buffer.WriteString(err.String())
 		}
 
-		return fmt.Errorf("The provided provenance file is not valid. See errors:\n%v", buffer.String())
+		return fmt.Errorf("the provided provenance file is not valid. See errors:\n%v", buffer.String())
 	}
 
 	return nil
 }
 
 // ParseProvenanceFile reads a JSON file from a given path, validates it against the Amber
-// buildType schema, parses it into an instance of the Provenance struct.
-func ParseProvenanceFile(path string) (*Provenance, error) {
-	provenanceFile, readErr := ioutil.ReadFile(path)
+// buildType schema, and parses it into an instance of intoto.Statement.
+func ParseProvenanceFile(path string) (*intoto.Statement, error) {
+	statementBytes, readErr := ioutil.ReadFile(path)
 	if readErr != nil {
 		return nil, fmt.Errorf("could not read the provenance file: %v", readErr)
 	}
 
-	var provenance Provenance
+	var statement intoto.Statement
 
-	err := validateJSON(provenanceFile)
-	if err != nil {
+	if err := validateJSON(statementBytes); err != nil {
 		return nil, err
 	}
 
-	unmarshalErr := json.Unmarshal(provenanceFile, &provenance)
-	if unmarshalErr != nil {
-		return nil, fmt.Errorf("could unmarshal the provenance file:\n%v", unmarshalErr)
+	if err := json.Unmarshal(statementBytes, &statement); err != nil {
+		return nil, fmt.Errorf("could not unmarshal the provenance file:\n%v", err)
 	}
 
-	return &provenance, nil
+	// statement.Predicate is now just a map, we have to parse it into an instance of slsa.ProvenancePredicate
+	predicateBytes, err := json.Marshal(statement.Predicate)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal Predicate map into JSON bytes: %v", err)
+	}
+
+	var predicate slsa2.ProvenancePredicate
+	if err = json.Unmarshal(predicateBytes, &predicate); err != nil {
+		return nil, fmt.Errorf("could not unmarshal JSON bytes into a slsa.ProvenancePredicate: %v", err)
+	}
+
+	// Now predicate.BuildConfig is just a map, we have to parse it into an instance of BuildConfig
+	buildConfigBytes, err := json.Marshal(predicate.BuildConfig)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal BuildConfig map into JSON bytes: %v", err)
+	}
+
+	var buildConfig BuildConfig
+	if err = json.Unmarshal(buildConfigBytes, &buildConfig); err != nil {
+		return nil, fmt.Errorf("could not unmarshal JSON bytes into a BuildConfig: %v", err)
+	}
+
+	// Replace maps with objects
+	predicate.BuildConfig = buildConfig
+	statement.Predicate = predicate
+
+	return &statement, nil
 }

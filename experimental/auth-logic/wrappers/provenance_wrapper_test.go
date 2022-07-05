@@ -32,6 +32,12 @@ func TestProvenanceWrapper(t *testing.T) {
 	// the directory structure of the WORKSPACE, so we need to change
 	// to the root directory of the transparent-release project to
 	// be able to read the SLSA files.
+	// Get the current directory before that to restore the path at the end of the test.
+	currentDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("couldn't get current directory: %v", err)
+	}
+	defer os.Chdir(currentDir)
 	os.Chdir("../../../")
 
 	testProvenance := ProvenanceWrapper{FilePath: provenanceExamplePath}

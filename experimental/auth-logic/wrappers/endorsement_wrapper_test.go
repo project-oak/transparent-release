@@ -26,6 +26,18 @@ const endorsementExpectedFile = "experimental/auth-logic/test_data/endorsement_w
 
 func TestEndorsementWrapper(t *testing.T) {
 
+	// When running tests, bazel exposes data dependencies relative to
+	// the directory structure of the WORKSPACE, so we need to change
+	// to the root directory of the transparent-release project to
+	// be able to read the resource files.
+	// Get the current directory before that to restore the path at the end of the test.
+	currentDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("couldn't get current directory: %v", err)
+	}
+	defer os.Chdir(currentDir)
+	os.Chdir("../../../")
+
 	wantFileBytes, err := os.ReadFile(endorsementExpectedFile)
 	if err != nil {
 		t.Fatalf("%v", err)

@@ -21,11 +21,12 @@ import (
 	"testing"
 
 	cmp "github.com/google/go-cmp/cmp"
-	"github.com/project-oak/transparent-release/slsa"
+	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
+	amber "github.com/project-oak/transparent-release/slsa"
 )
 
 const testdataPath = "../testdata/"
-const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
+const provenanceExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
 
 func TestComputeBinarySha256Hash(t *testing.T) {
 	want := "56893dbba5667a305894b424c1fa58a0b51f994b117e62296fb6ee5986683856"
@@ -59,7 +60,7 @@ func TestLoadBuildConfigFromProvenance(t *testing.T) {
 	defer os.Chdir(currentDir)
 	os.Chdir("../")
 
-	provenance, err := slsa.ParseProvenanceFile(schemaExamplePath)
+	provenance, err := amber.ParseProvenanceFile(provenanceExamplePath)
 	if err != nil {
 		t.Fatalf("couldn't parse the provenance file: %v", err)
 	}
@@ -130,16 +131,19 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 		}
 	}
 
+	predicate := prov.Predicate.(slsa.ProvenancePredicate)
+	buildConfig := predicate.BuildConfig.(amber.BuildConfig)
+
 	// Check that the provenance is generated correctly
-	assert("repoURL", prov.Predicate.Materials[1].URI, "https://github.com/project-oak/oak")
-	assert("commitHash", prov.Predicate.Materials[1].Digest["sha1"], "0f2189703c57845e09d8ab89164a4041c0af0a62")
-	assert("builderImage", prov.Predicate.Materials[0].URI, "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
-	assert("commitHash", prov.Predicate.Materials[0].Digest["sha256"], "53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
+	assert("repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")
+	assert("commitHash", predicate.Materials[1].Digest["sha1"], "0f2189703c57845e09d8ab89164a4041c0af0a62")
+	assert("builderImage", predicate.Materials[0].URI, "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
+	assert("commitHash", predicate.Materials[0].Digest["sha256"], "53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
 	assert("subjectName", prov.Subject[0].Name, "build.toml-0f2189703c57845e09d8ab89164a4041c0af0a62")
 	assert("expectedSha256Hash", prov.Subject[0].Digest["sha256"], "56893dbba5667a305894b424c1fa58a0b51f994b117e62296fb6ee5986683856")
-	assert("outputPath", prov.Predicate.BuildConfig.OutputPath, "../testdata/build.toml")
-	assert("command[0]", prov.Predicate.BuildConfig.Command[0], "./scripts/runner")
-	assert("command[1]", prov.Predicate.BuildConfig.Command[1], "build-functions-server")
+	assert("outputPath", buildConfig.OutputPath, "../testdata/build.toml")
+	assert("command[0]", buildConfig.Command[0], "./scripts/runner")
+	assert("command[1]", buildConfig.Command[1], "build-functions-server")
 }
 
 func checkBuildConfig(got *BuildConfig, t *testing.T) {
