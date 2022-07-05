@@ -49,7 +49,7 @@ func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 	}
 
 	predicate := provenance.Predicate.(slsa.ProvenancePredicate)
-	sanitizedBuilderName := SanitizeName(predicate.Builder.ID)
+	builderName := predicate.Builder.ID
 
 	return UnattributedStatement{
 		Contents: fmt.Sprintf(
@@ -58,7 +58,7 @@ func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 			expectedHash,
 			sanitizedAppName,
 			sanitizedAppName,
-			sanitizedBuilderName)}, nil
+			builderName)}, nil
 }
 
 // GetAppNameFromProvenance parses a provenance file and emits the name of the
