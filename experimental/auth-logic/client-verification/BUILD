@@ -23,29 +23,29 @@ go_library(
     srcs = ["top_level.go"],
     importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
     deps = [
+        "//amber",
         "//common",
         "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
-        "//slsa",
     ],
 )
 
 go_binary(
-  name = "auth_logic_verification",
-  srcs = [
-    "top_level.go",
-    "main.go",
-  ],
-  data = [
-    "//experimental/auth-logic/templates:verifier_policy.auth.tmpl",
-    "//experimental/auth-logic/templates:endorsement_policy.auth.tmpl",
-    "//experimental/auth-logic/templates:provenance_builder_policy.auth.tmpl",
-    "//experimental/auth-logic/templates:rekor_verifier_policy.auth.tmpl"
-  ],
-  deps = [
-    "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
-    "//slsa:slsa",
-    "//common:common",
-  ],
+    name = "auth_logic_verification",
+    srcs = [
+        "main.go",
+        "top_level.go",
+    ],
+    data = [
+        "//experimental/auth-logic/templates:endorsement_policy.auth.tmpl",
+        "//experimental/auth-logic/templates:provenance_builder_policy.auth.tmpl",
+        "//experimental/auth-logic/templates:rekor_verifier_policy.auth.tmpl",
+        "//experimental/auth-logic/templates:verifier_policy.auth.tmpl",
+    ],
+    deps = [
+        "//amber",
+        "//common",
+        "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
+    ],
 )
 
 # This rule runs transparent release verification on the oak functions
@@ -65,7 +65,7 @@ genrule(
         "//experimental/auth-logic/templates:verifier_policy.auth.tmpl",
         "//experimental/auth-logic/templates:endorsement_policy.auth.tmpl",
         "//experimental/auth-logic/templates:provenance_builder_policy.auth.tmpl",
-        "//experimental/auth-logic/templates:rekor_verifier_policy.auth.tmpl"
+        "//experimental/auth-logic/templates:rekor_verifier_policy.auth.tmpl",
     ],
     outs = [
         "oak_verification.auth_logic",
@@ -99,7 +99,7 @@ genrule(
         "//experimental/auth-logic/templates:verifier_policy.auth.tmpl",
         "//experimental/auth-logic/templates:endorsement_policy.auth.tmpl",
         "//experimental/auth-logic/templates:provenance_builder_policy.auth.tmpl",
-        "//experimental/auth-logic/templates:rekor_verifier_policy.auth.tmpl"
+        "//experimental/auth-logic/templates:rekor_verifier_policy.auth.tmpl",
     ],
     outs = [
         "oak_verification_passing.auth_logic",

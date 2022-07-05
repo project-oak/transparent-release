@@ -21,7 +21,7 @@ import (
 	"fmt"
 
 	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
-	amber "github.com/project-oak/transparent-release/slsa"
+	"github.com/project-oak/transparent-release/amber"
 )
 
 // ProvenanceWrapper is a wrapper that parses a provenance file

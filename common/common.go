@@ -32,7 +32,7 @@ import (
 	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 	toml "github.com/pelletier/go-toml"
 
-	amber "github.com/project-oak/transparent-release/slsa"
+	"github.com/project-oak/transparent-release/amber"
 )
 
 const (
