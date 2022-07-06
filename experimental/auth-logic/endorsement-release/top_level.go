@@ -25,7 +25,10 @@ import (
 
 const relationDeclarations = ".decl BuildPolicyAllowRelease(binary : Principal, hash : Sha256Hash)\n" +
 	".decl RealTimeNsecIs(time : Number)\n" +
-	".decl attribute hasPublicKey(hash : Sha256Hash)\n"
+	".decl attribute hasPublicKey(key : Key)\n" +
+	".decl releaseEndorsement(key : Key, releaseTeam : Principal, hash : Sha256Hash, time : Number)\n" +
+	".decl attribute has_expected_hash_from(hash : Sha256Hash, originator : Principal)\n" +
+	".decl attribute has_builder_id(builder : Principal)\n"
 
 // verifyRelease takes one or more authorization logic files specifying policies
 // for verifying release and a path to a provenance file. It emits authorization
@@ -42,16 +45,8 @@ func verifyRelease(authLogicInputs []string, appName, provenanceFilePath string)
 		authLogicFileContents = authLogicFileContents + string(fileContents) + "\n"
 	}
 
-	provenanceAppName, err := wrappers.GetAppNameFromProvenance(provenanceFilePath)
-
-	if err != nil {
-		return "", fmt.Errorf("generateEndorsement couldn't get app name in provenance file: %v", err)
-	}
-
 	provenanceStatement, err := wrappers.EmitStatementAs(
-		wrappers.Principal{
-			Contents: fmt.Sprintf(`"%s::Provenance"`, wrappers.SanitizeName(provenanceAppName)),
-		},
+		wrappers.Principal{Contents: `"Provenance"`},
 		wrappers.ProvenanceWrapper{FilePath: provenanceFilePath},
 	)
 	if err != nil {

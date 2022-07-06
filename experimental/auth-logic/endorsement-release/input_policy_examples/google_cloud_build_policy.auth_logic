@@ -1,11 +1,9 @@
-"GithubActionsPolicy" says {
-    "Provenance" canSay any_app
-        has_expected_hash_from(any_hash, "Provenance").
+"GoogleCloudBuildPolicy" says {
+    "Provenance" canSay any_app has_expected_hash_from(any_hash, "Provenance").
 
-    "Provenance" canSay any_app
-        has_builder(any_builder).
+    "Provenance" canSay any_app has_builder_id(any_builder).
 
     BuildPolicyAllowRelease(any_app, any_hash) :-
-        any_app has_expected_hash_from(any_hash, "Provenance")
-        has_builder("GithubActionsPolicy").
+        any_app has_expected_hash_from(any_hash, "Provenance"),
+        any_app has_builder_id(any_app, "https://cloudbuild.googleapis.com/GoogleHostedWorker@v1").
 }

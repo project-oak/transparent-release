@@ -23,9 +23,9 @@ import (
 const provenanceExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
 
 func TestProvenanceWrapper(t *testing.T) {
-	want := `"oak_functions_loader::Provenance" says {
-"oak_functions_loader::Binary" has_expected_hash_from("sha256:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c", "oak_functions_loader::Provenance").
-"oak_functions_loader::Binary" has_builder_id("https://github.com/project:oak/transparent:release").
+	want := `"Provenance" says {
+"oak_functions_loader::Binary" has_expected_hash_from("sha256:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c", "Provenance").
+"oak_functions_loader::Binary" has_builder_id("https://github.com/project-oak/transparent-release").
 }`
 
 	// When running tests, bazel exposes data dependencies relative to
@@ -42,12 +42,7 @@ func TestProvenanceWrapper(t *testing.T) {
 
 	testProvenance := ProvenanceWrapper{FilePath: provenanceExamplePath}
 
-	appName, err := GetAppNameFromProvenance(provenanceExamplePath)
-	if err != nil {
-		t.Fatalf("couldn't get app name from provenance file: %s, error: %v",
-			provenanceExamplePath, err)
-	}
-	speaker := Principal{Contents: fmt.Sprintf(`"%s::Provenance"`, SanitizeName(appName))}
+	speaker := Principal{Contents: fmt.Sprintf(`"Provenance"`)}
 
 	statement, err := EmitStatementAs(speaker, testProvenance)
 	if err != nil {
