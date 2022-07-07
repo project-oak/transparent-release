@@ -31,11 +31,11 @@ import (
 )
 
 const (
-	// SchemaPath is the path to Amber SLSA buildType schema
-	SchemaPath = "schema/amber-slsa-buildtype/v1/provenance.json"
-
 	// AmberBuildTypeV1 is the SLSA BuildType for Amber builds.
 	AmberBuildTypeV1 = "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json"
+
+	// SchemaPath is the path to Amber SLSA buildType schema
+	SchemaPath = "schema/amber-slsa-buildtype/v1/provenance.json"
 )
 
 // BuildConfig represents the BuildConfig in the SLSA Provenance predicate. See the corresponding
@@ -80,12 +80,11 @@ func ParseProvenanceFile(path string) (*intoto.Statement, error) {
 		return nil, fmt.Errorf("could not read the provenance file: %v", readErr)
 	}
 
-	var statement intoto.Statement
-
 	if err := validateSLSAProvenanceJSON(statementBytes); err != nil {
 		return nil, err
 	}
 
+	var statement intoto.Statement
 	if err := json.Unmarshal(statementBytes, &statement); err != nil {
 		return nil, fmt.Errorf("could not unmarshal the provenance file:\n%v", err)
 	}

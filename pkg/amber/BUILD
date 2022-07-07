@@ -20,7 +20,11 @@ package(default_visibility = ["//:__subpackages__"])
 
 go_library(
     name = "amber",
-    srcs = ["provenance.go", "claim.go", "endorsement.go"],
+    srcs = [
+        "claim.go",
+        "endorsement.go",
+        "provenance.go",
+    ],
     data = [
         "//schema/amber-slsa-buildtype/v1:provenance.json",
     ],
@@ -35,8 +39,9 @@ go_library(
 go_test(
     name = "amber_test",
     size = "small",
-    srcs = ["provenance_test.go"],
+    srcs = glob(["*_test.go"]),
     data = [
+        "//schema/amber-claim/v1:example.json",
         "//schema/amber-slsa-buildtype/v1:example.json",
         "//schema/amber-slsa-buildtype/v1:provenance.json",
     ],

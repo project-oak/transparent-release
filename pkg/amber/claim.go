@@ -14,6 +14,15 @@
 
 package amber
 
+// This file provides a custom predicate type, ClaimPredicate, to be used
+// within an in-toto statement. ClaimPredicate is intended to be used for
+// specifying security and privacy claims about software artifacts. This format
+// is meant to be generic and allow specifying many different types of claims.
+// This is achieved via the `ClaimType` and the `ClaimSpec` fields. The latter
+// is an arbitrary object and allows any struct to be used for claim
+// specification. In particular, this format can be used for specifying
+// endorsements, which were previously specified by amber-endorsement/v1 schema.
+
 import (
 	"time"
 
@@ -41,6 +50,8 @@ type ClaimPredicate struct {
 
 // ClaimIssuer identifies the entity that issued the claim.
 type ClaimIssuer struct {
+	// URI indicating the issuer's identity. Could be an email address with
+	// mailto as the scheme (e.g., mailto:issuer@example.com).
 	ID string `json:"id"`
 }
 
@@ -58,9 +69,10 @@ type ClaimMetadata struct {
 	ExpiresOn *time.Time `json:"expiresOn,omitempty"`
 }
 
-// ClaimEvidence provides a list of artifacts that serve as the evidence for the truth of the claim.
+// ClaimEvidence provides a list of artifacts that serve as the evidence for
+// the truth of the claim.
 type ClaimEvidence struct {
-	// Optional field specifying the type and role of this evidence within the claim.
+	// Optional field specifying the role of this evidence within the claim.
 	Role string `json:"role,omitempty"`
 	// URI uniquely identifies this evidence.
 	URI string `json:"uri"`
