@@ -45,7 +45,7 @@ go_library(
     ],
     importpath = "github.com/project-oak/transparent-release/experimental/auth-logic/wrappers",
     deps = [
-        "//amber",
+        "//pkg/amber",
         "//common",
         "//verify",
         "@com_github_cyberphone_json_canonicalization//go/src/webpki.org/jsoncanonicalizer",

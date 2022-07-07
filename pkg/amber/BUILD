@@ -20,11 +20,11 @@ package(default_visibility = ["//:__subpackages__"])
 
 go_library(
     name = "amber",
-    srcs = ["amber.go"],
+    srcs = ["provenance.go", "claim.go"],
     data = [
         "//schema/amber-slsa-buildtype/v1:provenance.json",
     ],
-    importpath = "github.com/project-oak/transparent-release/amber",
+    importpath = "github.com/project-oak/transparent-release/pkg/amber",
     deps = [
         "@com_github_in_toto_in_toto_golang//in_toto:go_default_library",
         "@com_github_in_toto_in_toto_golang//in_toto/slsa_provenance/v0.2:go_default_library",
@@ -35,7 +35,7 @@ go_library(
 go_test(
     name = "amber_test",
     size = "small",
-    srcs = ["amber_test.go"],
+    srcs = ["provenance_test.go"],
     data = [
         "//schema/amber-slsa-buildtype/v1:example.json",
         "//schema/amber-slsa-buildtype/v1:provenance.json",

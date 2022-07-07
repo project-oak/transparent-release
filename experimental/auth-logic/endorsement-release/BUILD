@@ -28,7 +28,7 @@ go_binary(
         "//experimental/auth-logic/templates:provenance_builder_policy.auth.tmpl",
     ],
     deps = [
-        "//amber",
+        "//pkg/amber",
         "//common",
         "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
     ],

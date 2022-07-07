@@ -23,7 +23,7 @@ go_library(
     srcs = ["common.go"],
     importpath = "github.com/project-oak/transparent-release/common",
     deps = [
-        "//amber",
+        "//pkg/amber",
         "@com_github_in_toto_in_toto_golang//in_toto:go_default_library",
         "@com_github_in_toto_in_toto_golang//in_toto/slsa_provenance/v0.2:go_default_library",
         "@com_github_pelletier_toml//:go_default_library",
@@ -41,7 +41,7 @@ go_test(
     ],
     embed = [":common"],
     deps = [
-        "//amber",
+        "//pkg/amber",
         "@com_github_google_go_cmp//cmp:go_default_library",
     ],
 )
