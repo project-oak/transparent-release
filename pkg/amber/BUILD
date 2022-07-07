@@ -20,7 +20,7 @@ package(default_visibility = ["//:__subpackages__"])
 
 go_library(
     name = "amber",
-    srcs = ["provenance.go", "claim.go"],
+    srcs = ["provenance.go", "claim.go", "endorsement.go"],
     data = [
         "//schema/amber-slsa-buildtype/v1:provenance.json",
     ],

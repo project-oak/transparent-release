@@ -35,11 +35,6 @@ import (
 	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
-const (
-	// AmberBuildTypeV1 is the SLSA BuildType for Amber builds.
-	AmberBuildTypeV1 = "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json"
-)
-
 // BuildConfig is a struct wrapping arguments for building a binary from source.
 type BuildConfig struct {
 	// URL of a public Git repository. Required for generating the provenance file.
@@ -293,7 +288,7 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*intoto.Statement, error) {
 	}
 
 	predicate := slsa.ProvenancePredicate{
-		BuildType: AmberBuildTypeV1,
+		BuildType: amber.AmberBuildTypeV1,
 		BuildConfig: amber.BuildConfig{
 			Command:    b.Command,
 			OutputPath: b.OutputPath,

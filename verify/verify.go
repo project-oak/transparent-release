@@ -93,8 +93,8 @@ func (verifier *AmberProvenanceMetadataVerifier) Verify(provenanceFilePath strin
 
 	predicate := provenance.Predicate.(slsa.ProvenancePredicate)
 
-	if predicate.BuildType != common.AmberBuildTypeV1 {
-		return fmt.Errorf("incorrect BuildType: got %s, want %v", predicate.BuildType, common.AmberBuildTypeV1)
+	if predicate.BuildType != amber.AmberBuildTypeV1 {
+		return fmt.Errorf("incorrect BuildType: got %s, want %v", predicate.BuildType, amber.AmberBuildTypeV1)
 	}
 
 	// TODO(#69): Check metadata against the expected values.

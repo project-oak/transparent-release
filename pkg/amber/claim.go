@@ -12,11 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package amber provides functionality for parsing SLSA provenance files of the
-// Amber buildType.
-//
-// This package provides a utility function for loading and parsing a
-// JSON-formatted SLSA provenance file into an instance of Provenance.
 package amber
 
 import (
@@ -24,6 +19,10 @@ import (
 
 	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 )
+
+// AmberClaimV1 is the URI that should be used as the PredicateType in in-toto
+// statements representing a V1 Amber Claim.
+const AmberClaimV1 = "https://github.com/project-oak/transparent-release/claim/v1"
 
 // ClaimPredicate gives the claim predicate definition.
 type ClaimPredicate struct {

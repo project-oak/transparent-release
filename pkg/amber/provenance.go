@@ -30,8 +30,13 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-// SchemaPath is the path to Amber SLSA buildType schema
-const SchemaPath = "schema/amber-slsa-buildtype/v1/provenance.json"
+const (
+	// SchemaPath is the path to Amber SLSA buildType schema
+	SchemaPath = "schema/amber-slsa-buildtype/v1/provenance.json"
+
+	// AmberBuildTypeV1 is the SLSA BuildType for Amber builds.
+	AmberBuildTypeV1 = "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json"
+)
 
 // BuildConfig represents the BuildConfig in the SLSA Provenance predicate. See the corresponding
 // JSON key in the Amber buildType schema.
