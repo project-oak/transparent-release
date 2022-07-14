@@ -52,17 +52,22 @@ func ParseEndorsementV2File(path string) (*intoto.Statement, error) {
 		return nil, fmt.Errorf("could not unmarshal JSON bytes into a slsa.ProvenancePredicate: %v", err)
 	}
 
-	if err = validateClaimPredicate(predicate); err != nil {
-		return nil, fmt.Errorf("the predicate in the endorsement file is invalid: %v", err)
-	}
-
 	// Replace the Predicate map with ClaimPredicate
 	statement.Predicate = predicate
+
+	if err = validateAmberClaim(statement); err != nil {
+		return nil, fmt.Errorf("the predicate in the endorsement file is invalid: %v", err)
+	}
 
 	return &statement, nil
 }
 
-func validateClaimPredicate(predicate ClaimPredicate) error {
+func validateAmberClaim(statement intoto.Statement) error {
+	predicate, err := ValidateAmberClaim(statement)
+	if err != nil {
+		return err
+	}
+
 	if predicate.ClaimType != AmberEndorsementV2 {
 		return fmt.Errorf(
 			"the predicate does not have the expected claim type; got: %s, want: %s",
@@ -70,8 +75,5 @@ func validateClaimPredicate(predicate ClaimPredicate) error {
 			AmberEndorsementV2)
 	}
 
-	if predicate.Issuer.ID == "" {
-		return fmt.Errorf("the Issuer ID must be specified")
-	}
 	return nil
 }

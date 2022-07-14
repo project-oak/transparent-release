@@ -24,8 +24,11 @@ package amber
 // endorsements, which were previously specified by amber-endorsement/v1 schema.
 
 import (
+	"fmt"
+	"net/url"
 	"time"
 
+	intoto "github.com/in-toto/in-toto-golang/in_toto"
 	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 )
 
@@ -78,4 +81,54 @@ type ClaimEvidence struct {
 	URI string `json:"uri"`
 	// Collection of cryptographic digests for the contents of this artifact.
 	Digest slsa.DigestSet `json:"digest"`
+}
+
+// ValidateAmberClaim validates that an in-toto statement is an Amber Claim with a valid ClaimPredicate.
+// If valid, the ClaimPredicate object is returned. Otherwise an error is returned.
+func ValidateAmberClaim(statement intoto.Statement) (*ClaimPredicate, error) {
+	if statement.PredicateType != AmberClaimV1 {
+		return nil, fmt.Errorf(
+			"the statement does not have the expected predicate type; got: %s, want: %s",
+			statement.PredicateType,
+			AmberClaimV1)
+	}
+
+	// Verify the type of the Predicate, and return it if it is of type ClaimPredicate.
+	switch statement.Predicate.(type) {
+	case ClaimPredicate:
+		return validateClaimPredicate(statement.Predicate.(ClaimPredicate))
+	default:
+		return nil, fmt.Errorf(
+			"the predicate does not have the expected type; got: %T, want: ClaimPredicate",
+			statement.Predicate)
+	}
+}
+
+// validateClaimPredicate validates details about the ClaimPredicate.
+func validateClaimPredicate(predicate ClaimPredicate) (*ClaimPredicate, error) {
+	// Verify that the issuer ID is a valid URI
+	parsedURI, err := url.Parse(predicate.Issuer.ID)
+	if err != nil || parsedURI.Scheme == "" {
+		return nil, fmt.Errorf("the Issuer ID (%s) is not a valid URI", predicate.Issuer.ID)
+	}
+
+	// Verify URIs of all evidence are valid.
+	for _, evidence := range predicate.Evidence[:] {
+		parsedURI, err := url.Parse(evidence.URI)
+		if err != nil || parsedURI.Scheme == "" {
+			return nil, fmt.Errorf("the evidence URI (%s) is not a valid URI", evidence.URI)
+		}
+	}
+
+	// Verify that ExpiresOn is greater than IssuedOn, if the former is provided.
+	if predicate.Metadata != nil {
+		if predicate.Metadata.ExpiresOn != nil &&
+			predicate.Metadata.ExpiresOn.Before(*predicate.Metadata.IssuedOn) {
+			return nil, fmt.Errorf("expiredOn (%v) is before issuedOn (%v)",
+				*predicate.Metadata.ExpiresOn,
+				*predicate.Metadata.IssuedOn)
+		}
+	}
+
+	return &predicate, nil
 }
