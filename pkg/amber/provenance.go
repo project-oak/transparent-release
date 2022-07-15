@@ -23,11 +23,19 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	intoto "github.com/in-toto/in-toto-golang/in_toto"
 	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 	"github.com/xeipuuv/gojsonschema"
+)
+
+const (
+	// AmberBuildTypeV1 is the SLSA BuildType for Amber builds.
+	AmberBuildTypeV1 = "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json"
+
+	// SchemaPath is the path to Amber SLSA buildType schema
+	SchemaPath = "schema/amber-slsa-buildtype/v1/provenance.json"
 )
 
 // BuildConfig represents the BuildConfig in the SLSA Provenance predicate. See the corresponding
@@ -37,11 +45,8 @@ type BuildConfig struct {
 	OutputPath string   `json:"outputPath"`
 }
 
-// SchemaPath is the path to Amber SLSA buildType schema
-const SchemaPath = "schema/amber-slsa-buildtype/v1/provenance.json"
-
-func validateJSON(provenanceFile []byte) error {
-	schemaFile, err := ioutil.ReadFile(SchemaPath)
+func validateSLSAProvenanceJSON(provenanceFile []byte) error {
+	schemaFile, err := os.ReadFile(SchemaPath)
 	if err != nil {
 		return err
 	}
@@ -70,17 +75,16 @@ func validateJSON(provenanceFile []byte) error {
 // ParseProvenanceFile reads a JSON file from a given path, validates it against the Amber
 // buildType schema, and parses it into an instance of intoto.Statement.
 func ParseProvenanceFile(path string) (*intoto.Statement, error) {
-	statementBytes, readErr := ioutil.ReadFile(path)
+	statementBytes, readErr := os.ReadFile(path)
 	if readErr != nil {
 		return nil, fmt.Errorf("could not read the provenance file: %v", readErr)
 	}
 
-	var statement intoto.Statement
-
-	if err := validateJSON(statementBytes); err != nil {
+	if err := validateSLSAProvenanceJSON(statementBytes); err != nil {
 		return nil, err
 	}
 
+	var statement intoto.Statement
 	if err := json.Unmarshal(statementBytes, &statement); err != nil {
 		return nil, fmt.Errorf("could not unmarshal the provenance file:\n%v", err)
 	}

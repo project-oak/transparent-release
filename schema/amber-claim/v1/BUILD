@@ -14,28 +14,10 @@
 # limitations under the License.
 #
 
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
-
 package(default_visibility = ["//:__subpackages__"])
 
-go_library(
-    name = "verify",
-    srcs = ["verify.go"],
-    importpath = "github.com/project-oak/transparent-release/verify",
-    deps = [
-        "//pkg/amber",
-        "//common",
-        "@com_github_in_toto_in_toto_golang//in_toto/slsa_provenance/v0.2:go_default_library",
-    ],
-)
+licenses(["notice"])
 
-go_test(
-    name = "verify_test",
-    size = "large",
-    srcs = ["verify_test.go"],
-    data = [
-        "//schema/amber-slsa-buildtype/v1:example.json",
-        "//schema/amber-slsa-buildtype/v1:provenance.json",
-    ],
-    embed = [":verify"],
-)
+exports_files([
+    "example.json",
+])

@@ -31,7 +31,7 @@ func TestExampleProvenance(t *testing.T) {
 		t.Fatalf("couldn't get current directory: %v", err)
 	}
 	defer os.Chdir(currentDir)
-	os.Chdir("../")
+	os.Chdir("../../")
 
 	// Parses the provenance and validates it against the schema.
 	provenance, err := ParseProvenanceFile(schemaExamplePath)

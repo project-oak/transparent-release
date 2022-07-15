@@ -19,8 +19,8 @@ import (
 	"fmt"
 
 	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
-	"github.com/project-oak/transparent-release/amber"
 	"github.com/project-oak/transparent-release/common"
+	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
 // ProvenanceVerifier defines an interface with a single method `Verify` for
@@ -93,8 +93,8 @@ func (verifier *AmberProvenanceMetadataVerifier) Verify(provenanceFilePath strin
 
 	predicate := provenance.Predicate.(slsa.ProvenancePredicate)
 
-	if predicate.BuildType != common.AmberBuildTypeV1 {
-		return fmt.Errorf("incorrect BuildType: got %s, want %v", predicate.BuildType, common.AmberBuildTypeV1)
+	if predicate.BuildType != amber.AmberBuildTypeV1 {
+		return fmt.Errorf("incorrect BuildType: got %s, want %v", predicate.BuildType, amber.AmberBuildTypeV1)
 	}
 
 	// TODO(#69): Check metadata against the expected values.

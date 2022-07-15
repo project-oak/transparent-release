@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"text/template"
 
-	"github.com/project-oak/transparent-release/amber"
+	"github.com/project-oak/transparent-release/pkg/amber"
 	"github.com/project-oak/transparent-release/verify"
 )
 

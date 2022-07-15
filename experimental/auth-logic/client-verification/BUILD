@@ -23,7 +23,7 @@ go_library(
     srcs = ["top_level.go"],
     importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
     deps = [
-        "//amber",
+        "//pkg/amber",
         "//common",
         "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
     ],
@@ -42,7 +42,7 @@ go_binary(
         "//experimental/auth-logic/templates:verifier_policy.auth.tmpl",
     ],
     deps = [
-        "//amber",
+        "//pkg/amber",
         "//common",
         "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
     ],

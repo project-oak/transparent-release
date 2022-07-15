@@ -32,12 +32,7 @@ import (
 	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 	toml "github.com/pelletier/go-toml"
 
-	"github.com/project-oak/transparent-release/amber"
-)
-
-const (
-	// AmberBuildTypeV1 is the SLSA BuildType for Amber builds.
-	AmberBuildTypeV1 = "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json"
+	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
 // BuildConfig is a struct wrapping arguments for building a binary from source.
@@ -293,7 +288,7 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*intoto.Statement, error) {
 	}
 
 	predicate := slsa.ProvenancePredicate{
-		BuildType: AmberBuildTypeV1,
+		BuildType: amber.AmberBuildTypeV1,
 		BuildConfig: amber.BuildConfig{
 			Command:    b.Command,
 			OutputPath: b.OutputPath,
