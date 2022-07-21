@@ -26,18 +26,28 @@ import (
 	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
-const testdataPath = "../testdata/"
-const provenanceExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
+const (
+	testdataPath           = "../testdata/"
+	provenanceExamplePath  = "schema/amber-slsa-buildtype/v1/example.json"
+	want_toml_hash         = "84ebe60841123c5a9179d4d8c30827decd6ee7d1ad88788cd45112ac46fc7833"
+	want_commit_hash       = "d11e3de97b8fc1cf49e4ed8001d14d77b98c24b8"
+	want_builder_image_uri = "gcr.io/oak-ci/oak@sha256:6e5beabe4ace0e3aaa01ce497f5f1ef30fed7c18c596f35621751176b1ab583d"
+	want_builder_image_id  = "6e5beabe4ace0e3aaa01ce497f5f1ef30fed7c18c596f35621751176b1ab583d"
+	want_binary_hash       = "c9b1cec9d87dddeee03d948645a02b7ce18239405e2040a05414a0a3f0f9629c"
+)
 
 func TestComputeBinarySha256Hash(t *testing.T) {
+<<<<<<< HEAD
 	want := "3dbf6017c84f2a6be8d1d914ff6da2b9a34829b1846a342b8b73856fa53d4d6b"
+=======
+>>>>>>> 1b1e8cb (Update example provenance file and the tests)
 	path := filepath.Join(testdataPath, "build.toml")
 	got, err := computeSha256Hash(path)
 	if err != nil {
 		t.Fatalf("couldn't get SHA256 hash: %v", err)
 	}
-	if got != want {
-		t.Errorf("invalid commit hash: got %s, want %s", got, want)
+	if got != want_toml_hash {
+		t.Errorf("invalid commit hash: got %s, want %s", got, want_toml_hash)
 	}
 }
 
@@ -48,7 +58,8 @@ func TestLoadBuildConfigFromFile(t *testing.T) {
 		t.Fatalf("couldn't load build file: %v", err)
 	}
 
-	checkBuildConfig(config, t)
+	want := buildConfig()
+	checkBuildConfig(config, want, t)
 }
 
 func TestLoadBuildConfigFromProvenance(t *testing.T) {
@@ -70,23 +81,26 @@ func TestLoadBuildConfigFromProvenance(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't load BuildConfig from provenance: %v", err)
 	}
-	checkBuildConfig(config, t)
+
+	want := buildConfig()
+	want.ExpectedBinarySha256Hash = want_binary_hash
+
+	checkBuildConfig(config, want, t)
 }
 
-func TestParseBuilderImageUriValidURI(t *testing.T) {
-	imageURI := "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320"
-	alg, digest, err := parseBuilderImageURI(imageURI)
+func TestParseBuilderImageURI_ValidURI(t *testing.T) {
+	alg, digest, err := parseBuilderImageURI(want_builder_image_uri)
 	if err != nil {
-		t.Fatalf("couldn't parse imageURI (%q): %v", imageURI, err)
+		t.Fatalf("couldn't parse imageURI (%q): %v", want_builder_image_uri, err)
 	}
 
 	if alg != "sha256" {
-		t.Errorf("got parseBuilderImageURI(%s).algorithm = %s, want sha256", imageURI, alg)
+		t.Errorf("got parseBuilderImageURI(%s).algorithm = %s, want sha256", want_builder_image_uri, alg)
 	}
 
-	want := "53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320"
-	if digest != want {
-		t.Errorf("got parseBuilderImageURI(%s).digest = %s, want %s", imageURI, alg, want)
+	if digest != want_builder_image_id {
+		t.Errorf("got parseBuilderImageURI(%s).digest = %s, want %s",
+			want_builder_image_uri, alg, want_builder_image_id)
 	}
 }
 
@@ -135,26 +149,39 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 
 	// Check that the provenance is generated correctly
 	assert("repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")
-	assert("commitHash", predicate.Materials[1].Digest["sha1"], "0f2189703c57845e09d8ab89164a4041c0af0a62")
-	assert("builderImage", predicate.Materials[0].URI, "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
-	assert("commitHash", predicate.Materials[0].Digest["sha256"], "53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
-	assert("subjectName", prov.Subject[0].Name, "build.toml-0f2189703c57845e09d8ab89164a4041c0af0a62")
-	assert("subjectDigest", prov.Subject[0].Digest["sha256"], "3dbf6017c84f2a6be8d1d914ff6da2b9a34829b1846a342b8b73856fa53d4d6b")
+	assert("commitHash", predicate.Materials[1].Digest["sha1"], want_commit_hash)
+	assert("builderImage", predicate.Materials[0].URI, want_builder_image_uri)
+	assert("commitHash", predicate.Materials[0].Digest["sha256"], want_builder_image_id)
+	assert("subjectName", prov.Subject[0].Name, "build.toml-"+want_commit_hash)
+	assert("subjectDigest", prov.Subject[0].Digest["sha256"], want_toml_hash)
 	assert("outputPath", buildConfig.OutputPath, "../testdata/build.toml")
-	assert("command[0]", buildConfig.Command[0], "./scripts/runner")
-	assert("command[1]", buildConfig.Command[1], "build-functions-server")
+	assert("command[0]", buildConfig.Command[0], "./scripts/xtask")
+	assert("command[1]", buildConfig.Command[1], "build-oak-functions-server-variants")
 }
 
-func checkBuildConfig(got *BuildConfig, t *testing.T) {
-	want := &BuildConfig{
-		Repo:         "https://github.com/project-oak/oak",
-		CommitHash:   "0f2189703c57845e09d8ab89164a4041c0af0a62",
-		BuilderImage: "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320",
-		Command:      []string{"./scripts/runner", "build-functions-server"},
-		OutputPath:   "./oak_functions/loader/bin/oak_functions_loader",
-	}
-
+func checkBuildConfig(got, want *BuildConfig, t *testing.T) {
 	if cmp.Diff(got, want) != "" {
 		t.Errorf("invalid config: got %q, want %q", got, want)
 	}
+}
+
+func buildConfig() *BuildConfig {
+	invocation := Invocation{
+		URI:        "https://github.com/project-oak/oak/blob/d11e3de97b8fc1cf49e4ed8001d14d77b98c24b8/scripts/generate_provenance",
+		Digest:     "5c5a751349a5c2bfc0acd75a07300bcbf418e464245c3ec02dadf4249b40b95d",
+		Parameters: []string{"-c", "buildconfigs/oak_functions_loader_base.toml", "-s"},
+	}
+
+	config := &BuildConfig{
+		Repo:         "https://github.com/project-oak/oak",
+		CommitHash:   want_commit_hash,
+		BuilderImage: want_builder_image_uri,
+		Command:      []string{"./scripts/xtask", "build-oak-functions-server-variants"},
+		OutputPath:   "./target/x86_64-unknown-linux-musl/release/oak_functions_loader_base",
+		BuilderID:    "https://github.com/Attestations/GitHubHostedActions@v1",
+		Invocation:   invocation,
+	}
+
+	return config
+
 }

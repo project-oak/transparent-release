@@ -1,5 +1,17 @@
 repo = "https://github.com/project-oak/oak"
-commit_hash = "0f2189703c57845e09d8ab89164a4041c0af0a62"
-builder_image = "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320"
-command = ["./scripts/runner", "build-functions-server"]
-output_path = "./oak_functions/loader/bin/oak_functions_loader"
+commit_hash = "d11e3de97b8fc1cf49e4ed8001d14d77b98c24b8"
+builder_image = "gcr.io/oak-ci/oak@sha256:6e5beabe4ace0e3aaa01ce497f5f1ef30fed7c18c596f35621751176b1ab583d"
+command = ["./scripts/xtask", "build-oak-functions-server-variants"]
+output_path = "./target/x86_64-unknown-linux-musl/release/oak_functions_loader_base"
+builderId = "https://github.com/Attestations/GitHubHostedActions@v1"
+
+[invocation]
+# Specifies the build script that was invoked and maps to configSource.uri in SLSA provenance format.
+config_source_uri = "https://github.com/project-oak/oak/blob/d11e3de97b8fc1cf49e4ed8001d14d77b98c24b8/scripts/generate_provenance"
+# Specifies the SHA256 hash of the build script in configSourceUri.
+config_source_sha256 = "5c5a751349a5c2bfc0acd75a07300bcbf418e464245c3ec02dadf4249b40b95d"
+# EntryPoint to the build script. Can be empty in case of no EntryPoint.
+entry_point = ""
+# Parameters passed to the build script. Can be empty, in case no parameters are passed to the build script.
+parameters = ["-c", "buildconfigs/oak_functions_loader_base.toml", "-s"]
+
