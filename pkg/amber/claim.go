@@ -60,10 +60,6 @@ type ClaimIssuer struct {
 
 // ClaimMetadata contains metadata about the issued claims.
 type ClaimMetadata struct {
-	// EndorsedForUse specifies whether this claim endorses the artifact for
-	// use. Generally we expect this value to be true, but to allow for
-	// negative claims this field is included explicitly.
-	EndorsedForUse bool `json:"endorsedForUse"`
 	// IssuedOn specifies the timestamp (encoded as the Epoch time) when the
 	// claim was issued.
 	IssuedOn *time.Time `json:"issuedOn"`
