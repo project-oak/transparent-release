@@ -24,11 +24,13 @@ import (
 const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
 
 func TestProvenanceBuildWrapper(t *testing.T) {
-	want := `"oak_functions_loader::ProvenanceBuilder" says {
-"oak_functions_loader::Binary" hasProvenance("Provenance").
-"oak_functions_loader::Binary" has_measured_hash("sha256:15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c").
+	subjectName := "oak_functions_loader_base:d11e3de97b8fc1cf49e4ed8001d14d77b98c24b8"
+	subjectDigest := "sha256:c9b1cec9d87dddeee03d948645a02b7ce18239405e2040a05414a0a3f0f9629c"
+	want := fmt.Sprintf(`"%s::ProvenanceBuilder" says {
+"%s::Binary" hasProvenance("Provenance").
+"%s::Binary" has_measured_hash("%s").
 
-}`
+}`, subjectName, subjectName, subjectName, subjectDigest)
 
 	// When running tests, bazel exposes data dependencies relative to
 	// the directory structure of the WORKSPACE, so we need to change
