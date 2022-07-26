@@ -27,7 +27,6 @@ const testEndorsementPath = "schema/amber-endorsement/v1/example.json"
 const endorsementExpectedFile = "experimental/auth-logic/test_data/endorsement_wrapper_expected.auth_logic"
 
 func TestEndorsementWrapper(t *testing.T) {
-
 	// When running tests, bazel exposes data dependencies relative to
 	// the directory structure of the WORKSPACE, so we need to change
 	// to the root directory of the transparent-release project to
@@ -64,5 +63,4 @@ func TestEndorsementWrapper(t *testing.T) {
 	if got := statement.String(); got != want {
 		t.Errorf("got:\n%s\nwant:\n%s\n", got, want)
 	}
-
 }

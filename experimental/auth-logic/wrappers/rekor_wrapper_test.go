@@ -92,7 +92,6 @@ func TestRekorLogWrapper(t *testing.T) {
 	if got != want {
 		t.Errorf("got:\n%s\nwant:\n%s\n", got, want)
 	}
-
 }
 
 func TestVerifySignedEntryTimestamp(t *testing.T) {
@@ -127,5 +126,4 @@ func TestVerifySignedEntryTimestamp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not verify signed entry timestamp: %v", err)
 	}
-
 }

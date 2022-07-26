@@ -32,7 +32,6 @@ const relationDeclarations = ".decl attribute has_expected_hash_from(hash : Sha2
 // and emits authorization logic code (as a string) that runs the transparent
 // release verification process.
 func verifyRelease(appName, endorsementFilePath, provenanceFilePath, queryName string) (string, error) {
-
 	endorsementAppName, err := wrappers.GetAppNameFromEndorsement(endorsementFilePath)
 	if err != nil {
 		return "", fmt.Errorf("verifyRelease couldn't get name from endorsement file: %s, error: %v", endorsementFilePath, err)
@@ -111,5 +110,4 @@ func verifyRelease(appName, endorsementFilePath, provenanceFilePath, queryName s
 		verifierStatement.String(),
 		topLevelQuery,
 	}[:], "\n"), nil
-
 }

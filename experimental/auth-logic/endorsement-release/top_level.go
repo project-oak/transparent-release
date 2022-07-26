@@ -35,7 +35,6 @@ const relationDeclarations = ".decl BuildPolicyAllowRelease(binary : Principal, 
 // logic code that verifies the release (by concatenating the input files with
 // the outputs the necessary wrappers).
 func verifyRelease(authLogicInputs []string, provenanceFilePath string) (string, error) {
-
 	var authLogicFileContents = ""
 	for _, authLogicInputFile := range authLogicInputs {
 		fileContents, err := os.ReadFile(authLogicInputFile)
@@ -70,5 +69,4 @@ func verifyRelease(authLogicInputs []string, provenanceFilePath string) (string,
 		provenanceStatement.String(),
 		timeStatement.String(),
 	}[:], "\n"), nil
-
 }

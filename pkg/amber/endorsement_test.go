@@ -44,5 +44,4 @@ func TestExampleAmberEndorsement(t *testing.T) {
 	if len(claimPredicate.Evidence) != 1 {
 		t.Errorf("Exactly one evidence is expected: got %d", len(claimPredicate.Evidence))
 	}
-
 }

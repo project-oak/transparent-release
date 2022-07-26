@@ -53,5 +53,4 @@ func TestProvenanceWrapper(t *testing.T) {
 	if got := statement.String(); got != want {
 		t.Errorf("got:\n%s\nwant:\n%s\n", got, want)
 	}
-
 }

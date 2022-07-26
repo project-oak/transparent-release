@@ -30,5 +30,4 @@ func TestEndorsementReleaseVerification(t *testing.T) {
 	if want := true; want != got {
 		t.Errorf("Query releaseEndorsement failed; want %t got %t.", want, got)
 	}
-
 }

@@ -159,7 +159,7 @@ func pubKeyBytesToECDSA(keyData []byte) (*ecdsa.PublicKey, error) {
 // LogEntryAnon.Verification, but only if it is non-empty. If it is empty
 // it will not error, so this function just throws an error if the verification
 // is empty
-func checkInclusionProof(logEntryAnon *models.LogEntryAnon, registry strfmt.Registry) error {
+func checkInclusionProof(logEntryAnon *models.LogEntryAnon) error {
 	if logEntryAnon.Verification == nil {
 		return fmt.Errorf("logEntryAnon did not have inclusion proof")
 	}
@@ -279,7 +279,7 @@ func VerifyRekorEntry(rekorLogEntryBytes, productTeamKeyBytes, rekorPublicKeyByt
 	}
 
 	// Verify inclusion proof
-	err = checkInclusionProof(logEntryAnon, strfmt.Default)
+	err = checkInclusionProof(logEntryAnon)
 	if err != nil {
 		return fmt.Errorf("couldn't validate logEntryAnon (which includes inclusion proof checking):%v ", err)
 	}
@@ -340,5 +340,4 @@ func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 	}
 
 	return UnattributedStatement{Contents: policyBytes.String()}, nil
-
 }

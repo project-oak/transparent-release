@@ -25,7 +25,7 @@ linters:
     - execinquery
     - exhaustive
     # - exhaustivestruct
-    - exhaustruct
+    # - exhaustruct
     - exportloopref
     - forbidigo
     # Might be nice to enable it later.
@@ -44,7 +44,7 @@ linters:
     # Consider enabling it.
     # - goerr113
     - gofmt
-    - gofumpt
+    # - gofumpt
     - goheader
     - goimports
     - golint
@@ -52,7 +52,7 @@ linters:
     - gomoddirectives
     - gomodguard
     - goprintffuncname
-    - gosec
+    # - gosec
     - gosimple
     - govet
     - grouper
@@ -89,7 +89,7 @@ linters:
     - staticcheck
     - structcheck
     - stylecheck
-    - tagliatelle
+    # - tagliatelle
     - tenv
     # - testpackage
     # Consider enabling it later.
@@ -131,7 +131,7 @@ linters:
     # - execinquery
     # - exhaustive
     - exhaustivestruct
-    # - exhaustruct
+    - exhaustruct
     # - exportloopref
     # - forbidigo
     - forcetypeassert
@@ -147,7 +147,7 @@ linters:
     - godox
     # - goerr113
     # - gofmt
-    # - gofumpt
+    - gofumpt
     # - goheader
     # - goimports
     # - golint
@@ -155,7 +155,7 @@ linters:
     # - gomoddirectives
     # - gomodguard
     # - goprintffuncname
-    # - gosec
+    - gosec
     # - gosimple
     # - govet
     # - grouper
@@ -190,7 +190,7 @@ linters:
     # - staticcheck
     # - structcheck
     # - stylecheck
-    # - tagliatelle
+    - tagliatelle
     # - tenv
     - testpackage
     - thelper

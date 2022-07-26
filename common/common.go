@@ -239,7 +239,6 @@ func (b *BuildConfig) ComputeBinarySha256Hash() (string, error) {
 	}
 
 	return binarySha256Hash, nil
-
 }
 
 // VerifyBinarySha256Hash computes the SHA256 hash of the binary built by this
@@ -278,7 +277,7 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*intoto.Statement, error) {
 	subject := intoto.Subject{
 		// TODO(#57): Get the name as an input in the TOML file.
 		Name:   fmt.Sprintf("%s-%s", filepath.Base(b.OutputPath), b.CommitHash),
-		Digest: slsa.DigestSet{"sha256": string(binarySha256Hash)},
+		Digest: slsa.DigestSet{"sha256": binarySha256Hash},
 	}
 
 	alg, digest, err := parseBuilderImageURI(b.BuilderImage)
@@ -294,12 +293,12 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*intoto.Statement, error) {
 		},
 		Materials: []slsa.ProvenanceMaterial{
 			// Builder image
-			slsa.ProvenanceMaterial{
+			{
 				URI:    b.BuilderImage,
 				Digest: slsa.DigestSet{alg: digest},
 			},
 			// Source code
-			slsa.ProvenanceMaterial{
+			{
 				URI:    b.Repo,
 				Digest: slsa.DigestSet{"sha1": b.CommitHash},
 			},

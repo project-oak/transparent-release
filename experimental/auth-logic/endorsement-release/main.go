@@ -37,7 +37,6 @@ func (someStringArray *stringArray) Set(value string) error {
 }
 
 func main() {
-
 	var authLogicInputs stringArray
 
 	appName := flag.String("app_name", "", "name of application to be released")
@@ -66,5 +65,4 @@ func main() {
 	if err != nil {
 		log.Fatalf("couldn't write generated authorization logic to file: %v\nThe generated auth logic was this:\n%s", err, out)
 	}
-
 }

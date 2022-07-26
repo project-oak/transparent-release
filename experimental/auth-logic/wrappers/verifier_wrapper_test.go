@@ -57,5 +57,4 @@ func TestVerifierWrapper(t *testing.T) {
 	if got := statement.String(); got != want {
 		t.Errorf("got:\n%v\nwant:\n%v", got, want)
 	}
-
 }

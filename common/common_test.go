@@ -148,7 +148,6 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 }
 
 func checkBuildConfig(got *BuildConfig, t *testing.T) {
-
 	want := &BuildConfig{
 		Repo:                     "https://github.com/project-oak/oak",
 		CommitHash:               "0f2189703c57845e09d8ab89164a4041c0af0a62",
