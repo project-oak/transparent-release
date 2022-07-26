@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"text/template"
 	"time"
 )
@@ -71,7 +71,7 @@ type ValidatedEndorsement struct {
 // ParseEndorsementFile parses an endorsement file (in JSON) and
 // produces an `Endorsement` data structure.
 func ParseEndorsementFile(path string) (*Endorsement, error) {
-	endorsementBytes, err := ioutil.ReadFile(path)
+	endorsementBytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("could not read the endorsement file: %v", err)
 	}

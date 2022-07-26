@@ -37,7 +37,6 @@ import (
 // returns an error. Otherwise, it generates a SLSA provenance file based on
 // the given build config.
 func Build(buildFilePath, gitRootDir string) (*intoto.Statement, error) {
-
 	buildConfig, err := common.LoadBuildConfigFromFile(buildFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't load build file %q: %v", buildFilePath, err)

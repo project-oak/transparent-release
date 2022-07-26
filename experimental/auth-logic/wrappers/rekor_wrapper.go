@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"text/template"
 
 	"github.com/cyberphone/json-canonicalization/go/src/webpki.org/jsoncanonicalizer"
@@ -54,9 +54,9 @@ type RekorLogWrapper struct {
 
 const rekorVerifierTemplate = "experimental/auth-logic/templates/rekor_verifier_policy.auth.tmpl"
 
-func getLogEntryAnonFromFile(rekorLogFilePath string) (*models.LogEntryAnon, error) {
+func GetLogEntryAnonFromFile(rekorLogFilePath string) (*models.LogEntryAnon, error) {
 	// get LogEntry, which is a map from strings to LogEntryAnons
-	logEntryBytes, err := ioutil.ReadFile(rekorLogFilePath)
+	logEntryBytes, err := os.ReadFile(rekorLogFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("could not read the rekor log file: %v", err)
 	}
@@ -247,7 +247,7 @@ func compareEndorsementAndRekorHash(rekorEntry *rekord.V001Entry, endorsementByt
 
 	endorsementHash := fmt.Sprintf("%x", sha256.Sum256(endorsementBytes))
 	if endorsementHash != *rekorEntry.RekordObj.Data.Hash.Value {
-		return fmt.Errorf("Hash values of endorsement bytes and rekor entry not equal. endorsementHash: %s, rekorHash: %v",
+		return fmt.Errorf("hash values of endorsement bytes and rekor entry not equal. endorsementHash: %s, rekorHash: %v",
 			endorsementHash, *rekorEntry.RekordObj.Data.Hash.Value)
 	}
 	return nil

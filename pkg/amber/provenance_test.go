@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
+	"github.com/project-oak/transparent-release/internal/testutil"
 )
 
 const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
@@ -30,8 +31,8 @@ func TestExampleProvenance(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get current directory: %v", err)
 	}
-	defer os.Chdir(currentDir)
-	os.Chdir("../../")
+	defer testutil.Chdir(t, currentDir)
+	testutil.Chdir(t, "../../")
 
 	// Parses the provenance and validates it against the schema.
 	provenance, err := ParseProvenanceFile(schemaExamplePath)

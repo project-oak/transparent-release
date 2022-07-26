@@ -41,7 +41,7 @@ type ClaimPredicate struct {
 	// The issuer of the claim.
 	Issuer ClaimIssuer `json:"issuer"`
 	// URI indicating the type of the claim. It determines the meaning of
-	//`ClaimSpec` and `Evidence`.
+	// `ClaimSpec` and `Evidence`.
 	ClaimType string `json:"claimType"`
 	// An optional arbitrary object that gives a detailed description of the claim.
 	ClaimSpec interface{} `json:"claimSpec,omitempty"`

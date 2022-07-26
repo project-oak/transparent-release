@@ -42,6 +42,7 @@ go_test(
     embed = [":common"],
     deps = [
         "//pkg/amber",
+        "//internal/testutil",
         "@com_github_google_go_cmp//cmp:go_default_library",
     ],
 )

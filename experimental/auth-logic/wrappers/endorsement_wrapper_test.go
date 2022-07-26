@@ -19,6 +19,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/project-oak/transparent-release/internal/testutil"
 )
 
 const testEndorsementPath = "schema/amber-endorsement/v1/example.json"
@@ -35,8 +37,8 @@ func TestEndorsementWrapper(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get current directory: %v", err)
 	}
-	defer os.Chdir(currentDir)
-	os.Chdir("../../../")
+	defer testutil.Chdir(t, currentDir)
+	testutil.Chdir(t, "../../../")
 
 	wantFileBytes, err := os.ReadFile(endorsementExpectedFile)
 	if err != nil {
@@ -59,9 +61,7 @@ func TestEndorsementWrapper(t *testing.T) {
 		t.Fatalf("couldn't get endorsement file statement : %v", err)
 	}
 
-	got := statement.String()
-
-	if got != want {
+	if got := statement.String(); got != want {
 		t.Errorf("got:\n%s\nwant:\n%s\n", got, want)
 	}
 

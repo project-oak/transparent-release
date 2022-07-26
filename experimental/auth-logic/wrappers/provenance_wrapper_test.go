@@ -15,9 +15,10 @@
 package wrappers
 
 import (
-	"fmt"
 	"os"
 	"testing"
+
+	"github.com/project-oak/transparent-release/internal/testutil"
 )
 
 const provenanceExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
@@ -37,20 +38,19 @@ func TestProvenanceWrapper(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get current directory: %v", err)
 	}
-	defer os.Chdir(currentDir)
-	os.Chdir("../../../")
+	defer testutil.Chdir(t, currentDir)
+	testutil.Chdir(t, "../../../")
 
 	testProvenance := ProvenanceWrapper{FilePath: provenanceExamplePath}
 
-	speaker := Principal{Contents: fmt.Sprintf(`"Provenance"`)}
+	speaker := Principal{Contents: `"Provenance"`}
 
 	statement, err := EmitStatementAs(speaker, testProvenance)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got := statement.String()
 
-	if got != want {
+	if got := statement.String(); got != want {
 		t.Errorf("got:\n%s\nwant:\n%s\n", got, want)
 	}
 

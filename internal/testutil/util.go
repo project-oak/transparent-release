@@ -12,23 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package testutil
 
 import (
+	"os"
 	"testing"
-
-	"github.com/project-oak/transparent-release/experimental/auth-logic/common"
 )
 
-func TestEndorsementReleaseVerification(t *testing.T) {
-	actualQueryValues, err := common.EmitOutputQueries(".")
-	if actualQueryValues == nil || err != nil {
-		t.Fatalf("Could not parse verification query results for oak_functions_loader: %v", err)
+func Chdir(t *testing.T, dir string) {
+	if err := os.Chdir(dir); err != nil {
+		t.Fatalf("couldn't change directory to %s: %v", dir, err)
 	}
-
-	got := actualQueryValues["testEndorsementReleaseQuery"]
-	if want := true; want != got {
-		t.Errorf("Query releaseEndorsement failed; want %t got %t.", want, got)
-	}
-
 }

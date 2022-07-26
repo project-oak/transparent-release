@@ -89,6 +89,7 @@ go_test(
         "//schema/amber-slsa-buildtype/v1:provenance.json",
     ],
     embed = [":transparent_release_verification_wrappers"],
+    deps = ["//internal/testutil"],
 )
 
 go_test(
@@ -100,4 +101,5 @@ go_test(
         "//schema/amber-slsa-buildtype/v1:provenance.json",
     ],
     embed = [":transparent_release_verification_wrappers"],
+    deps = ["//internal/testutil"],
 )

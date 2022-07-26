@@ -16,7 +16,7 @@ package wrappers
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -47,13 +47,12 @@ func TestEmitWrapperStatement(t *testing.T) {
 	}
 
 	want := "Summer says {\nsum(2, 3, 5).\n}"
-	resultBytes, err := ioutil.ReadFile("wrapped_sum.auth_logic")
+	resultBytes, err := os.ReadFile("wrapped_sum.auth_logic")
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
 
-	got := string(resultBytes)
-	if got != want {
+	if got := string(resultBytes); got != want {
 		t.Fatalf("got %v want %v", got, want)
 	}
 }

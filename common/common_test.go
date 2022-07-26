@@ -22,6 +22,7 @@ import (
 
 	cmp "github.com/google/go-cmp/cmp"
 	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
+	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
@@ -57,8 +58,8 @@ func TestLoadBuildConfigFromProvenance(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get current directory: %v", err)
 	}
-	defer os.Chdir(currentDir)
-	os.Chdir("../")
+	defer testutil.Chdir(t, currentDir)
+	testutil.Chdir(t, "../")
 
 	provenance, err := amber.ParseProvenanceFile(provenanceExamplePath)
 	if err != nil {
@@ -72,7 +73,7 @@ func TestLoadBuildConfigFromProvenance(t *testing.T) {
 	checkBuildConfig(config, t)
 }
 
-func TestParseBuilderImageURI_ValidURI(t *testing.T) {
+func TestParseBuilderImageUriValidURI(t *testing.T) {
 	imageURI := "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320"
 	alg, digest, err := parseBuilderImageURI(imageURI)
 	if err != nil {
@@ -89,7 +90,7 @@ func TestParseBuilderImageURI_ValidURI(t *testing.T) {
 	}
 }
 
-func TestParseBuilderImageURI_InvalidURIs(t *testing.T) {
+func TestParseBuilderImageUriInvalidURIs(t *testing.T) {
 	imageURIWithTag := "gcr.io/oak-ci/oak@latest"
 	want := fmt.Sprintf("the builder image digest (%q) does not have the required ALG:VALUE format", "latest")
 	alg, digest, err := parseBuilderImageURI(imageURIWithTag)
