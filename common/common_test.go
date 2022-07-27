@@ -81,7 +81,7 @@ func TestLoadBuildConfigFromProvenance(t *testing.T) {
 	checkBuildConfig(config, t)
 }
 
-func TestParseBuilderImageURI_ValidURI(t *testing.T) {
+func TestParseBuilderImageUriValidUri(t *testing.T) {
 	builderImageURI := fmt.Sprintf("gcr.io/oak-ci/oak@sha256:%s", wantBuilderImageID)
 	alg, digest, err := parseBuilderImageURI(builderImageURI)
 	if err != nil {
