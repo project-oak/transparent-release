@@ -54,6 +54,23 @@ type BuildConfig struct {
 	OutputPath string `toml:"output_path"`
 	// Expected SHA256 hash of the output binary. Could be empty.
 	ExpectedBinarySha256Hash string `toml:"expected_binary_sha256_hash"`
+	// BuilderID maps to `builder.id` in a SLSA provenance predicate.
+	BuilderID string `toml:"builderId"`
+	// Invocation maps to `invocation` in a SLSA provenance predicate.
+	Invocation Invocation `toml:"invocation"`
+}
+
+// Invocation maps to `invocation` in a SLSA predicate, and identifies the
+// event that kicked off the build.
+type Invocation struct {
+	// URI to the script or tool that triggered the build.
+	URI string `toml:"config_source_uri"`
+	// Digest is the SHA256 digest of the config source.
+	Digest string `toml:"config_source_sha256"`
+	// EntryPoint to the invoked config source. Could be an empty string
+	EntryPoint string `toml:"entry_point"`
+	// Parameters passed to the invoked config source.
+	Parameters []string `toml:"parameters"`
 }
 
 // RepoCheckoutInfo contains info about the location of a locally checked out
@@ -133,6 +150,14 @@ func LoadBuildConfigFromProvenance(statement *intoto.Statement) (*BuildConfig, e
 		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %s", outputPath)
 	}
 
+	// Null-check is not required for `Invocation` and `Invocation.ConfigSource`, since these are not references.
+	invocation := Invocation{
+		URI:        predicate.Invocation.ConfigSource.URI,
+		Digest:     predicate.Invocation.ConfigSource.Digest["sha256"],
+		EntryPoint: predicate.Invocation.ConfigSource.EntryPoint,
+		Parameters: predicate.Invocation.Parameters.([]string),
+	}
+
 	config := BuildConfig{
 		Repo:                     predicate.Materials[1].URI,
 		CommitHash:               commitHash,
@@ -140,6 +165,8 @@ func LoadBuildConfigFromProvenance(statement *intoto.Statement) (*BuildConfig, e
 		Command:                  command,
 		OutputPath:               outputPath,
 		ExpectedBinarySha256Hash: expectedBinarySha256Hash,
+		BuilderID:                predicate.Builder.ID,
+		Invocation:               invocation,
 	}
 
 	return &config, nil
@@ -286,7 +313,18 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*intoto.Statement, error) {
 	}
 
 	predicate := slsa.ProvenancePredicate{
+		Builder: slsa.ProvenanceBuilder{
+			ID: b.BuilderID,
+		},
 		BuildType: amber.AmberBuildTypeV1,
+		Invocation: slsa.ProvenanceInvocation{
+			ConfigSource: slsa.ConfigSource{
+				URI:        b.Invocation.URI,
+				Digest:     slsa.DigestSet{"sha256": b.Invocation.Digest},
+				EntryPoint: b.Invocation.EntryPoint,
+			},
+			Parameters: b.Invocation.Parameters,
+		},
 		BuildConfig: amber.BuildConfig{
 			Command:    b.Command,
 			OutputPath: b.OutputPath,

@@ -111,8 +111,18 @@ func ParseProvenanceFile(path string) (*intoto.Statement, error) {
 		return nil, fmt.Errorf("could not unmarshal JSON bytes into a BuildConfig: %v", err)
 	}
 
+	var invocationParameters []string
+	paramBytes, err := json.Marshal(predicate.Invocation.Parameters)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal Predicate map into JSON bytes: %v", err)
+	}
+	if err = json.Unmarshal(paramBytes, &invocationParameters); err != nil {
+		return nil, fmt.Errorf("could not unmarshal JSON bytes into a BuildConfig: %v", err)
+	}
+
 	// Replace maps with objects
 	predicate.BuildConfig = buildConfig
+	predicate.Invocation.Parameters = invocationParameters
 	statement.Predicate = predicate
 
 	return &statement, nil

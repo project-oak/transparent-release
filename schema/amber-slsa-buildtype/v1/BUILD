@@ -20,5 +20,5 @@ licenses(["notice"])
 
 exports_files([
     "provenance.json",
-    "example.json"
+    "example.json",
 ])
