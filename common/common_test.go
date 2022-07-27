@@ -35,10 +35,6 @@ const (
 )
 
 func TestComputeBinarySha256Hash(t *testing.T) {
-<<<<<<< HEAD
-	want := "3dbf6017c84f2a6be8d1d914ff6da2b9a34829b1846a342b8b73856fa53d4d6b"
-=======
->>>>>>> 1b1e8cb (Update example provenance file and the tests)
 	path := filepath.Join(testdataPath, "build.toml")
 	got, err := computeSha256Hash(path)
 	if err != nil {
