@@ -15,7 +15,7 @@
 package common
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -35,20 +35,20 @@ import (
 // emitted.
 func EmitOutputQueries(outputDirectoryName string) (map[string]bool, error) {
 	ret := make(map[string]bool)
-	items, err := ioutil.ReadDir(outputDirectoryName)
+	items, err := os.ReadDir(outputDirectoryName)
 	if err != nil {
 		return nil, err
 	}
 	for _, item := range items {
 		filename := item.Name()
 		if strings.HasSuffix(filename, ".csv") {
-			contents, err := ioutil.ReadFile(filepath.Join(
+			contents, err := os.ReadFile(filepath.Join(
 				outputDirectoryName, filename))
 			if err != nil {
 				return nil, err
 			}
 			queryName := strings.ReplaceAll(filename, ".csv", "")
-			// Because the ouput CSVs either contain "dummy_var" if they
+			// Because the output CSVs either contain "dummy_var" if they
 			// can be proved or contain nothing if they cannot, the
 			// query is true if and only if the CSV has more than zero bytes
 			if len(contents) > 0 {

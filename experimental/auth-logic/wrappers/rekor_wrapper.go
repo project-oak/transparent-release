@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"text/template"
 
 	"github.com/cyberphone/json-canonicalization/go/src/webpki.org/jsoncanonicalizer"
@@ -54,9 +54,9 @@ type RekorLogWrapper struct {
 
 const rekorVerifierTemplate = "experimental/auth-logic/templates/rekor_verifier_policy.auth.tmpl"
 
-func getLogEntryAnonFromFile(rekorLogFilePath string) (*models.LogEntryAnon, error) {
+func GetLogEntryAnonFromFile(rekorLogFilePath string) (*models.LogEntryAnon, error) {
 	// get LogEntry, which is a map from strings to LogEntryAnons
-	logEntryBytes, err := ioutil.ReadFile(rekorLogFilePath)
+	logEntryBytes, err := os.ReadFile(rekorLogFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("could not read the rekor log file: %v", err)
 	}
@@ -159,7 +159,7 @@ func pubKeyBytesToECDSA(keyData []byte) (*ecdsa.PublicKey, error) {
 // LogEntryAnon.Verification, but only if it is non-empty. If it is empty
 // it will not error, so this function just throws an error if the verification
 // is empty
-func checkInclusionProof(logEntryAnon *models.LogEntryAnon, registry strfmt.Registry) error {
+func checkInclusionProof(logEntryAnon *models.LogEntryAnon) error {
 	if logEntryAnon.Verification == nil {
 		return fmt.Errorf("logEntryAnon did not have inclusion proof")
 	}
@@ -247,7 +247,7 @@ func compareEndorsementAndRekorHash(rekorEntry *rekord.V001Entry, endorsementByt
 
 	endorsementHash := fmt.Sprintf("%x", sha256.Sum256(endorsementBytes))
 	if endorsementHash != *rekorEntry.RekordObj.Data.Hash.Value {
-		return fmt.Errorf("Hash values of endorsement bytes and rekor entry not equal. endorsementHash: %s, rekorHash: %v",
+		return fmt.Errorf("hash values of endorsement bytes and rekor entry not equal. endorsementHash: %s, rekorHash: %v",
 			endorsementHash, *rekorEntry.RekordObj.Data.Hash.Value)
 	}
 	return nil
@@ -279,7 +279,7 @@ func VerifyRekorEntry(rekorLogEntryBytes, productTeamKeyBytes, rekorPublicKeyByt
 	}
 
 	// Verify inclusion proof
-	err = checkInclusionProof(logEntryAnon, strfmt.Default)
+	err = checkInclusionProof(logEntryAnon)
 	if err != nil {
 		return fmt.Errorf("couldn't validate logEntryAnon (which includes inclusion proof checking):%v ", err)
 	}
@@ -340,5 +340,4 @@ func (rlw RekorLogWrapper) EmitStatement() (UnattributedStatement, error) {
 	}
 
 	return UnattributedStatement{Contents: policyBytes.String()}, nil
-
 }

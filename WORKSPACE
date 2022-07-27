@@ -5033,7 +5033,7 @@ go_repository(
 
 go_rules_dependencies()
 
-go_register_toolchains(version = "1.17.2")
+go_register_toolchains(version = "1.18.4")
 
 gazelle_dependencies()
 

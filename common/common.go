@@ -20,7 +20,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -240,7 +239,6 @@ func (b *BuildConfig) ComputeBinarySha256Hash() (string, error) {
 	}
 
 	return binarySha256Hash, nil
-
 }
 
 // VerifyBinarySha256Hash computes the SHA256 hash of the binary built by this
@@ -279,7 +277,7 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*intoto.Statement, error) {
 	subject := intoto.Subject{
 		// TODO(#57): Get the name as an input in the TOML file.
 		Name:   fmt.Sprintf("%s-%s", filepath.Base(b.OutputPath), b.CommitHash),
-		Digest: slsa.DigestSet{"sha256": string(binarySha256Hash)},
+		Digest: slsa.DigestSet{"sha256": binarySha256Hash},
 	}
 
 	alg, digest, err := parseBuilderImageURI(b.BuilderImage)
@@ -295,12 +293,12 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*intoto.Statement, error) {
 		},
 		Materials: []slsa.ProvenanceMaterial{
 			// Builder image
-			slsa.ProvenanceMaterial{
+			{
 				URI:    b.BuilderImage,
 				Digest: slsa.DigestSet{alg: digest},
 			},
 			// Source code
-			slsa.ProvenanceMaterial{
+			{
 				URI:    b.Repo,
 				Digest: slsa.DigestSet{"sha1": b.CommitHash},
 			},
@@ -346,7 +344,7 @@ func (b *BuildConfig) ChangeDirToGitRoot(gitRootDir string) (*RepoCheckoutInfo, 
 	}
 
 	if err := b.VerifyCommit(); err != nil {
-		return nil, fmt.Errorf("Git commit hashes do not match: %v", err)
+		return nil, fmt.Errorf("the Git commit hashes do not match: %v", err)
 	}
 
 	return info, nil
@@ -375,7 +373,7 @@ func saveToTempFile(reader io.Reader) (string, error) {
 		return "", err
 	}
 
-	tmpfile, err := ioutil.TempFile("", "log-*.txt")
+	tmpfile, err := os.CreateTemp("", "log-*.txt")
 	if err != nil {
 		return "", fmt.Errorf("couldn't create tempfile: %v", err)
 	}
@@ -393,7 +391,7 @@ func saveToTempFile(reader io.Reader) (string, error) {
 // containing the absolute path to the root of the repo is returned.
 func FetchSourcesFromRepo(repoURL, commitHash string) (*RepoCheckoutInfo, error) {
 	// create a temp folder in the current directory for fetching the repo.
-	targetDir, err := ioutil.TempDir("", "release-*")
+	targetDir, err := os.MkdirTemp("", "release-*")
 	if err != nil {
 		return nil, fmt.Errorf("couldn't create temp directory: %v", err)
 	}
@@ -444,14 +442,6 @@ func FetchSourcesFromRepo(repoURL, commitHash string) (*RepoCheckoutInfo, error)
 	}
 
 	return &info, nil
-}
-
-func toStringSlice(slice []interface{}) []string {
-	ss := make([]string, 0, len(slice))
-	for _, s := range slice {
-		ss = append(ss, s.(string))
-	}
-	return ss
 }
 
 func computeSha256Hash(path string) (string, error) {

@@ -42,5 +42,4 @@ func TestSimpleAuthLogic(t *testing.T) {
 	for query, expected := range expectedQueryValues {
 		assert(query, expected, actualQueryValues[query])
 	}
-
 }

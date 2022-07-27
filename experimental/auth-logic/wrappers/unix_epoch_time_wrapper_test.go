@@ -27,7 +27,7 @@ const (
 	futureDate = 33197947200
 )
 
-func (time UnixEpochTime) identify() Principal {
+func (timeWrapper UnixEpochTime) identify() Principal {
 	return Principal{Contents: "UnixEpochTime"}
 }
 
@@ -57,5 +57,4 @@ func TestUnixEpochTimeWrapper(t *testing.T) {
 	if timeValue > futureDate {
 		t.Errorf("The emitted current time %v, is far into the future", timeValue)
 	}
-
 }

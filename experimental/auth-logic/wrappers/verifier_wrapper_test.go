@@ -19,6 +19,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/project-oak/transparent-release/internal/testutil"
 )
 
 func (v VerifierWrapper) identify() Principal {
@@ -37,15 +39,14 @@ func TestVerifierWrapper(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get current directory: %v", err)
 	}
-	defer os.Chdir(currentDir)
-	os.Chdir("../../../")
+	defer testutil.Chdir(t, currentDir)
+	testutil.Chdir(t, "../../../")
 
 	testWrapper := VerifierWrapper{AppName: "OakFunctionsLoader"}
 	statement, err := EmitStatementAs(testWrapper.identify(), testWrapper)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got := statement.String()
 
 	wantFileBytes, err := os.ReadFile(testFilePath)
 	if err != nil {
@@ -53,8 +54,7 @@ func TestVerifierWrapper(t *testing.T) {
 	}
 	want := strings.TrimSuffix(string(wantFileBytes), "\n")
 
-	if got != want {
+	if got := statement.String(); got != want {
 		t.Errorf("got:\n%v\nwant:\n%v", got, want)
 	}
-
 }

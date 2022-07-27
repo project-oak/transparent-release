@@ -37,7 +37,6 @@ func (someStringArray *stringArray) Set(value string) error {
 }
 
 func main() {
-
 	var authLogicInputs stringArray
 
 	appName := flag.String("app_name", "", "name of application to be released")
@@ -47,19 +46,23 @@ func main() {
 
 	flag.Parse()
 
-	out, err := verifyRelease(authLogicInputs, *appName, *provenanceFilePath)
+	out, err := verifyRelease(authLogicInputs, *provenanceFilePath)
 	if err != nil {
 		log.Fatalf("couldn't generate auth logic policy for endorsement file: %v", err)
 	}
 
 	file, err := os.Create(*outputAuthLogicFilePath)
-	defer file.Close()
 	if err != nil {
 		log.Fatalf("couldn't create file for generated authorizaiton logic: %v\nThe generated auth logic was this:\n%s", err, out)
 	}
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Fatalf("couldn't close the file: %v", err)
+		}
+	}()
+
 	_, err = file.WriteString(out)
 	if err != nil {
 		log.Fatalf("couldn't write generated authorization logic to file: %v\nThe generated auth logic was this:\n%s", err, out)
 	}
-
 }

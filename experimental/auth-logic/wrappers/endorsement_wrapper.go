@@ -20,7 +20,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"text/template"
 	"time"
 )
@@ -71,7 +71,7 @@ type ValidatedEndorsement struct {
 // ParseEndorsementFile parses an endorsement file (in JSON) and
 // produces an `Endorsement` data structure.
 func ParseEndorsementFile(path string) (*Endorsement, error) {
-	endorsementBytes, err := ioutil.ReadFile(path)
+	endorsementBytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("could not read the endorsement file: %v", err)
 	}
@@ -95,7 +95,6 @@ func ParseEndorsementBytes(endorsementBytes []byte) (*Endorsement, error) {
 // GenerateValidatedEndorsement produces a ValidatedEndorsement from an
 // Endorsement
 func (endorsement Endorsement) GenerateValidatedEndorsement() (ValidatedEndorsement, error) {
-
 	if len(endorsement.Subject) != 1 {
 		return ValidatedEndorsement{},
 			fmt.Errorf("endorsement file missing subject: %s", endorsement)
@@ -134,7 +133,6 @@ func (endorsement Endorsement) GenerateValidatedEndorsement() (ValidatedEndorsem
 		ReleaseTime: releaseTime,
 		ExpiryTime:  expiryTime,
 	}, nil
-
 }
 
 // EndorsementWrapper is a wrapper that emits an authorization logic

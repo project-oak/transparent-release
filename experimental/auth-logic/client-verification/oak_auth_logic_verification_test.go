@@ -39,5 +39,4 @@ func TestOakVerification(t *testing.T) {
 			t.Fatalf("Query %q failed; want %t got %t.", query, want, got)
 		}
 	}
-
 }

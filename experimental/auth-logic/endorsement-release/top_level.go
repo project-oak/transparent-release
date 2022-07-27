@@ -34,8 +34,7 @@ const relationDeclarations = ".decl BuildPolicyAllowRelease(binary : Principal, 
 // for verifying release and a path to a provenance file. It emits authorization
 // logic code that verifies the release (by concatenating the input files with
 // the outputs the necessary wrappers).
-func verifyRelease(authLogicInputs []string, appName, provenanceFilePath string) (string, error) {
-
+func verifyRelease(authLogicInputs []string, provenanceFilePath string) (string, error) {
 	var authLogicFileContents = ""
 	for _, authLogicInputFile := range authLogicInputs {
 		fileContents, err := os.ReadFile(authLogicInputFile)
@@ -70,5 +69,4 @@ func verifyRelease(authLogicInputs []string, appName, provenanceFilePath string)
 		provenanceStatement.String(),
 		timeStatement.String(),
 	}[:], "\n"), nil
-
 }

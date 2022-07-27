@@ -19,13 +19,14 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/project-oak/transparent-release/internal/testutil"
 )
 
 const testEndorsementPath = "schema/amber-endorsement/v1/example.json"
 const endorsementExpectedFile = "experimental/auth-logic/test_data/endorsement_wrapper_expected.auth_logic"
 
 func TestEndorsementWrapper(t *testing.T) {
-
 	// When running tests, bazel exposes data dependencies relative to
 	// the directory structure of the WORKSPACE, so we need to change
 	// to the root directory of the transparent-release project to
@@ -35,8 +36,8 @@ func TestEndorsementWrapper(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get current directory: %v", err)
 	}
-	defer os.Chdir(currentDir)
-	os.Chdir("../../../")
+	defer testutil.Chdir(t, currentDir)
+	testutil.Chdir(t, "../../../")
 
 	wantFileBytes, err := os.ReadFile(endorsementExpectedFile)
 	if err != nil {
@@ -59,10 +60,7 @@ func TestEndorsementWrapper(t *testing.T) {
 		t.Fatalf("couldn't get endorsement file statement : %v", err)
 	}
 
-	got := statement.String()
-
-	if got != want {
+	if got := statement.String(); got != want {
 		t.Errorf("got:\n%s\nwant:\n%s\n", got, want)
 	}
-
 }

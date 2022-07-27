@@ -16,8 +16,9 @@ package wrappers
 
 import (
 	"fmt"
-	"os"
 	"testing"
+
+	"github.com/project-oak/transparent-release/internal/testutil"
 )
 
 const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
@@ -33,7 +34,7 @@ func TestProvenanceBuildWrapper(t *testing.T) {
 	// the directory structure of the WORKSPACE, so we need to change
 	// to the root directory of the transparent-release project to
 	// be able to read the SLSA files.
-	os.Chdir("../../../")
+	testutil.Chdir(t, "../../../")
 
 	appName, err := GetAppNameFromProvenance(schemaExamplePath)
 	if err != nil {
@@ -46,9 +47,8 @@ func TestProvenanceBuildWrapper(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get statement from provenance file: %s, error:%v", schemaExamplePath, err)
 	}
-	got := statement.String()
 
-	if got != want {
+	if got := statement.String(); got != want {
 		t.Errorf("got:\n%v\nwant:\n%v\n", got, want)
 	}
 }

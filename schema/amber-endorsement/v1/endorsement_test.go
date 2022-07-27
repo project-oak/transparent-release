@@ -18,7 +18,7 @@ package schema
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/xeipuuv/gojsonschema"
@@ -54,8 +54,7 @@ func TestExampleAmberEndorsement(t *testing.T) {
 }
 
 func loadJSON(path string) (gojsonschema.JSONLoader, error) {
-
-	jsonFile, err := ioutil.ReadFile(path)
+	jsonFile, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't read json file %v: %v", path, err)
 	}

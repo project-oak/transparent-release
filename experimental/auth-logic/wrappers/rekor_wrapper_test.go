@@ -15,10 +15,11 @@
 package wrappers
 
 import (
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/project-oak/transparent-release/internal/testutil"
 )
 
 const testRekorLogPath = "experimental/auth-logic/test_data/rekor_entry.json"
@@ -37,25 +38,25 @@ func TestRekorLogWrapper(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get current directory: %v", err)
 	}
-	defer os.Chdir(currentDir)
-	os.Chdir("../../../")
+	defer testutil.Chdir(t, currentDir)
+	testutil.Chdir(t, "../../../")
 
-	rekorLogEntryBytes, err := ioutil.ReadFile(testRekorLogPath)
+	rekorLogEntryBytes, err := os.ReadFile(testRekorLogPath)
 	if err != nil {
 		t.Errorf("could not read rekor log file %v\n", testRekorLogPath)
 	}
 
-	prodTeamKeyBytes, err := ioutil.ReadFile(testPubKeyPath)
+	prodTeamKeyBytes, err := os.ReadFile(testPubKeyPath)
 	if err != nil {
 		t.Errorf("could not parse prod team pub key from file: %s", testPubKeyPath)
 	}
 
-	endorsementBytes, err := ioutil.ReadFile(testUnexpiredEndorsementFilePath)
+	endorsementBytes, err := os.ReadFile(testUnexpiredEndorsementFilePath)
 	if err != nil {
 		t.Errorf("could not read endorsement file: %s, %v", testUnexpiredEndorsementFilePath, err)
 	}
 
-	rekorKeyBytes, err := ioutil.ReadFile(rekorPublicKeyPath)
+	rekorKeyBytes, err := os.ReadFile(rekorPublicKeyPath)
 	if err != nil {
 		t.Errorf("could not parse rekord pub key from file: %s", rekorKeyBytes)
 	}
@@ -91,7 +92,6 @@ func TestRekorLogWrapper(t *testing.T) {
 	if got != want {
 		t.Errorf("got:\n%s\nwant:\n%s\n", got, want)
 	}
-
 }
 
 func TestVerifySignedEntryTimestamp(t *testing.T) {
@@ -104,15 +104,15 @@ func TestVerifySignedEntryTimestamp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get current directory: %v", err)
 	}
-	defer os.Chdir(currentDir)
-	os.Chdir("../../../")
+	defer testutil.Chdir(t, currentDir)
+	testutil.Chdir(t, "../../../")
 
-	rekorLogEntryBytes, err := ioutil.ReadFile(testRekorLogPath)
+	rekorLogEntryBytes, err := os.ReadFile(testRekorLogPath)
 	if err != nil {
 		t.Errorf("could not read rekor log file %v\n", testRekorLogPath)
 	}
 
-	rekorKeyBytes, err := ioutil.ReadFile(rekorPublicKeyPath)
+	rekorKeyBytes, err := os.ReadFile(rekorPublicKeyPath)
 	if err != nil {
 		t.Errorf("could not parse rekor pub key from file: %s", rekorKeyBytes)
 	}
@@ -126,5 +126,4 @@ func TestVerifySignedEntryTimestamp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not verify signed entry timestamp: %v", err)
 	}
-
 }

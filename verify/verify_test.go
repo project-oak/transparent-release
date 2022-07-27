@@ -17,6 +17,8 @@ package verify
 import (
 	"os"
 	"testing"
+
+	"github.com/project-oak/transparent-release/internal/testutil"
 )
 
 const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
@@ -28,8 +30,8 @@ func TestReproducibleProvenanceVerifier(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get current directory: %v", err)
 	}
-	defer os.Chdir(currentDir)
-	os.Chdir("../")
+	defer testutil.Chdir(t, currentDir)
+	testutil.Chdir(t, "../")
 	verifier := ReproducibleProvenanceVerifier{}
 
 	if err := verifier.Verify(schemaExamplePath); err != nil {
@@ -44,8 +46,8 @@ func TestAmberProvenanceMetadataVerifier(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't get current directory: %v", err)
 	}
-	defer os.Chdir(currentDir)
-	os.Chdir("../")
+	defer testutil.Chdir(t, currentDir)
+	testutil.Chdir(t, "../")
 	verifier := AmberProvenanceMetadataVerifier{}
 
 	if err := verifier.Verify(schemaExamplePath); err != nil {

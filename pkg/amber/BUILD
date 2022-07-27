@@ -47,6 +47,7 @@ go_test(
     ],
     embed = [":amber"],
     deps = [
+        "//internal/testutil",
         "@com_github_google_go_cmp//cmp:go_default_library",
         "@com_github_in_toto_in_toto_golang//in_toto/slsa_provenance/v0.2:go_default_library",
     ],

@@ -26,7 +26,6 @@ import (
 // process for the application using this evidence. The authorization logic
 // compiler can then run on the generated code.
 func main() {
-
 	appName := flag.String("app_name", "", "set name of application to be released")
 	endorsementFilePath := flag.String("endorsement", "", "set path of endorsement file")
 	provenanceFilePath := flag.String("provenance", "", "set path of provenance file")
@@ -41,13 +40,17 @@ func main() {
 	}
 
 	file, err := os.Create(*outputFilePath)
-	defer file.Close()
 	if err != nil {
 		log.Fatalf("Couldn't create file for generated authorizaiton logic: %v\nThe generated auth logic was this:\n%s", err, out)
 	}
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Fatalf("Couldn't close the file: %v", err)
+		}
+	}()
+
 	_, err = file.WriteString(out)
 	if err != nil {
 		log.Fatalf("Couldn't write generated authorization logic to file: %v\nThe generated auth logic was this:\n%s", err, out)
 	}
-
 }
