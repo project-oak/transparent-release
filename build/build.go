@@ -30,12 +30,8 @@ import (
 // The `gitRootDir` parameter is optional, and indicates a local Git repository
 // to build the binary from. If not specified, the code will instead fetch the
 // sources from the repository specified in the build config file.
-//
-// If the config file specifies an `expected_binary_sha256_hash`, the command
-// checks that the hash of the built binary matches the given
-// `expected_binary_sha256_hash`. If these hashes are not equal this function
-// returns an error. Otherwise, it generates a SLSA provenance file based on
-// the given build config.
+// If the build is successful, a SLSA provenance file is generated and returned
+// as the output. Otherwise, an error is returned.
 func Build(buildFilePath, gitRootDir string) (*intoto.Statement, error) {
 	buildConfig, err := common.LoadBuildConfigFromFile(buildFilePath)
 	if err != nil {

@@ -52,8 +52,6 @@ type BuildConfig struct {
 	// The path, relative to the root of the git repository, where the binary
 	// built by the `docker run` command is expected to be found.
 	OutputPath string `toml:"output_path"`
-	// Expected SHA256 hash of the output binary. Could be empty.
-	ExpectedBinarySha256Hash string `toml:"expected_binary_sha256_hash"`
 }
 
 // RepoCheckoutInfo contains info about the location of a locally checked out
@@ -97,11 +95,6 @@ func LoadBuildConfigFromProvenance(statement *intoto.Statement) (*BuildConfig, e
 		return nil, fmt.Errorf("the provenance statement must have exactly one Subject, got %d", len(statement.Subject))
 	}
 
-	expectedBinarySha256Hash := statement.Subject[0].Digest["sha256"]
-	if len(statement.Subject) != 1 {
-		return nil, fmt.Errorf("the provenance's subject digest must specify a sha256 hash, got %s", expectedBinarySha256Hash)
-	}
-
 	predicate := statement.Predicate.(slsa.ProvenancePredicate)
 	if len(predicate.Materials) != 2 {
 		return nil, fmt.Errorf("the provenance must have exactly two Materials, got %d", len(predicate.Materials))
@@ -134,12 +127,11 @@ func LoadBuildConfigFromProvenance(statement *intoto.Statement) (*BuildConfig, e
 	}
 
 	config := BuildConfig{
-		Repo:                     predicate.Materials[1].URI,
-		CommitHash:               commitHash,
-		BuilderImage:             builderImage,
-		Command:                  command,
-		OutputPath:               outputPath,
-		ExpectedBinarySha256Hash: expectedBinarySha256Hash,
+		Repo:         predicate.Materials[1].URI,
+		CommitHash:   commitHash,
+		BuilderImage: builderImage,
+		Command:      command,
+		OutputPath:   outputPath,
 	}
 
 	return &config, nil
@@ -241,26 +233,7 @@ func (b *BuildConfig) ComputeBinarySha256Hash() (string, error) {
 	return binarySha256Hash, nil
 }
 
-// VerifyBinarySha256Hash computes the SHA256 hash of the binary built by this
-// BuildConfig, and checks that this hash is equal to `ExpectedSha256Hash` in
-// this BuildConfig. Returns an error if the hashes are not equal.
-func (b *BuildConfig) VerifyBinarySha256Hash() error {
-	binarySha256Hash, err := b.ComputeBinarySha256Hash()
-	if err != nil {
-		return err
-	}
-
-	if b.ExpectedBinarySha256Hash == "" || b.ExpectedBinarySha256Hash != binarySha256Hash {
-		return fmt.Errorf("the hash of the generated binary does not match the expected SHA256 hash; got %s, want %v",
-			binarySha256Hash, b.ExpectedBinarySha256Hash)
-	}
-
-	return nil
-}
-
-// GenerateProvenanceStatement generates a provenance statement from this config. If
-// `ExpectedBinarySha256Hash` is non-empty, the provenance statement is generated only if the
-// SHA256 hash of the generated binary is equal to `ExpectedBinarySha256Hash`.
+// GenerateProvenanceStatement generates a provenance statement from this config.
 func (b *BuildConfig) GenerateProvenanceStatement() (*intoto.Statement, error) {
 	binarySha256Hash, err := b.ComputeBinarySha256Hash()
 	if err != nil {
@@ -268,11 +241,6 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*intoto.Statement, error) {
 	}
 
 	log.Printf("The hash of the binary is: %s", binarySha256Hash)
-
-	if b.ExpectedBinarySha256Hash != "" && b.ExpectedBinarySha256Hash != binarySha256Hash {
-		return nil, fmt.Errorf("the hash of the output binary does not match the expected binary hash; got %s, want %v",
-			binarySha256Hash, b.ExpectedBinarySha256Hash)
-	}
 
 	subject := intoto.Subject{
 		// TODO(#57): Get the name as an input in the TOML file.
