@@ -139,7 +139,7 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 	assert("builderImage", predicate.Materials[0].URI, "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
 	assert("commitHash", predicate.Materials[0].Digest["sha256"], "53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
 	assert("subjectName", prov.Subject[0].Name, "build.toml-0f2189703c57845e09d8ab89164a4041c0af0a62")
-	assert("expectedSha256Hash", prov.Subject[0].Digest["sha256"], "3dbf6017c84f2a6be8d1d914ff6da2b9a34829b1846a342b8b73856fa53d4d6b")
+	assert("subjectDigest", prov.Subject[0].Digest["sha256"], "3dbf6017c84f2a6be8d1d914ff6da2b9a34829b1846a342b8b73856fa53d4d6b")
 	assert("outputPath", buildConfig.OutputPath, "../testdata/build.toml")
 	assert("command[0]", buildConfig.Command[0], "./scripts/runner")
 	assert("command[1]", buildConfig.Command[1], "build-functions-server")
