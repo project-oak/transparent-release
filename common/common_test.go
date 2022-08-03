@@ -30,7 +30,7 @@ const testdataPath = "../testdata/"
 const provenanceExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
 
 func TestComputeBinarySha256Hash(t *testing.T) {
-	want := "56893dbba5667a305894b424c1fa58a0b51f994b117e62296fb6ee5986683856"
+	want := "3dbf6017c84f2a6be8d1d914ff6da2b9a34829b1846a342b8b73856fa53d4d6b"
 	path := filepath.Join(testdataPath, "build.toml")
 	got, err := computeSha256Hash(path)
 	if err != nil {
@@ -117,8 +117,6 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 	}
 	// Replace output path with path of the "build.toml" file
 	config.OutputPath = path
-	// Set ExpectedBinarySha256Hash to the hash of the "build.toml" file
-	config.ExpectedBinarySha256Hash = "56893dbba5667a305894b424c1fa58a0b51f994b117e62296fb6ee5986683856"
 
 	prov, err := config.GenerateProvenanceStatement()
 	if err != nil {
@@ -141,7 +139,7 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 	assert("builderImage", predicate.Materials[0].URI, "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
 	assert("commitHash", predicate.Materials[0].Digest["sha256"], "53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
 	assert("subjectName", prov.Subject[0].Name, "build.toml-0f2189703c57845e09d8ab89164a4041c0af0a62")
-	assert("expectedSha256Hash", prov.Subject[0].Digest["sha256"], "56893dbba5667a305894b424c1fa58a0b51f994b117e62296fb6ee5986683856")
+	assert("expectedSha256Hash", prov.Subject[0].Digest["sha256"], "3dbf6017c84f2a6be8d1d914ff6da2b9a34829b1846a342b8b73856fa53d4d6b")
 	assert("outputPath", buildConfig.OutputPath, "../testdata/build.toml")
 	assert("command[0]", buildConfig.Command[0], "./scripts/runner")
 	assert("command[1]", buildConfig.Command[1], "build-functions-server")
@@ -149,12 +147,11 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 
 func checkBuildConfig(got *BuildConfig, t *testing.T) {
 	want := &BuildConfig{
-		Repo:                     "https://github.com/project-oak/oak",
-		CommitHash:               "0f2189703c57845e09d8ab89164a4041c0af0a62",
-		BuilderImage:             "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320",
-		Command:                  []string{"./scripts/runner", "build-functions-server"},
-		OutputPath:               "./oak_functions/loader/bin/oak_functions_loader",
-		ExpectedBinarySha256Hash: "15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c",
+		Repo:         "https://github.com/project-oak/oak",
+		CommitHash:   "0f2189703c57845e09d8ab89164a4041c0af0a62",
+		BuilderImage: "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320",
+		Command:      []string{"./scripts/runner", "build-functions-server"},
+		OutputPath:   "./oak_functions/loader/bin/oak_functions_loader",
 	}
 
 	if cmp.Diff(got, want) != "" {

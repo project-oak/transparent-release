@@ -67,10 +67,6 @@ func (verifier *ReproducibleProvenanceVerifier) Verify(provenanceFilePath string
 		return fmt.Errorf("couldn't build the binary: %v", err)
 	}
 
-	if err := buildConfig.VerifyBinarySha256Hash(); err != nil {
-		return fmt.Errorf("failed to verify the hash of the built binary: %v", err)
-	}
-
 	return nil
 }
 
