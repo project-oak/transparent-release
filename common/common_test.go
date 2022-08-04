@@ -41,7 +41,7 @@ func TestComputeBinarySha256Hash(t *testing.T) {
 		t.Fatalf("couldn't get SHA256 hash: %v", err)
 	}
 	if got != wantTOMLHash {
-		t.Errorf("invalid commit hash: got %s, want %s", got, wantTOMLHash)
+		t.Errorf("invalid SHA256 hash: got %s, want %s", got, wantTOMLHash)
 	}
 }
 
@@ -77,7 +77,7 @@ func TestLoadBuildConfigFromProvenance(t *testing.T) {
 	checkBuildConfig(config, t)
 }
 
-func TestParseBuilderImageUriValidUri(t *testing.T) {
+func TestParseBuilderImageURIValidURI(t *testing.T) {
 	builderImageURI := fmt.Sprintf("gcr.io/oak-ci/oak@sha256:%s", wantBuilderImageID)
 	alg, digest, err := parseBuilderImageURI(builderImageURI)
 	if err != nil {
@@ -94,7 +94,7 @@ func TestParseBuilderImageUriValidUri(t *testing.T) {
 	}
 }
 
-func TestParseBuilderImageUriInvalidURIs(t *testing.T) {
+func TestParseBuilderImageURIInvalidURIs(t *testing.T) {
 	imageURIWithTag := "gcr.io/oak-ci/oak@latest"
 	want := fmt.Sprintf("the builder image digest (%q) does not have the required ALG:VALUE format", "latest")
 	alg, digest, err := parseBuilderImageURI(imageURIWithTag)
