@@ -38,6 +38,7 @@ go_test(
         "//schema/amber-slsa-buildtype/v1:example.json",
         "//schema/amber-slsa-buildtype/v1:provenance.json",
         "//testdata:build.toml",
+        "//testdata:static.txt",
     ],
     embed = [":common"],
     deps = [

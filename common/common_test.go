@@ -28,20 +28,20 @@ import (
 const (
 	testdataPath             = "../testdata/"
 	provenanceExamplePath    = "schema/amber-slsa-buildtype/v1/example.json"
-	wantTomlHash             = "f8b8b42df90a32f24822a5cf527574598a7812209455cf293bf99b84de90934b"
+	wantTOMLHash             = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
 	wantBuilderImageID       = "6e5beabe4ace0e3aaa01ce497f5f1ef30fed7c18c596f35621751176b1ab583d"
-	wantSha1HexDigitLength   = 40
-	wantSha256HexDigitLength = 64
+	wantSHA1HexDigitLength   = 40
+	wantSHA256HexDigitLength = 64
 )
 
 func TestComputeBinarySha256Hash(t *testing.T) {
-	path := filepath.Join(testdataPath, "build.toml")
+	path := filepath.Join(testdataPath, "static.txt")
 	got, err := computeSha256Hash(path)
 	if err != nil {
 		t.Fatalf("couldn't get SHA256 hash: %v", err)
 	}
-	if got != wantTomlHash {
-		t.Errorf("invalid commit hash: got %s, want %s", got, wantTomlHash)
+	if got != wantTOMLHash {
+		t.Errorf("invalid commit hash: got %s, want %s", got, wantTOMLHash)
 	}
 }
 
@@ -133,9 +133,9 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 	// Check that the provenance is generated correctly
 	assertEq(t, "repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")
 	assertNonEmpty(t, "subjectName", prov.Subject[0].Name)
-	assertEq(t, "subjectDigest", len(prov.Subject[0].Digest["sha256"]), wantSha256HexDigitLength)
-	assertEq(t, "commitHash length", len(predicate.Materials[1].Digest["sha1"]), wantSha1HexDigitLength)
-	assertEq(t, "builderImageID length", len(predicate.Materials[0].Digest["sha256"]), wantSha256HexDigitLength)
+	assertEq(t, "subjectDigest", len(prov.Subject[0].Digest["sha256"]), wantSHA256HexDigitLength)
+	assertEq(t, "commitHash length", len(predicate.Materials[1].Digest["sha1"]), wantSHA1HexDigitLength)
+	assertEq(t, "builderImageID length", len(predicate.Materials[0].Digest["sha256"]), wantSHA256HexDigitLength)
 	assertEq(t, "builderImageURI", predicate.Materials[0].URI, fmt.Sprintf("gcr.io/oak-ci/oak@sha256:%s", predicate.Materials[0].Digest["sha256"]))
 	assertNonEmpty(t, "command[0]", buildConfig.Command[0])
 	assertNonEmpty(t, "command[1]", buildConfig.Command[1])
@@ -148,7 +148,7 @@ func assertEq[T comparable](t *testing.T, name string, got, want T) {
 }
 
 func assertNonEmpty(t *testing.T, name, got string) {
-	if len(got) <= 0 {
+	if len(got) == 0 {
 		t.Errorf("Unexpected %s: non-empty string must be provided", name)
 	}
 }
@@ -160,10 +160,10 @@ func checkBuildConfig(got *BuildConfig, t *testing.T) {
 	}
 	// Check that the provenance is generated correctly
 	assertEq(t, "repoURL", got.Repo, "https://github.com/project-oak/oak")
-	assertEq(t, "commitHash length", len(got.CommitHash), wantSha1HexDigitLength)
-	assertEq(t, "builderImageID length", len(digest), wantSha256HexDigitLength)
+	assertEq(t, "commitHash length", len(got.CommitHash), wantSHA1HexDigitLength)
+	assertEq(t, "builderImageID length", len(digest), wantSHA256HexDigitLength)
 	assertEq(t, "builderImageID digest algorithm", alg, "sha256")
-	assertEq(t, "builderImageID length", len(digest), wantSha256HexDigitLength)
+	assertEq(t, "builderImageID length", len(digest), wantSHA256HexDigitLength)
 	assertNonEmpty(t, "command[0]", got.Command[0])
 	assertNonEmpty(t, "command[1]", got.Command[1])
 }

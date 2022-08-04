@@ -66,7 +66,7 @@ func assertEq[T comparable](t *testing.T, name string, got, want T) {
 }
 
 func assertNonEmpty(t *testing.T, name, got string) {
-	if len(got) <= 0 {
+	if len(got) == 0 {
 		t.Errorf("Unexpected %s: non-empty string must be provided", name)
 	}
 }
