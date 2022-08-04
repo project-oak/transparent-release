@@ -86,6 +86,8 @@ go_test(
         "//experimental/auth-logic/test_data:rekor_wrapper_expected.auth_logic",
         "//experimental/auth-logic/test_data:verifier_wrapper_expected.auth_logic",
         "//schema/amber-endorsement/v1:example.json",
+        "//schema/amber-claim/v1:example.json",
+        "//schema/amber-claim/v1:example2.json",
         "//schema/amber-slsa-buildtype/v1:example.json",
         "//schema/amber-slsa-buildtype/v1:provenance.json",
     ],
