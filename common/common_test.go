@@ -131,26 +131,14 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 	buildConfig := predicate.BuildConfig.(amber.BuildConfig)
 
 	// Check that the provenance is generated correctly
-	assertEq(t, "repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")
-	assertNonEmpty(t, "subjectName", prov.Subject[0].Name)
-	assertEq(t, "subjectDigest", len(prov.Subject[0].Digest["sha256"]), wantSHA256HexDigitLength)
-	assertEq(t, "commitHash length", len(predicate.Materials[1].Digest["sha1"]), wantSHA1HexDigitLength)
-	assertEq(t, "builderImageID length", len(predicate.Materials[0].Digest["sha256"]), wantSHA256HexDigitLength)
-	assertEq(t, "builderImageURI", predicate.Materials[0].URI, fmt.Sprintf("gcr.io/oak-ci/oak@sha256:%s", predicate.Materials[0].Digest["sha256"]))
-	assertNonEmpty(t, "command[0]", buildConfig.Command[0])
-	assertNonEmpty(t, "command[1]", buildConfig.Command[1])
-}
-
-func assertEq[T comparable](t *testing.T, name string, got, want T) {
-	if got != want {
-		t.Errorf("Unexpected %s: got %v, want %v", name, got, want)
-	}
-}
-
-func assertNonEmpty(t *testing.T, name, got string) {
-	if len(got) == 0 {
-		t.Errorf("Unexpected %s: non-empty string must be provided", name)
-	}
+	testutil.AssertEq(t, "repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")
+	testutil.AssertNonEmpty(t, "subjectName", prov.Subject[0].Name)
+	testutil.AssertEq(t, "subjectDigest", len(prov.Subject[0].Digest["sha256"]), wantSHA256HexDigitLength)
+	testutil.AssertEq(t, "commitHash length", len(predicate.Materials[1].Digest["sha1"]), wantSHA1HexDigitLength)
+	testutil.AssertEq(t, "builderImageID length", len(predicate.Materials[0].Digest["sha256"]), wantSHA256HexDigitLength)
+	testutil.AssertEq(t, "builderImageURI", predicate.Materials[0].URI, fmt.Sprintf("gcr.io/oak-ci/oak@sha256:%s", predicate.Materials[0].Digest["sha256"]))
+	testutil.AssertNonEmpty(t, "command[0]", buildConfig.Command[0])
+	testutil.AssertNonEmpty(t, "command[1]", buildConfig.Command[1])
 }
 
 func checkBuildConfig(got *BuildConfig, t *testing.T) {
@@ -159,11 +147,11 @@ func checkBuildConfig(got *BuildConfig, t *testing.T) {
 		t.Fatalf("couldn't parse imageURI (%q): %v", got.BuilderImage, err)
 	}
 	// Check that the provenance is generated correctly
-	assertEq(t, "repoURL", got.Repo, "https://github.com/project-oak/oak")
-	assertEq(t, "commitHash length", len(got.CommitHash), wantSHA1HexDigitLength)
-	assertEq(t, "builderImageID length", len(digest), wantSHA256HexDigitLength)
-	assertEq(t, "builderImageID digest algorithm", alg, "sha256")
-	assertEq(t, "builderImageID length", len(digest), wantSHA256HexDigitLength)
-	assertNonEmpty(t, "command[0]", got.Command[0])
-	assertNonEmpty(t, "command[1]", got.Command[1])
+	testutil.AssertEq(t, "repoURL", got.Repo, "https://github.com/project-oak/oak")
+	testutil.AssertEq(t, "commitHash length", len(got.CommitHash), wantSHA1HexDigitLength)
+	testutil.AssertEq(t, "builderImageID length", len(digest), wantSHA256HexDigitLength)
+	testutil.AssertEq(t, "builderImageID digest algorithm", alg, "sha256")
+	testutil.AssertEq(t, "builderImageID length", len(digest), wantSHA256HexDigitLength)
+	testutil.AssertNonEmpty(t, "command[0]", got.Command[0])
+	testutil.AssertNonEmpty(t, "command[1]", got.Command[1])
 }
