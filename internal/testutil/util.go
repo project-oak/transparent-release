@@ -24,3 +24,15 @@ func Chdir(t *testing.T, dir string) {
 		t.Fatalf("couldn't change directory to %s: %v", dir, err)
 	}
 }
+
+func AssertEq[T comparable](t *testing.T, name string, got, want T) {
+	if got != want {
+		t.Errorf("Unexpected %s: got %v, want %v", name, got, want)
+	}
+}
+
+func AssertNonEmpty(t *testing.T, name, got string) {
+	if len(got) == 0 {
+		t.Errorf("Unexpected %s: non-empty string must be provided", name)
+	}
+}

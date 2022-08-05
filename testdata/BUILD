@@ -20,4 +20,5 @@ licenses(["notice"])
 
 exports_files([
     "build.toml",
+    "static.txt",
 ])

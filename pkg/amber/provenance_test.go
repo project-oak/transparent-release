@@ -15,6 +15,7 @@
 package amber
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -22,7 +23,11 @@ import (
 	"github.com/project-oak/transparent-release/internal/testutil"
 )
 
-const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
+const (
+	provenanceExamplePath    = "schema/amber-slsa-buildtype/v1/example.json"
+	wantSha1HexDigitLength   = 40
+	wantSha256HexDigitLength = 64
+)
 
 func TestExampleProvenance(t *testing.T) {
 	// The path to provenance is specified relative to the root of the repo, so we need to go one level up.
@@ -35,29 +40,21 @@ func TestExampleProvenance(t *testing.T) {
 	testutil.Chdir(t, "../../")
 
 	// Parses the provenance and validates it against the schema.
-	provenance, err := ParseProvenanceFile(schemaExamplePath)
+	provenance, err := ParseProvenanceFile(provenanceExamplePath)
 	if err != nil {
 		t.Fatalf("Failed to parse example provenance: %v", err)
-	}
-
-	assert := func(name, got, want string) {
-		if want != got {
-			t.Errorf("Unexpected %s: got %s, want %s", name, got, want)
-		}
 	}
 
 	predicate := provenance.Predicate.(slsa.ProvenancePredicate)
 	buildConfig := predicate.BuildConfig.(BuildConfig)
 
 	// Check that the provenance parses correctly
-	assert("repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")
-	assert("commitHash", predicate.Materials[1].Digest["sha1"], "0f2189703c57845e09d8ab89164a4041c0af0a62")
-	assert("builderImage", predicate.Materials[0].URI, "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
-	assert("commitHash", predicate.Materials[0].Digest["sha256"], "53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
-	assert("subjectName", provenance.Subject[0].Name, "oak_functions_loader")
-	assert("subjectDigest", provenance.Subject[0].Digest["sha256"], "15dc16c42a4ac9ed77f337a4a3065a63e444c29c18c8cf69d6a6b4ae678dca5c")
-	assert("outputPath", buildConfig.OutputPath, "./oak_functions/loader/bin/oak_functions_loader")
-	assert("command[0]", buildConfig.Command[0], "./scripts/runner")
-	assert("command[1]", buildConfig.Command[1], "build-functions-server")
-	assert("builderId", predicate.Builder.ID, "https://github.com/project-oak/transparent-release")
+	testutil.AssertEq(t, "repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")
+	testutil.AssertEq(t, "commitHash length", len(predicate.Materials[1].Digest["sha1"]), wantSha1HexDigitLength)
+	testutil.AssertEq(t, "builderImageID length", len(predicate.Materials[0].Digest["sha256"]), wantSha256HexDigitLength)
+	testutil.AssertEq(t, "builderImageURI", predicate.Materials[0].URI, fmt.Sprintf("gcr.io/oak-ci/oak@sha256:%s", predicate.Materials[0].Digest["sha256"]))
+	testutil.AssertEq(t, "subjectName", provenance.Subject[0].Name, "oak_functions_loader")
+	testutil.AssertNonEmpty(t, "command[0]", buildConfig.Command[0])
+	testutil.AssertNonEmpty(t, "command[1]", buildConfig.Command[1])
+	testutil.AssertNonEmpty(t, "builderId", predicate.Builder.ID)
 }

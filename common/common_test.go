@@ -20,24 +20,28 @@ import (
 	"path/filepath"
 	"testing"
 
-	cmp "github.com/google/go-cmp/cmp"
 	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
-const testdataPath = "../testdata/"
-const provenanceExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
+const (
+	testdataPath             = "../testdata/"
+	provenanceExamplePath    = "schema/amber-slsa-buildtype/v1/example.json"
+	wantTOMLHash             = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
+	wantBuilderImageID       = "6e5beabe4ace0e3aaa01ce497f5f1ef30fed7c18c596f35621751176b1ab583d"
+	wantSHA1HexDigitLength   = 40
+	wantSHA256HexDigitLength = 64
+)
 
 func TestComputeBinarySha256Hash(t *testing.T) {
-	want := "3dbf6017c84f2a6be8d1d914ff6da2b9a34829b1846a342b8b73856fa53d4d6b"
-	path := filepath.Join(testdataPath, "build.toml")
+	path := filepath.Join(testdataPath, "static.txt")
 	got, err := computeSha256Hash(path)
 	if err != nil {
 		t.Fatalf("couldn't get SHA256 hash: %v", err)
 	}
-	if got != want {
-		t.Errorf("invalid commit hash: got %s, want %s", got, want)
+	if got != wantTOMLHash {
+		t.Errorf("invalid SHA256 hash: got %s, want %s", got, wantTOMLHash)
 	}
 }
 
@@ -47,7 +51,6 @@ func TestLoadBuildConfigFromFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't load build file: %v", err)
 	}
-
 	checkBuildConfig(config, t)
 }
 
@@ -70,27 +73,28 @@ func TestLoadBuildConfigFromProvenance(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't load BuildConfig from provenance: %v", err)
 	}
+
 	checkBuildConfig(config, t)
 }
 
-func TestParseBuilderImageUriValidURI(t *testing.T) {
-	imageURI := "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320"
-	alg, digest, err := parseBuilderImageURI(imageURI)
+func TestParseBuilderImageURIValidURI(t *testing.T) {
+	builderImageURI := fmt.Sprintf("gcr.io/oak-ci/oak@sha256:%s", wantBuilderImageID)
+	alg, digest, err := parseBuilderImageURI(builderImageURI)
 	if err != nil {
-		t.Fatalf("couldn't parse imageURI (%q): %v", imageURI, err)
+		t.Fatalf("couldn't parse imageURI (%q): %v", builderImageURI, err)
 	}
 
 	if alg != "sha256" {
-		t.Errorf("got parseBuilderImageURI(%s).algorithm = %s, want sha256", imageURI, alg)
+		t.Errorf("got parseBuilderImageURI(%s).algorithm = %s, want sha256", builderImageURI, alg)
 	}
 
-	want := "53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320"
-	if digest != want {
-		t.Errorf("got parseBuilderImageURI(%s).digest = %s, want %s", imageURI, alg, want)
+	if digest != wantBuilderImageID {
+		t.Errorf("got parseBuilderImageURI(%s).digest = %s, want %s",
+			builderImageURI, alg, wantBuilderImageID)
 	}
 }
 
-func TestParseBuilderImageUriInvalidURIs(t *testing.T) {
+func TestParseBuilderImageURIInvalidURIs(t *testing.T) {
 	imageURIWithTag := "gcr.io/oak-ci/oak@latest"
 	want := fmt.Sprintf("the builder image digest (%q) does not have the required ALG:VALUE format", "latest")
 	alg, digest, err := parseBuilderImageURI(imageURIWithTag)
@@ -123,38 +127,31 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 		t.Fatalf("couldn't generate provenance: %v", err)
 	}
 
-	// Verify the content of the generated provenance statement
-	assert := func(name, got, want string) {
-		if want != got {
-			t.Errorf("Unexpected %s: got %s, want %s", name, got, want)
-		}
-	}
-
 	predicate := prov.Predicate.(slsa.ProvenancePredicate)
 	buildConfig := predicate.BuildConfig.(amber.BuildConfig)
 
 	// Check that the provenance is generated correctly
-	assert("repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")
-	assert("commitHash", predicate.Materials[1].Digest["sha1"], "0f2189703c57845e09d8ab89164a4041c0af0a62")
-	assert("builderImage", predicate.Materials[0].URI, "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
-	assert("commitHash", predicate.Materials[0].Digest["sha256"], "53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320")
-	assert("subjectName", prov.Subject[0].Name, "build.toml-0f2189703c57845e09d8ab89164a4041c0af0a62")
-	assert("subjectDigest", prov.Subject[0].Digest["sha256"], "3dbf6017c84f2a6be8d1d914ff6da2b9a34829b1846a342b8b73856fa53d4d6b")
-	assert("outputPath", buildConfig.OutputPath, "../testdata/build.toml")
-	assert("command[0]", buildConfig.Command[0], "./scripts/runner")
-	assert("command[1]", buildConfig.Command[1], "build-functions-server")
+	testutil.AssertEq(t, "repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")
+	testutil.AssertNonEmpty(t, "subjectName", prov.Subject[0].Name)
+	testutil.AssertEq(t, "subjectDigest", len(prov.Subject[0].Digest["sha256"]), wantSHA256HexDigitLength)
+	testutil.AssertEq(t, "commitHash length", len(predicate.Materials[1].Digest["sha1"]), wantSHA1HexDigitLength)
+	testutil.AssertEq(t, "builderImageID length", len(predicate.Materials[0].Digest["sha256"]), wantSHA256HexDigitLength)
+	testutil.AssertEq(t, "builderImageURI", predicate.Materials[0].URI, fmt.Sprintf("gcr.io/oak-ci/oak@sha256:%s", predicate.Materials[0].Digest["sha256"]))
+	testutil.AssertNonEmpty(t, "command[0]", buildConfig.Command[0])
+	testutil.AssertNonEmpty(t, "command[1]", buildConfig.Command[1])
 }
 
 func checkBuildConfig(got *BuildConfig, t *testing.T) {
-	want := &BuildConfig{
-		Repo:         "https://github.com/project-oak/oak",
-		CommitHash:   "0f2189703c57845e09d8ab89164a4041c0af0a62",
-		BuilderImage: "gcr.io/oak-ci/oak@sha256:53ca44b5889e2265c3ae9e542d7097b7de12ea4c6a33785da8478c7333b9a320",
-		Command:      []string{"./scripts/runner", "build-functions-server"},
-		OutputPath:   "./oak_functions/loader/bin/oak_functions_loader",
+	alg, digest, err := parseBuilderImageURI(got.BuilderImage)
+	if err != nil {
+		t.Fatalf("couldn't parse imageURI (%q): %v", got.BuilderImage, err)
 	}
-
-	if cmp.Diff(got, want) != "" {
-		t.Errorf("invalid config: got %q, want %q", got, want)
-	}
+	// Check that the provenance is generated correctly
+	testutil.AssertEq(t, "repoURL", got.Repo, "https://github.com/project-oak/oak")
+	testutil.AssertEq(t, "commitHash length", len(got.CommitHash), wantSHA1HexDigitLength)
+	testutil.AssertEq(t, "builderImageID length", len(digest), wantSHA256HexDigitLength)
+	testutil.AssertEq(t, "builderImageID digest algorithm", alg, "sha256")
+	testutil.AssertEq(t, "builderImageID length", len(digest), wantSHA256HexDigitLength)
+	testutil.AssertNonEmpty(t, "command[0]", got.Command[0])
+	testutil.AssertNonEmpty(t, "command[1]", got.Command[1])
 }
