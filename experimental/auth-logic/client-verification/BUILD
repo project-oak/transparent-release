@@ -62,7 +62,7 @@ genrule(
         "//schema/amber-slsa-buildtype/v1:provenance.json",
         "//schema/amber-slsa-buildtype/v1:example.json",
         "//schema/amber-endorsement/v1:example.json",
-        "//schema/amber-claim/v1:example2.json",
+        "//experimental/auth-logic/test_data:oak_endorsement.json",
         "//experimental/auth-logic/templates:verifier_policy.auth.tmpl",
         "//experimental/auth-logic/templates:endorsement_policy.auth.tmpl",
         "//experimental/auth-logic/templates:provenance_builder_policy.auth.tmpl",
@@ -75,7 +75,7 @@ genrule(
     ],
     cmd = """
   export PROVENANCE=$(location //schema/amber-slsa-buildtype/v1:example.json)
-  export ENDORSEMENT=$(location //schema/amber-claim/v1:example2.json)
+  export ENDORSEMENT=$(location //experimental/auth-logic/test_data:oak_endorsement.json)
   ./$(location :auth_logic_verification) --app_name oak_functions_loader:0f2189703c57845e09d8ab89164a4041c0af0a62 --endorsement $$ENDORSEMENT --provenance $$PROVENANCE --out $(RULEDIR)/oak_verification.auth_logic --query_name verification_success
   export SOUFFLE_BIN=$(location @souffle-bin//file)
   ./$(location @auth-logic-compiler//file) $(RULEDIR)/oak_verification.auth_logic --souffle-output-file $(RULEDIR)/oak_verification.auth_logic.dl --output_queries_directory $(RULEDIR)

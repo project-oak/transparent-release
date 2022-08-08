@@ -20,5 +20,4 @@ licenses(["notice"])
 
 exports_files([
     "example.json",
-    "example2.json",
 ])

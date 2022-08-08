@@ -23,7 +23,7 @@ import (
 	"github.com/project-oak/transparent-release/internal/testutil"
 )
 
-const testEndorsementPath = "schema/amber-claim/v1/example2.json"
+const testEndorsementPath = "experimental/auth-logic/test_data/oak_endorsement.json"
 const endorsementExpectedFile = "experimental/auth-logic/test_data/endorsement_wrapper_expected.auth_logic"
 
 func TestEndorsementWrapper(t *testing.T) {
