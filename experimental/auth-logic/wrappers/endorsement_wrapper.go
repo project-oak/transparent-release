@@ -40,7 +40,7 @@ type ValidatedEndorsement struct {
 }
 
 // ParseEndorsementFile parses an endorsement file (in JSON) and
-// produces and returns an `ValidatedEndorsement` data structure.
+// produces and returns a `ValidatedEndorsement` data structure.
 func ParseEndorsementFile(path string) (*ValidatedEndorsement, error) {
 	endorsementBytes, err := os.ReadFile(path)
 	if err != nil {
@@ -50,7 +50,7 @@ func ParseEndorsementFile(path string) (*ValidatedEndorsement, error) {
 	return ParseEndorsementBytes(endorsementBytes)
 }
 
-// ParseEndorsementBytes converts bytes from an endorsement file (in JSON) into an
+// ParseEndorsementBytes converts bytes from an endorsement file (in JSON) into a
 // `ValidatedEndorsement` data structure.
 func ParseEndorsementBytes(endorsementBytes []byte) (*ValidatedEndorsement, error) {
 	endorsementStatement, err := amber.ParseEndorsementV2Bytes(endorsementBytes)
@@ -60,7 +60,7 @@ func ParseEndorsementBytes(endorsementBytes []byte) (*ValidatedEndorsement, erro
 	return GenerateValidatedEndorsement(endorsementStatement)
 }
 
-// GenerateValidatedEndorsement produces a ValidatedEndorsement from an Endorsement
+// GenerateValidatedEndorsement produces a ValidatedEndorsement from an endorsement statement.
 func GenerateValidatedEndorsement(endorsement *intoto.Statement) (*ValidatedEndorsement, error) {
 	if len(endorsement.Subject) != 1 {
 		return nil, fmt.Errorf("endorsement file missing subject: %s", endorsement)
