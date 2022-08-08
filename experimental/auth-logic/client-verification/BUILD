@@ -61,7 +61,6 @@ genrule(
     srcs = [
         "//schema/amber-slsa-buildtype/v1:provenance.json",
         "//schema/amber-slsa-buildtype/v1:example.json",
-        "//schema/amber-endorsement/v1:example.json",
         "//experimental/auth-logic/test_data:oak_endorsement.json",
         "//experimental/auth-logic/templates:verifier_policy.auth.tmpl",
         "//experimental/auth-logic/templates:endorsement_policy.auth.tmpl",
