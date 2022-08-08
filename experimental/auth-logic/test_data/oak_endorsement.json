@@ -8,11 +8,16 @@
       }
     }
   ],
-  "predicateType": "https://github.com/project-oak/transparent-release/schema/amber-endorsement/v1/predicate.json",
+  "predicateType": "https://github.com/project-oak/transparent-release/claim/v1",
   "predicate": {
-    "validityPeriod": {
-      "releaseTime": "2022-02-01T10:20:50.32Z",
-      "expiryTime": "2032-03-01T10:20:50.32Z"
-    }
+    "issuer": {
+      "id": "mailto:oak@google.com"
+    },
+    "claimType": "https://github.com/project-oak/transparent-release/endorsement/v2",
+    "metadata": {
+      "issuedOn": "2022-07-08T10:20:50.32Z",
+      "expiresOn": "2032-08-08T10:20:50.32Z"
+    },
+    "evidence": []
   }
 }

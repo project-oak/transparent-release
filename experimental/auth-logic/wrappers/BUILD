@@ -48,6 +48,7 @@ go_library(
         "//pkg/amber",
         "//common",
         "//verify",
+        "@com_github_in_toto_in_toto_golang//in_toto:go_default_library",
         "@com_github_cyberphone_json_canonicalization//go/src/webpki.org/jsoncanonicalizer",
         "@com_github_go_openapi_runtime//:go_default_library",
         "@com_github_go_openapi_strfmt//:go_default_library",
@@ -84,12 +85,12 @@ go_test(
         "//experimental/auth-logic/test_data:rekor_public_key.pem",
         "//experimental/auth-logic/test_data:rekor_wrapper_expected.auth_logic",
         "//experimental/auth-logic/test_data:verifier_wrapper_expected.auth_logic",
-        "//schema/amber-endorsement/v1:example.json",
+        "//schema/amber-claim/v1:example.json",
         "//schema/amber-slsa-buildtype/v1:example.json",
         "//schema/amber-slsa-buildtype/v1:provenance.json",
     ],
     embed = [":transparent_release_verification_wrappers"],
-    deps = ["//internal/testutil"],
+    deps = ["//internal/testutil", "//pkg/amber"],
 )
 
 go_test(
@@ -101,5 +102,5 @@ go_test(
         "//schema/amber-slsa-buildtype/v1:provenance.json",
     ],
     embed = [":transparent_release_verification_wrappers"],
-    deps = ["//internal/testutil"],
+    deps = ["//internal/testutil", "//pkg/amber"],
 )

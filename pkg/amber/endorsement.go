@@ -29,13 +29,19 @@ import (
 const AmberEndorsementV2 = "https://github.com/project-oak/transparent-release/endorsement/v2"
 
 // ParseEndorsementV2File reads a JSON file from the given path, and parses it into an
-// instance of intoto.Statement, with the Amber Claim as the build type.
+// instance of intoto.Statement, with the Amber Claim as the predicate type.
 func ParseEndorsementV2File(path string) (*intoto.Statement, error) {
 	statementBytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("could not read the endorsement file: %v", err)
 	}
 
+	return ParseEndorsementV2Bytes(statementBytes)
+}
+
+// ParseEndorsementV2Bytes parses a JSON string it into an instance of intoto.Statement,
+// with the Amber Claim as the predicate type.
+func ParseEndorsementV2Bytes(statementBytes []byte) (*intoto.Statement, error) {
 	var statement intoto.Statement
 	if err := json.Unmarshal(statementBytes, &statement); err != nil {
 		return nil, fmt.Errorf("could not unmarshal the endorsement file:\n%v", err)
