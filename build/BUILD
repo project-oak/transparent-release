@@ -24,7 +24,7 @@ go_library(
     importpath = "github.com/project-oak/transparent-release/build",
     deps = [
         "//pkg/amber",
-        "//common",
+        "//internal/common",
         "@com_github_in_toto_in_toto_golang//in_toto:go_default_library",
     ],
 )

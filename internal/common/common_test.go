@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	testdataPath             = "../testdata/"
+	testdataPath             = "../../testdata/"
 	provenanceExamplePath    = "schema/amber-slsa-buildtype/v1/example.json"
 	wantTOMLHash             = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
 	wantBuilderImageID       = "6e5beabe4ace0e3aaa01ce497f5f1ef30fed7c18c596f35621751176b1ab583d"
@@ -62,7 +62,7 @@ func TestLoadBuildConfigFromProvenance(t *testing.T) {
 		t.Fatalf("couldn't get current directory: %v", err)
 	}
 	defer testutil.Chdir(t, currentDir)
-	testutil.Chdir(t, "../")
+	testutil.Chdir(t, "../../")
 
 	provenance, err := amber.ParseProvenanceFile(provenanceExamplePath)
 	if err != nil {

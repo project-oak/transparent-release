@@ -19,7 +19,7 @@ import (
 	"fmt"
 
 	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
-	"github.com/project-oak/transparent-release/common"
+	"github.com/project-oak/transparent-release/internal/common"
 	"github.com/project-oak/transparent-release/pkg/amber"
 )
 

@@ -21,7 +21,7 @@ package(default_visibility = ["//:__subpackages__"])
 go_library(
     name = "common",
     srcs = ["common.go"],
-    importpath = "github.com/project-oak/transparent-release/common",
+    importpath = "github.com/project-oak/transparent-release/internal/common",
     deps = [
         "//pkg/amber",
         "@com_github_in_toto_in_toto_golang//in_toto:go_default_library",
