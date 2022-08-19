@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"text/template"
 
+	verify "github.com/project-oak/transparent-release/internal/verifier"
 	"github.com/project-oak/transparent-release/pkg/amber"
-	"github.com/project-oak/transparent-release/verify"
 )
 
 const provenanceBuilderTemplate = "experimental/auth-logic/templates/provenance_builder_policy.auth.tmpl"

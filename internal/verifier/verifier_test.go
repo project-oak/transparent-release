@@ -31,7 +31,7 @@ func TestReproducibleProvenanceVerifier(t *testing.T) {
 		t.Fatalf("couldn't get current directory: %v", err)
 	}
 	defer testutil.Chdir(t, currentDir)
-	testutil.Chdir(t, "../")
+	testutil.Chdir(t, "../../")
 	verifier := ReproducibleProvenanceVerifier{}
 
 	if err := verifier.Verify(schemaExamplePath); err != nil {
@@ -47,7 +47,7 @@ func TestAmberProvenanceMetadataVerifier(t *testing.T) {
 		t.Fatalf("couldn't get current directory: %v", err)
 	}
 	defer testutil.Chdir(t, currentDir)
-	testutil.Chdir(t, "../")
+	testutil.Chdir(t, "../../")
 	verifier := AmberProvenanceMetadataVerifier{}
 
 	if err := verifier.Verify(schemaExamplePath); err != nil {

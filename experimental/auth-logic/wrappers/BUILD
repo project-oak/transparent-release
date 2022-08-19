@@ -47,7 +47,7 @@ go_library(
     deps = [
         "//pkg/amber",
         "//internal/common",
-        "//verify",
+        "//internal/verifier",
         "@com_github_in_toto_in_toto_golang//in_toto:go_default_library",
         "@com_github_cyberphone_json_canonicalization//go/src/webpki.org/jsoncanonicalizer",
         "@com_github_go_openapi_runtime//:go_default_library",

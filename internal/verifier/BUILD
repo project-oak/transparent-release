@@ -19,9 +19,9 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 package(default_visibility = ["//:__subpackages__"])
 
 go_library(
-    name = "verify",
-    srcs = ["verify.go"],
-    importpath = "github.com/project-oak/transparent-release/verify",
+    name = "verifier",
+    srcs = ["verifier.go"],
+    importpath = "github.com/project-oak/transparent-release/internal/verifier",
     deps = [
         "//pkg/amber",
         "//internal/common",
@@ -30,13 +30,13 @@ go_library(
 )
 
 go_test(
-    name = "verify_test",
+    name = "verifier_test",
     size = "enormous",
-    srcs = ["verify_test.go"],
+    srcs = ["verifier_test.go"],
     data = [
         "//schema/amber-slsa-buildtype/v1:example.json",
         "//schema/amber-slsa-buildtype/v1:provenance.json",
     ],
-    embed = [":verify"],
+    embed = [":verifier"],
     deps = ["//internal/testutil"],
 )

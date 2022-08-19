@@ -19,7 +19,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/project-oak/transparent-release/verify"
+	verify "github.com/project-oak/transparent-release/internal/verifier"
 )
 
 func main() {

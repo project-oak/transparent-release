@@ -23,7 +23,7 @@ installed. This helps with making the builds reproducible and the provenances
 verifiable. The toml file should conform to the `BuildConfig` structure defined
 in the [`common`](/common/) package.
 
-The [`cmd/build`](/cmd/build/) command line tool described above can be used for building the binaries, and at the same time for generating a	corresponding provenance file. To use this tool, the developers need to provide	a toml file similar to the one in [`testdata/build.toml`](/testdata/build.toml). See the definition of `BuildConfig` in package [`common`](/common/) for the￼description of each field.		
+The [`cmd/build`](/cmd/build/) command line tool described above can be used for building the binaries, and at the same time for generating a corresponding provenance file. To use this tool, the developers need to provide a toml file similar to the one in [`testdata/build.toml`](/testdata/build.toml). See the definition of `BuildConfig` in package [`common`](/common/) for the￼description of each field.
 
 To build a binary from the Git repository specified in [`testdata/build.toml`](../testdata/build.toml) and generate its provenance file, run either:
 
@@ -57,7 +57,7 @@ $ bazel run  //cmd/build:main -- \
 
 ## Verifying provenances
 
-The [`verify`](/verify/) package provides functionality for verifying an input
+The [`verifier`](/internal/verifier/) package provides functionality for verifying an input
 provenance file. The provenance file should follow the
 [Amber provenance](/schema/amber-slsa-buildtype/v1/provenance.json) format and
 provide a list of materials (including the source code and the build toolchain),
@@ -74,12 +74,11 @@ $ bazel run  //cmd/verify:main -- \
 
 This fetches the sources from the Git repository specified in the SLSA
 statement file, re-runs the build, and verifies that it yields the expected
-hash. 
+hash.
 
 Check the [`development guidelines`](docs/development-guidelines.md) for a quick start to [`verifying provenances`](docs/development-guidelines.md#verifying-provenances).
 
-
-To use a  local repository you can specify `-git_root_dir`. In this case, the binary will be built from the repo, only if the latest commit matches the one specified in the config file fail with an error otherwise.
+To use a local repository you can specify `-git_root_dir`. In this case, the binary will be built from the repo, only if the latest commit matches the one specified in the config file fail with an error otherwise.
 
 ```bash
 $ bazel run  //cmd/verify:main -- \
