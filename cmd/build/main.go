@@ -23,7 +23,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/project-oak/transparent-release/build"
+	builder "github.com/project-oak/transparent-release/internal/builder"
 )
 
 func main() {
@@ -41,7 +41,7 @@ func main() {
 		log.Fatalf("Couldn't get absolute path for storing the output provenance file: %v", err)
 	}
 
-	prov, err := build.Build(*buildConfigPath, *gitRootDir)
+	prov, err := builder.Build(*buildConfigPath, *gitRootDir)
 	if err != nil {
 		log.Fatalf("Couldn't build the binary: %v", err)
 	}
