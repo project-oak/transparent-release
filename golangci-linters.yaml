@@ -47,7 +47,6 @@ linters:
     # - gofumpt
     - goheader
     - goimports
-    - golint
     # - gomnd
     - gomoddirectives
     - gomodguard
@@ -56,16 +55,14 @@ linters:
     - gosimple
     - govet
     - grouper
-    - ifshort
     - importas
     - ineffassign
-    - interfacer
     # - ireturn
     # Line length: Would be nice to enable it later.
     # - lll
     - maintidx
     - makezero
-    - maligned
+    # - maligned
     - misspell
     - nakedret
     - nestif
@@ -84,12 +81,11 @@ linters:
     - promlinter
     - revive
     - rowserrcheck
-    - scopelint
     - sqlclosecheck
     - staticcheck
     - structcheck
     - stylecheck
-    # - tagliatelle
+    - tagliatelle
     - tenv
     # - testpackage
     # Consider enabling it later.
@@ -150,7 +146,6 @@ linters:
     - gofumpt
     # - goheader
     # - goimports
-    # - golint
     - gomnd
     # - gomoddirectives
     # - gomodguard
@@ -159,15 +154,13 @@ linters:
     # - gosimple
     # - govet
     # - grouper
-    # - ifshort
+    - ifshort
     # - importas
     # - ineffassign
-    # - interfacer
     - ireturn
     - lll
     # - maintidx
     # - makezero
-    # - maligned
     # - misspell
     # - nakedret
     # - nestif
@@ -185,12 +178,12 @@ linters:
     # - promlinter
     # - revive
     # - rowserrcheck
-    # - scopelint
+    - scopelint
     # - sqlclosecheck
     # - staticcheck
     # - structcheck
     # - stylecheck
-    - tagliatelle
+    # - tagliatelle
     # - tenv
     - testpackage
     - thelper
