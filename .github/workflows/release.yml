@@ -1,4 +1,4 @@
-# This workflow releases the binary (currently only for cmd/build).
+# This workflow releases the binary (currently only for cmd/builder).
 # Source: https://github.com/goreleaser/example/blob/master/.github/workflows/build.yml
 
 name: release
