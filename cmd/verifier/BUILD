@@ -21,5 +21,5 @@ package(default_visibility = ["//visibility:public"])
 go_binary(
     name = "main",
     srcs = ["main.go"],
-    deps = ["//verify:verify"],
+    deps = ["//internal/verifier"],
 )

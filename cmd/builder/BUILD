@@ -22,5 +22,5 @@ package(default_visibility = ["//visibility:public"])
 go_binary(
     name = "main",
     srcs = ["main.go"],
-    deps = ["//build:build"],
+    deps = ["//internal/builder"],
 )

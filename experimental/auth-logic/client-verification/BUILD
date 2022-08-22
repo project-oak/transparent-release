@@ -24,7 +24,7 @@ go_library(
     importpath = "github.com/project-oak/transparent-release/experimental/auth-logic",
     deps = [
         "//pkg/amber",
-        "//common",
+        "//internal/common",
         "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
     ],
 )
@@ -43,7 +43,7 @@ go_binary(
     ],
     deps = [
         "//pkg/amber",
-        "//common",
+        "//internal/common",
         "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
     ],
 )

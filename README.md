@@ -10,32 +10,32 @@ claims. The `buildType` in a SLSA provenance predicate describes the meaning of
 `materials` and `buildConfig`. We define our own `buildType` on top of SLSA provenances: the
 [Amber Provenance](/schema/amber-slsa-buildtype/v1/provenance.json) schema.
 
-## Building binaries using the `cmd/build` tool
+## Building binaries using the `cmd/builder` tool
 
 The developers or teams building and releasing the binaries are responsible
 for providing the provenance files. To assist with this, we have provided a
-command line tool in [`cmd/build`](/cmd/build/) for building the binaries from
+command line tool in [`cmd/builder`](/cmd/builder/) for building the binaries from
 a build configuration. The tool takes as input a toml file describing the build
 configuration, including a Git commit hash, a URL fully specifying a _builder_
 Docker image, and build commands and flags for running the builder image. The
 builder image should have all the toolchain required for building the binary
 installed. This helps with making the builds reproducible and the provenances
 verifiable. The toml file should conform to the `BuildConfig` structure defined
-in the [`common`](/common/) package.
+in the [`common`](/internal/common/) package.
 
-The [`cmd/build`](/cmd/build/) command line tool described above can be used for building the binaries, and at the same time for generating a	corresponding provenance file. To use this tool, the developers need to provide	a toml file similar to the one in [`testdata/build.toml`](/testdata/build.toml). See the definition of `BuildConfig` in package [`common`](/common/) for the￼description of each field.		
+The [`cmd/builder`](/cmd/builder/) command line tool described above can be used for building the binaries, and at the same time for generating a corresponding provenance file. To use this tool, the developers need to provide a toml file similar to the one in [`testdata/build.toml`](/testdata/build.toml). See the definition of `BuildConfig` in package [`common`](/internal/common/) for the￼description of each field.
 
 To build a binary from the Git repository specified in [`testdata/build.toml`](../testdata/build.toml) and generate its provenance file, run either:
 
 ```bash
-$ bazel run  //cmd/build:main -- \
+$ bazel run  //cmd/builder:main -- \
   -build_config_path <absolute-path-to-transparent-release-repo>/testdata/build.toml \
 ```
 
 or, alternatively:
 
 ```bash
-$ go run cmd/build/main.go -build_config_path testdata/build.toml
+$ go run cmd/builder/main.go -build_config_path testdata/build.toml
 ```
 
 You should see the following output on the console:
@@ -50,14 +50,14 @@ Check the [`development guidelines`](docs/development-guidelines.md) to see what
 To build from a local repository you can specify `-git_root_dir`. In this case, the binary will be built from the repo, only if the latest commit matches the one specified in the config file and fail with an error otherwise:
 
 ```bash
-$ bazel run  //cmd/build:main -- \
+$ bazel run  //cmd/builder:main -- \
   -build_config_path <absolute-path-to-transparent-release>/testdata/build.toml \
   -git_root_dir <path-to-git-repo-root>
 ```
 
 ## Verifying provenances
 
-The [`verify`](/verify/) package provides functionality for verifying an input
+The [`verifier`](/internal/verifier/) package provides functionality for verifying an input
 provenance file. The provenance file should follow the
 [Amber provenance](/schema/amber-slsa-buildtype/v1/provenance.json) format and
 provide a list of materials (including the source code and the build toolchain),
@@ -68,21 +68,20 @@ has a SHA256 hash equal to the expected digest given in the provenance file.
 To verify a SLSA provenance of the Amber build type run:
 
 ```bash
-$ bazel run  //cmd/verify:main -- \
+$ bazel run  //cmd/verifier:main -- \
   -config <absolute-path-to-transparent-release>/schema/amber-slsa-buildtype/v1/example.json
 ```
 
 This fetches the sources from the Git repository specified in the SLSA
 statement file, re-runs the build, and verifies that it yields the expected
-hash. 
+hash.
 
 Check the [`development guidelines`](docs/development-guidelines.md) for a quick start to [`verifying provenances`](docs/development-guidelines.md#verifying-provenances).
 
-
-To use a  local repository you can specify `-git_root_dir`. In this case, the binary will be built from the repo, only if the latest commit matches the one specified in the config file fail with an error otherwise.
+To use a local repository you can specify `-git_root_dir`. In this case, the binary will be built from the repo, only if the latest commit matches the one specified in the config file fail with an error otherwise.
 
 ```bash
-$ bazel run  //cmd/verify:main -- \
+$ bazel run  //cmd/verifier:main -- \
   -config <absolute-path-to-transparent-release>/schema/amber-slsa-buildtype/v1/example.json \
   -git_root_dir <path-to-git-repo-root>
 ```

@@ -29,7 +29,7 @@ go_binary(
     ],
     deps = [
         "//pkg/amber",
-        "//common",
+        "//internal/common",
         "//experimental/auth-logic/wrappers:transparent_release_verification_wrappers",
     ],
 )
