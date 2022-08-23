@@ -21,33 +21,29 @@ linters:
     - errcheck
     - errchkjson
     - errname
-    # - errorlint
+    # - errorlint # expects using `%w` to format errors.
     - execinquery
     - exhaustive
-    # - exhaustivestruct
-    # - exhaustruct
+    # - exhaustivestruct # expects all fields in a struct to be initialized
     - exportloopref
     - forbidigo
-    # Might be nice to enable it later.
-    # - forcetypeassert
-    # - funlen
-    # - gci
+    # - forcetypeassert # expects checking the result of type conversions
+    # - funlen # expects function length to be less than 60 lines.
     - gochecknoglobals
     - gochecknoinits
     - gocognit
     - goconst
-    # - gocritic
-    - gocyclo
-    # - godot
-    # TODO/BUG/FIXME: would be nice to enable it later.
-    # - godox
     # Consider enabling it.
-    # - goerr113
+    # - gocritic # suggestions for simplifying the code.
+    - gocyclo
+    # - godot # expects comments to end in a period.
+    # - godox # Reports TODO/BUG/FIXME;
+    # - goerr113 # expects using wrapped static errors instead of dynamic errors.
     - gofmt
-    # - gofumpt
+    # - gofumpt # expects files to be formatted with https://github.com/mvdan/gofumpt, which is stricter than gofmt.
     - goheader
     - goimports
-    # - gomnd
+    # - gomnd # reports magic numbers (e.g., file permissions.)
     - gomoddirectives
     - gomodguard
     - goprintffuncname
@@ -57,18 +53,15 @@ linters:
     - grouper
     - importas
     - ineffassign
-    # - ireturn
-    # Line length: Would be nice to enable it later.
-    # - lll
+    # - lll # Line length: Would be nice to enable it later.
     - maintidx
     - makezero
-    # - maligned
     - misspell
     - nakedret
     - nestif
     - nilerr
     - nilnil
-    # - nlreturn
+    # - nlreturn # expects some additional blank lines
     - noctx
     - nolintlint
     - nonamedreturns
@@ -88,8 +81,7 @@ linters:
     - tagliatelle
     - tenv
     # - testpackage
-    # Consider enabling it later.
-    # - thelper
+    # - thelper # expects helper functions to start from t.Helper.
     - tparallel
     - typecheck
     - unconvert
@@ -99,8 +91,8 @@ linters:
     - varnamelen
     - wastedassign
     - whitespace
-    # - wrapcheck
-    # - wsl
+    # - wrapcheck # expects errors to be wrapped in additional message
+    # - wsl # expects additional new lines here and there.
   # Enable all available linters.
   # Default: false
   # enable-all: true
@@ -127,7 +119,6 @@ linters:
     # - execinquery
     # - exhaustive
     - exhaustivestruct
-    - exhaustruct
     # - exportloopref
     # - forbidigo
     - forcetypeassert
@@ -141,7 +132,7 @@ linters:
     # - gocyclo
     - godot
     - godox
-    # - goerr113
+    - goerr113
     # - gofmt
     - gofumpt
     # - goheader
@@ -157,7 +148,6 @@ linters:
     - ifshort
     # - importas
     # - ineffassign
-    - ireturn
     - lll
     # - maintidx
     # - makezero

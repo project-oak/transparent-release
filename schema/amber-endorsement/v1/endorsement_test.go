@@ -17,7 +17,6 @@ package schema
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"testing"
 
@@ -28,14 +27,17 @@ func TestExampleAmberEndorsement(t *testing.T) {
 	schemaPath := "statement.json"
 	examplePath := "example.json"
 
-	schemaLoader, err := loadJSON(schemaPath)
+	fileContent, err := os.ReadFile(schemaPath)
 	if err != nil {
-		t.Fatalf("Couldn't load schema file %v: %v", schemaPath, err)
+		t.Fatalf("Couldn't read the schema file %v: %v", schemaPath, err)
 	}
-	exampleLoader, err := loadJSON(examplePath)
+	schemaLoader := gojsonschema.NewStringLoader(string(fileContent))
+
+	fileContent, err = os.ReadFile(examplePath)
 	if err != nil {
-		t.Fatalf("Couldn't load example file %v: %v", examplePath, err)
+		t.Fatalf("Couldn't read the example file %v: %v", examplePath, err)
 	}
+	exampleLoader := gojsonschema.NewStringLoader(string(fileContent))
 
 	result, err := gojsonschema.Validate(schemaLoader, exampleLoader)
 	if err != nil {
@@ -51,15 +53,4 @@ func TestExampleAmberEndorsement(t *testing.T) {
 
 		t.Fatalf("Failed to validate the example endorsement file: %v", buffer.String())
 	}
-}
-
-func loadJSON(path string) (gojsonschema.JSONLoader, error) {
-	jsonFile, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("couldn't read json file %v: %v", path, err)
-	}
-
-	jsonLoader := gojsonschema.NewStringLoader(string(jsonFile))
-
-	return jsonLoader, nil
 }

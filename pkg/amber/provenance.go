@@ -34,7 +34,7 @@ const (
 	// AmberBuildTypeV1 is the SLSA BuildType for Amber builds.
 	AmberBuildTypeV1 = "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json"
 
-	// SchemaPath is the path to Amber SLSA buildType schema
+	// SchemaPath is the path to Amber SLSA buildType schema.
 	SchemaPath = "schema/amber-slsa-buildtype/v1/provenance.json"
 )
 
