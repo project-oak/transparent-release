@@ -31,7 +31,7 @@ const endorsementPolicyTemplate = "experimental/auth-logic/templates/endorsement
 
 // ValidatedEndorsement is a structure for holding data from endorsement
 // files that have been validated. It also simplifies the Endorsement
-// structure to contain just the relevant
+// structure to contain just the relevant fields.
 type ValidatedEndorsement struct {
 	Name        string
 	Sha256      string

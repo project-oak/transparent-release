@@ -53,7 +53,7 @@ func main() {
 	}
 
 	log.Printf("Storing the provenance in %s", absProvenancePath)
-	if err := os.WriteFile(absProvenancePath, bytes, 0644); err != nil {
+	if err := os.WriteFile(absProvenancePath, bytes, 0600); err != nil {
 		log.Fatalf("Couldn't write the provenance file: %v", err)
 	}
 }

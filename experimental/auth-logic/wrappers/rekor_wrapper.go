@@ -44,7 +44,7 @@ import (
 // -- verifying the signature in `body.RekordObj.signature`, using Oak's public key,
 // -- verifying that the contents of the body matches the input `endorsement_bytes`
 // -- verifying the signature in `signedEntryTimestamp`, using Rekor's public key
-// --  validating the inclusion proof
+// --  validating the inclusion proof.
 type RekorLogWrapper struct {
 	rekorLogEntryBytes  []byte
 	productTeamKeyBytes []byte
@@ -118,7 +118,7 @@ func getRekorEntryFromEntryImpl(entryImpl types.EntryImpl) (*rekord.V001Entry, e
 // Verify signature in a rekor entry. In the context where this is used,
 // this will verify the contents of a rekor entry (an endorsement file)
 // against the product team's public key. It returns the public key if and only
-// if the signature is valid
+// if the signature is valid.
 func verifyRekorLogSignature(rekorEntry *rekord.V001Entry) (*ecdsa.PublicKey, error) {
 	publicKeyBytes := rekorEntry.RekordObj.Signature.PublicKey.Content
 	ecdsaKey, err := pubKeyBytesToECDSA(publicKeyBytes)
@@ -158,7 +158,7 @@ func pubKeyBytesToECDSA(keyData []byte) (*ecdsa.PublicKey, error) {
 // (*models.LogEntryAnon).Validate(...) will check the inclusion proof in
 // LogEntryAnon.Verification, but only if it is non-empty. If it is empty
 // it will not error, so this function just throws an error if the verification
-// is empty
+// is empty.
 func checkInclusionProof(logEntryAnon *models.LogEntryAnon) error {
 	if logEntryAnon.Verification == nil {
 		return fmt.Errorf("logEntryAnon did not have inclusion proof")
@@ -208,7 +208,7 @@ func verifySignedEntryTimestamp(logEntryAnon *models.LogEntryAnon, rekorPublicKe
 // checkEntryPubKeyMatchesExpectedKey compares the public key of the product
 // team in the Rekor log entry to the key of the product team passed as an
 // input to this wrapper. It returns an error if they are not equal
-// (or if valid keys could not be constructed)
+// (or if valid keys could not be constructed).
 func checkEntryPubKeyMatchesExpectedKey(rekorEntry *rekord.V001Entry, prodTeamKeyBytes []byte) error {
 	logECDSAPubKey, err := pubKeyBytesToECDSA(rekorEntry.RekordObj.Signature.PublicKey.Content)
 	if err != nil {
