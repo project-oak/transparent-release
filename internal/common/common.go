@@ -166,7 +166,7 @@ func (b *BuildConfig) Build() error {
 		// Remove the container file system after the container exits.
 		"--rm",
 		// The host uid and gid are needed to give the host access rights.
-		// --env has to be in seperate string, otherwise docker 
+		// --env has to be in seperate string, otherwise docker
 		// interprets "--env HOST_UID=%d" as single flag instead of flag with
 		// argument. With -e docker interprets "HOST_UID=%d" as one environment
 		// variable.
