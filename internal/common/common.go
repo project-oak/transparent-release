@@ -165,6 +165,13 @@ func (b *BuildConfig) Build() error {
 		"--workdir=/workspace",
 		// Remove the container file system after the container exits.
 		"--rm",
+		// The host uid and gid are needed to give the host access rights.
+		// --env has to be in seperate string, otherwise docker 
+		// interprets "--env HOST_UID=%d" as single flag instead of flag with
+		// argument. With -e docker interprets "HOST_UID=%d" as one environment
+		// variable.
+		"--env", fmt.Sprintf("HOST_UID=%d", os.Getuid()),
+		"--env", fmt.Sprintf("HOST_GID=%d", os.Getgid()),
 		// Get a pseudo-tty to the docker container.
 		// TODO(razieh): We probably don't need it for presubmit.
 		"--tty"}
