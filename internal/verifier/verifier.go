@@ -67,6 +67,13 @@ func (verifier *ReproducibleProvenanceVerifier) Verify(provenanceFilePath string
 		return fmt.Errorf("couldn't build the binary: %v", err)
 	}
 
+	// The provenance is valid, therefore `expectedBinaryHash` is guaranteed to be non-empty.
+	expectedBinaryHash := provenance.Subject[0].Digest["sha256"]
+
+	if err := buildConfig.VerifyBinarySha256Hash(expectedBinaryHash); err != nil {
+		return fmt.Errorf("failed to verify the hash of the built binary: %v", err)
+	}
+
 	return nil
 }
 

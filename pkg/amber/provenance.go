@@ -89,6 +89,10 @@ func ParseProvenanceFile(path string) (*intoto.Statement, error) {
 		return nil, fmt.Errorf("could not unmarshal the provenance file:\n%v", err)
 	}
 
+	if len(statement.Subject) == 0 || statement.Subject[0].Digest["sha256"] == "" {
+		return nil, fmt.Errorf("at least one subject must be present, and it must have a sha256 digest")
+	}
+
 	// statement.Predicate is now just a map, we have to parse it into an instance of slsa.ProvenancePredicate
 	predicateBytes, err := json.Marshal(statement.Predicate)
 	if err != nil {

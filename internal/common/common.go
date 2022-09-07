@@ -318,6 +318,23 @@ func (b *BuildConfig) ChangeDirToGitRoot(gitRootDir string) (*RepoCheckoutInfo, 
 	return info, nil
 }
 
+// VerifyBinarySha256Hash computes the SHA256 hash of the binary built by this
+// BuildConfig, and checks that this hash is equal to the given `expectedSha256Hash`.
+// Returns an error if the hashes are not equal.
+func (b *BuildConfig) VerifyBinarySha256Hash(expectedBinarySha256Hash string) error {
+	binarySha256Hash, err := b.ComputeBinarySha256Hash()
+	if err != nil {
+		return fmt.Errorf("couldn't get the hash of the binary: %v", err)
+	}
+
+	if binarySha256Hash != expectedBinarySha256Hash {
+		return fmt.Errorf("the hash of the generated binary does not match the expected SHA256 hash; got %s, want %v",
+			binarySha256Hash, expectedBinarySha256Hash)
+	}
+
+	return nil
+}
+
 func parseBuilderImageURI(imageURI string) (string, string, error) {
 	// We expect the URI of the builder image to be of the form NAME@DIGEST
 	URIParts := strings.Split(imageURI, "@")
