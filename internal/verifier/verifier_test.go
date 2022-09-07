@@ -21,7 +21,7 @@ import (
 	"github.com/project-oak/transparent-release/internal/testutil"
 )
 
-const schemaExamplePath = "schema/amber-slsa-buildtype/v1/example.json"
+const examplePath = "testdata/provenance.json"
 
 func TestReproducibleProvenanceVerifier(t *testing.T) {
 	// The path to provenance is specified relative to the root of the repo, so we need to go one level up.
@@ -34,7 +34,7 @@ func TestReproducibleProvenanceVerifier(t *testing.T) {
 	testutil.Chdir(t, "../../")
 	verifier := ReproducibleProvenanceVerifier{}
 
-	if err := verifier.Verify(schemaExamplePath); err != nil {
+	if err := verifier.Verify(examplePath); err != nil {
 		t.Fatalf("couldn't verify the provenance file: %v", err)
 	}
 }
@@ -50,7 +50,7 @@ func TestAmberProvenanceMetadataVerifier(t *testing.T) {
 	testutil.Chdir(t, "../../")
 	verifier := AmberProvenanceMetadataVerifier{}
 
-	if err := verifier.Verify(schemaExamplePath); err != nil {
+	if err := verifier.Verify(examplePath); err != nil {
 		t.Fatalf("couldn't verify the provenance file: %v", err)
 	}
 }

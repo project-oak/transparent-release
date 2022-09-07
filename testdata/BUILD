@@ -20,5 +20,6 @@ licenses(["notice"])
 
 exports_files([
     "build.toml",
+    "provenance.json",
     "static.txt",
 ])
