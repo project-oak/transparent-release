@@ -38,6 +38,26 @@ jobs:
         run: |
           "${GITHUB_WORKSPACE}/bin/bazel" test --test_output=streamed //...
 
+  # TODO(#113): Find a better, and easier-to-navigate way to report coverage.
+  # Generate coverage report for ./pkg/... and ./internal/... and upload the report as an html file.
+  # See `go help testflag` and `go tool cover -help` for more options.
+  test-coverage:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: "=1.18.4"
+      - name: Run go test
+        run: |
+          go test -coverpkg=./... -coverprofile coverage.out ./pkg/... ./internal/...
+          go tool cover -func=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+      - uses: actions/upload-artifact@v3
+        with:
+          name: coverage.html
+          path: coverage.html
+
   check-license-lines:
     runs-on: ubuntu-20.04
     steps:
