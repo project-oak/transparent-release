@@ -25,17 +25,17 @@ in the [`common`](/internal/common/) package.
 
 The [`cmd/builder`](/cmd/builder/) command line tool described above can be used for building the binaries, and at the same time for generating a corresponding provenance file. To use this tool, the developers need to provide a toml file similar to the one in [`testdata/build.toml`](/testdata/build.toml). See the definition of `BuildConfig` in package [`common`](/internal/common/) for the￼description of each field.
 
-To build a binary from the Git repository specified in [`testdata/build.toml`](../testdata/build.toml) and generate its provenance file, run either:
+To build a binary from the Git repository specified in [`testdata/oak_build.toml`](../testdata/oak_build.toml) and generate its provenance file, run either:
 
 ```bash
 $ bazel run  //cmd/builder:main -- \
-  -build_config_path <absolute-path-to-transparent-release-repo>/testdata/build.toml \
+  -build_config_path <absolute-path-to-transparent-release-repo>/testdata/oak_build.toml \
 ```
 
 or, alternatively:
 
 ```bash
-$ go run cmd/builder/main.go -build_config_path testdata/build.toml
+$ go run cmd/builder/main.go -build_config_path testdata/oak_build.toml
 ```
 
 You should see the following output on the console:
@@ -51,7 +51,7 @@ To build from a local repository you can specify `-git_root_dir`. In this case, 
 
 ```bash
 $ bazel run  //cmd/builder:main -- \
-  -build_config_path <absolute-path-to-transparent-release>/testdata/build.toml \
+  -build_config_path <absolute-path-to-transparent-release>/testdata/oak_build.toml \
   -git_root_dir <path-to-git-repo-root>
 ```
 

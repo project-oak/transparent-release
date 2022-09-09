@@ -1,0 +1,5 @@
+repo = "https://github.com/project-oak/oak"
+commit_hash = "d11e3de97b8fc1cf49e4ed8001d14d77b98c24b8"
+builder_image = "gcr.io/oak-ci/oak@sha256:6e5beabe4ace0e3aaa01ce497f5f1ef30fed7c18c596f35621751176b1ab583d"
+command = ["./scripts/xtask", "build-oak-functions-server-variants"]
+output_path = "./target/x86_64-unknown-linux-musl/release/oak_functions_loader_base"
