@@ -21,5 +21,7 @@ licenses(["notice"])
 exports_files([
     "build.toml",
     "provenance.json",
+    "bad_command_provenance.json",
+    "invalid_hash_provenance.json",
     "static.txt",
 ])
