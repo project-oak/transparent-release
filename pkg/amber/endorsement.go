@@ -18,8 +18,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	intoto "github.com/in-toto/in-toto-golang/in_toto"
+	"github.com/project-oak/transparent-release/bazel-transparent-release/pkg/amber"
 )
 
 // AmberEndorsementV2 is the ClaimType for Amber Endorsements V2. This is
@@ -27,6 +29,34 @@ import (
 // an in-toto statement. This version of Amber Endorsement replaces the earlier
 // version in `schema/amber-endorsement/v1`.
 const AmberEndorsementV2 = "https://github.com/project-oak/transparent-release/endorsement/v2"
+
+// EndorsementData is a helper struct for specifying metadata about an endorsement statement.
+type EndorsementData struct {
+	// Issuer of the endorsement.
+	Issuer string
+	// EndorsedFrom is the timestamp from which the endorsement is effective.
+	EndorsedFrom *time.Time
+	// ExpiresOn is the timestamp on which the endorsement expires.
+	ExpiresOn *time.Time
+}
+
+// ValidatedProvenances encapsulates a non-empty list of validated provenances, as well as metadata
+// about the binary retrieved from the provenances.
+type ValidatedProvenances struct {
+	// Name of the binary that all validated provenances agree on.
+	BinaryName string
+	// SHA256 Hash of the binary that all validated provenances agree on.
+	BinaryHash string
+	// Provenances contains metadata about provenances
+	Provenances []ProvenanceData
+}
+
+// ProvenanceData contains metadata about a provenance statement, identified by a URI and the
+// SHA256 hash of the content of the provenance.
+type ProvenanceData struct {
+	URI string
+	SHA256Hash string
+}
 
 // ParseEndorsementV2File reads a JSON file from the given path, and parses it into an
 // instance of intoto.Statement, with the Amber Claim as the predicate type.
@@ -82,4 +112,44 @@ func validateAmberClaim(statement intoto.Statement) error {
 	}
 
 	return nil
+}
+
+// GenerateEndorsementStatement generates an endorsement object with the given subject, generated
+// on the given releaseTime, and valid for the given duration.
+func GenerateEndorsementStatement(metadata EndorsementData, provenances ValidatedProvenances) *intoto.Statement {
+	var evidence []amber.ClaimEvidence
+	for _, provenance := range provenances.Provenances {
+		evidence = append(evidence, amber.ClaimEvidence{
+			Role: "Provenance"
+			URI:    provenance.URI,
+			Digest: slsa.DigestSet{"sha256": provenance.SHA256Hash},
+		})
+	}
+
+	predicate := amber.ClaimPredicate{
+		Issuer:    metadata.issuer,
+		ClaimType: AmberEndorsementV2,
+		Metadata: amber.ClaimMetadata{
+			// TODO(#30): Use current time for IssuedOn, and set EffectiveFrom to metadata.EndorsedFrom.
+			IssuedOn:      metadata.EndorsedFrom,
+			ExpiresOn:     metadata.ExpiresOn,
+		},
+		Evidence: evidence,
+	}
+
+	subject := intoto.Subject {
+		Name: provenances.BinaryName,
+		Digest: slsa.DigestSet{"sha256": provenances.BinaryHash},
+	}
+
+	statementHeader := intoto.StatementHeader{
+		Type:          intoto.StatementInTotoV01,
+		PredicateType: AmberClaimV1,
+		Subject:       []intoto.Subject{subject},
+	}
+
+	return &intoto.Statement{
+		StatementHeader: statementHeader,
+		Predicate:       predicate,
+	}
 }

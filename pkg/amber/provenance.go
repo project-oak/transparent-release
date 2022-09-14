@@ -108,6 +108,7 @@ func validateSLSAProvenanceJSON(provenanceFile []byte) error {
 
 // ParseProvenanceFile reads a JSON file from a given path, validates it against the Amber
 // buildType schema, and parses it into an instance of intoto.Statement.
+// Returns an error if the file is not a valid provenance statement.
 func ParseProvenanceFile(path string) (*ValidatedProvenance, error) {
 	statementBytes, readErr := os.ReadFile(path)
 	if readErr != nil {
