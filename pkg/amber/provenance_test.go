@@ -40,10 +40,11 @@ func TestExampleProvenance(t *testing.T) {
 	testutil.Chdir(t, "../../")
 
 	// Parses the provenance and validates it against the schema.
-	provenance, err := ParseProvenanceFile(provenanceExamplePath)
+	validatedProvenance, err := ParseProvenanceFile(provenanceExamplePath)
 	if err != nil {
 		t.Fatalf("Failed to parse example provenance: %v", err)
 	}
+	provenance := validatedProvenance.GetProvenance()
 
 	predicate := provenance.Predicate.(slsa.ProvenancePredicate)
 	buildConfig := predicate.BuildConfig.(BuildConfig)

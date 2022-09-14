@@ -42,6 +42,7 @@ func TestReproducibleProvenanceVerifier_validProvenance(t *testing.T) {
 	}
 }
 
+// TODO(#126): Update the test once Verify is refactored.
 func TestReproducibleProvenanceVerifier_invalidHash(t *testing.T) {
 	// The path to provenance is specified relative to the root of the repo, so we need to go one level up.
 	// Get the current directory before that to restore the path at the end of the test.
@@ -60,6 +61,7 @@ func TestReproducibleProvenanceVerifier_invalidHash(t *testing.T) {
 	}
 }
 
+// TODO(#126): Update the test once Verify is refactored.
 func TestReproducibleProvenanceVerifier_badCommand(t *testing.T) {
 	// The path to provenance is specified relative to the root of the repo, so we need to go one level up.
 	// Get the current directory before that to restore the path at the end of the test.

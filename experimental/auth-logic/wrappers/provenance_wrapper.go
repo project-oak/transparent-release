@@ -32,15 +32,12 @@ type ProvenanceWrapper struct{ FilePath string }
 // EmitStatement implements the wrapper interface for ProvenanceWrapper
 // by emitting the authorization logic statement.
 func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
-	provenance, err := amber.ParseProvenanceFile(p.FilePath)
+	validatedProvenance, err := amber.ParseProvenanceFile(p.FilePath)
 	if err != nil {
 		return UnattributedStatement{}, fmt.Errorf("provenance wrapper couldn't prase provenance file: %v", err)
 	}
 
-	if len(provenance.Subject) != 1 {
-		return UnattributedStatement{}, fmt.Errorf("provenance file missing subject")
-	}
-
+	provenance := validatedProvenance.GetProvenance()
 	sanitizedAppName := SanitizeName(provenance.Subject[0].Name)
 	expectedHash, hashOk := provenance.Subject[0].Digest["sha256"]
 
@@ -64,14 +61,10 @@ func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 // application it is about. This is useful for generating principal names,
 // for example.
 func GetAppNameFromProvenance(provenanceFilePath string) (string, error) {
-	provenance, provenanceErr := amber.ParseProvenanceFile(provenanceFilePath)
-	if provenanceErr != nil {
-		return "", provenanceErr
+	validatedProvenance, err := amber.ParseProvenanceFile(provenanceFilePath)
+	if err != nil {
+		return "", fmt.Errorf("provenance wrapper couldn't prase provenance file: %v", err)
 	}
 
-	if len(provenance.Subject) != 1 {
-		return "", fmt.Errorf("provenance file missing subject")
-	}
-
-	return provenance.Subject[0].Name, nil
+	return validatedProvenance.GetProvenance().Subject[0].Name, nil
 }

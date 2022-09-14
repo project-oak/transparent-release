@@ -40,10 +40,12 @@ type simplifiedProvenance struct {
 // by emitting the authorization logic statement.
 func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error) {
 	// Unmarshal a provenance struct from the JSON file.
-	provenance, err := amber.ParseProvenanceFile(pbw.ProvenanceFilePath)
+	validatedProvenance, err := amber.ParseProvenanceFile(pbw.ProvenanceFilePath)
 	if err != nil {
 		return UnattributedStatement{}, fmt.Errorf("provenance build wrapper couldn't parse provenance file: %v", err)
 	}
+
+	provenance := validatedProvenance.GetProvenance()
 
 	// TODO(#69): Set the verifier as a field in pbw, and use that here.
 	verifier := verify.AmberProvenanceMetadataVerifier{}

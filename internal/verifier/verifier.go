@@ -68,7 +68,7 @@ func (verifier *ReproducibleProvenanceVerifier) Verify(provenanceFilePath string
 	}
 
 	// The provenance is valid, therefore `expectedBinaryHash` is guaranteed to be non-empty.
-	expectedBinaryHash := provenance.Subject[0].Digest["sha256"]
+	expectedBinaryHash := provenance.GetProvenance().Subject[0].Digest["sha256"]
 
 	if err := buildConfig.VerifyBinarySha256Hash(expectedBinaryHash); err != nil {
 		return fmt.Errorf("failed to verify the hash of the built binary: %v", err)
@@ -88,13 +88,14 @@ type AmberProvenanceMetadataVerifier struct {
 // AmberProvenanceMetadataVerifier instance. Returns an error if any of the
 // values is not as expected. Otherwise returns nil, indicating success.
 // TODO(#69): Check metadata against the expected values.
+// TODO(#126): Refactor and separate verification logic from the logic for reading the file.
 func (verifier *AmberProvenanceMetadataVerifier) Verify(provenanceFilePath string) error {
 	provenance, err := amber.ParseProvenanceFile(provenanceFilePath)
 	if err != nil {
 		return fmt.Errorf("couldn't load the provenance file from %s: %v", provenanceFilePath, err)
 	}
 
-	predicate := provenance.Predicate.(slsa.ProvenancePredicate)
+	predicate := provenance.GetProvenance().Predicate.(slsa.ProvenancePredicate)
 
 	if predicate.BuildType != amber.AmberBuildTypeV1 {
 		return fmt.Errorf("incorrect BuildType: got %s, want %v", predicate.BuildType, amber.AmberBuildTypeV1)

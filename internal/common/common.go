@@ -90,11 +90,8 @@ func LoadBuildConfigFromFile(path string) (*BuildConfig, error) {
 }
 
 // LoadBuildConfigFromProvenance loads build configuration from a SLSA Provenance object.
-func LoadBuildConfigFromProvenance(statement *intoto.Statement) (*BuildConfig, error) {
-	if len(statement.Subject) != 1 {
-		return nil, fmt.Errorf("the provenance statement must have exactly one Subject, got %d", len(statement.Subject))
-	}
-
+func LoadBuildConfigFromProvenance(provenance *amber.ValidatedProvenance) (*BuildConfig, error) {
+	statement := provenance.GetProvenance()
 	predicate := statement.Predicate.(slsa.ProvenancePredicate)
 	if len(predicate.Materials) != 2 {
 		return nil, fmt.Errorf("the provenance must have exactly two Materials, got %d", len(predicate.Materials))
@@ -328,7 +325,7 @@ func (b *BuildConfig) VerifyBinarySha256Hash(expectedBinarySha256Hash string) er
 	}
 
 	if binarySha256Hash != expectedBinarySha256Hash {
-		return fmt.Errorf("the hash of the generated binary does not match the expected SHA256 hash; got %s, want %v",
+		return fmt.Errorf("the hash of the generated binary does not match the expected SHA256 hash; got %s, want %s",
 			binarySha256Hash, expectedBinarySha256Hash)
 	}
 
