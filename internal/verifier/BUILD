@@ -36,6 +36,9 @@ go_test(
     data = [
         "//schema/amber-slsa-buildtype/v1:example.json",
         "//schema/amber-slsa-buildtype/v1:provenance.json",
+        "//testdata:provenance.json",
+        "//testdata:bad_command_provenance.json",
+        "//testdata:invalid_hash_provenance.json",
     ],
     embed = [":verifier"],
     deps = ["//internal/testutil"],

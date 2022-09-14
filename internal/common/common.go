@@ -90,11 +90,8 @@ func LoadBuildConfigFromFile(path string) (*BuildConfig, error) {
 }
 
 // LoadBuildConfigFromProvenance loads build configuration from a SLSA Provenance object.
-func LoadBuildConfigFromProvenance(statement *intoto.Statement) (*BuildConfig, error) {
-	if len(statement.Subject) != 1 {
-		return nil, fmt.Errorf("the provenance statement must have exactly one Subject, got %d", len(statement.Subject))
-	}
-
+func LoadBuildConfigFromProvenance(provenance *amber.ValidatedProvenance) (*BuildConfig, error) {
+	statement := provenance.GetProvenance()
 	predicate := statement.Predicate.(slsa.ProvenancePredicate)
 	if len(predicate.Materials) != 2 {
 		return nil, fmt.Errorf("the provenance must have exactly two Materials, got %d", len(predicate.Materials))
@@ -316,6 +313,23 @@ func (b *BuildConfig) ChangeDirToGitRoot(gitRootDir string) (*RepoCheckoutInfo, 
 	}
 
 	return info, nil
+}
+
+// VerifyBinarySha256Hash computes the SHA256 hash of the binary built by this
+// BuildConfig, and checks that this hash is equal to the given `expectedSha256Hash`.
+// Returns an error if the hashes are not equal.
+func (b *BuildConfig) VerifyBinarySha256Hash(expectedBinarySha256Hash string) error {
+	binarySha256Hash, err := b.ComputeBinarySha256Hash()
+	if err != nil {
+		return fmt.Errorf("couldn't get the hash of the binary: %v", err)
+	}
+
+	if binarySha256Hash != expectedBinarySha256Hash {
+		return fmt.Errorf("the hash of the generated binary does not match the expected SHA256 hash; got %s, want %s",
+			binarySha256Hash, expectedBinarySha256Hash)
+	}
+
+	return nil
 }
 
 func parseBuilderImageURI(imageURI string) (string, string, error) {

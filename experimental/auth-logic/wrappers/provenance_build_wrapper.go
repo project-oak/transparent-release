@@ -40,7 +40,7 @@ type simplifiedProvenance struct {
 // by emitting the authorization logic statement.
 func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error) {
 	// Unmarshal a provenance struct from the JSON file.
-	provenance, err := amber.ParseProvenanceFile(pbw.ProvenanceFilePath)
+	validatedProvenance, err := amber.ParseProvenanceFile(pbw.ProvenanceFilePath)
 	if err != nil {
 		return UnattributedStatement{}, fmt.Errorf("provenance build wrapper couldn't parse provenance file: %v", err)
 	}
@@ -52,8 +52,8 @@ func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 	}
 
 	simpleProv := simplifiedProvenance{
-		AppName:        SanitizeName(provenance.Subject[0].Name),
-		MeasuredSha256: provenance.Subject[0].Digest["sha256"],
+		AppName:        SanitizeName(validatedProvenance.GetBinaryName()),
+		MeasuredSha256: validatedProvenance.GetBinarySHA256Hash(),
 	}
 
 	policyTemplate, err := template.ParseFiles(provenanceBuilderTemplate)

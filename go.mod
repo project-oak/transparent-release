@@ -6,7 +6,6 @@ require (
 	github.com/cyberphone/json-canonicalization v0.0.0-20210303052042-6bc126869bf4
 	github.com/go-openapi/runtime v0.23.3
 	github.com/go-openapi/strfmt v0.21.2
-	github.com/google/go-cmp v0.5.7
 	github.com/in-toto/in-toto-golang v0.3.4-0.20211211042327-af1f9fb822bf
 	github.com/pelletier/go-toml v1.9.4
 	github.com/sigstore/rekor v0.6.0

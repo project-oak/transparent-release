@@ -45,6 +45,43 @@ type BuildConfig struct {
 	OutputPath string   `json:"outputPath"`
 }
 
+// ValidatedProvenance wraps an intoto.Statement representing a valid SLSA provenance statement.
+// A provenance statement is valid if it contains a single subject, with a SHA256 hash.
+type ValidatedProvenance struct {
+	// The field is private so that invalid instances cannot be created.
+	provenance intoto.Statement
+}
+
+// GetProvenance returns a partial copy of the provenance statement wrapped in this instance.
+// The partial copy guarantees that the validity condition will not be violated.
+func (p *ValidatedProvenance) GetProvenance() intoto.Statement {
+	subject := intoto.Subject{
+		Name:   p.provenance.Subject[0].Name,
+		Digest: slsa.DigestSet{"sha256": p.provenance.Subject[0].Digest["sha256"]},
+	}
+
+	statementHeader := intoto.StatementHeader{
+		Type:          p.provenance.Type,
+		PredicateType: p.provenance.PredicateType,
+		Subject:       []intoto.Subject{subject},
+	}
+
+	return intoto.Statement{
+		StatementHeader: statementHeader,
+		Predicate:       p.provenance.Predicate,
+	}
+}
+
+// GetBinarySHA256Hash returns the SHA256 hash of the subject.
+func (p *ValidatedProvenance) GetBinarySHA256Hash() string {
+	return p.provenance.Subject[0].Digest["sha256"]
+}
+
+// GetBinaryName returns the name of the subject.
+func (p *ValidatedProvenance) GetBinaryName() string {
+	return p.provenance.Subject[0].Name
+}
+
 func validateSLSAProvenanceJSON(provenanceFile []byte) error {
 	schemaFile, err := os.ReadFile(SchemaPath)
 	if err != nil {
@@ -74,7 +111,7 @@ func validateSLSAProvenanceJSON(provenanceFile []byte) error {
 
 // ParseProvenanceFile reads a JSON file from a given path, validates it against the Amber
 // buildType schema, and parses it into an instance of intoto.Statement.
-func ParseProvenanceFile(path string) (*intoto.Statement, error) {
+func ParseProvenanceFile(path string) (*ValidatedProvenance, error) {
 	statementBytes, readErr := os.ReadFile(path)
 	if readErr != nil {
 		return nil, fmt.Errorf("could not read the provenance file: %v", readErr)
@@ -87,6 +124,10 @@ func ParseProvenanceFile(path string) (*intoto.Statement, error) {
 	var statement intoto.Statement
 	if err := json.Unmarshal(statementBytes, &statement); err != nil {
 		return nil, fmt.Errorf("could not unmarshal the provenance file:\n%v", err)
+	}
+
+	if len(statement.Subject) != 1 || statement.Subject[0].Digest["sha256"] == "" {
+		return nil, fmt.Errorf("the provenance must have exactly one subject with a sha256 digest")
 	}
 
 	// statement.Predicate is now just a map, we have to parse it into an instance of slsa.ProvenancePredicate
@@ -115,5 +156,5 @@ func ParseProvenanceFile(path string) (*intoto.Statement, error) {
 	predicate.BuildConfig = buildConfig
 	statement.Predicate = predicate
 
-	return &statement, nil
+	return &ValidatedProvenance{provenance: statement}, nil
 }

@@ -27,7 +27,7 @@ import (
 
 const (
 	testdataPath             = "../../testdata/"
-	provenanceExamplePath    = "schema/amber-slsa-buildtype/v1/example.json"
+	provenanceExamplePath    = "testdata/provenance.json"
 	wantTOMLHash             = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
 	wantBuilderImageID       = "6e5beabe4ace0e3aaa01ce497f5f1ef30fed7c18c596f35621751176b1ab583d"
 	wantSHA1HexDigitLength   = 40
@@ -131,12 +131,12 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 	buildConfig := predicate.BuildConfig.(amber.BuildConfig)
 
 	// Check that the provenance is generated correctly
-	testutil.AssertEq(t, "repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")
+	testutil.AssertEq(t, "repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/transparent-release")
 	testutil.AssertNonEmpty(t, "subjectName", prov.Subject[0].Name)
 	testutil.AssertEq(t, "subjectDigest", len(prov.Subject[0].Digest["sha256"]), wantSHA256HexDigitLength)
 	testutil.AssertEq(t, "commitHash length", len(predicate.Materials[1].Digest["sha1"]), wantSHA1HexDigitLength)
 	testutil.AssertEq(t, "builderImageID length", len(predicate.Materials[0].Digest["sha256"]), wantSHA256HexDigitLength)
-	testutil.AssertEq(t, "builderImageURI", predicate.Materials[0].URI, fmt.Sprintf("gcr.io/oak-ci/oak@sha256:%s", predicate.Materials[0].Digest["sha256"]))
+	testutil.AssertEq(t, "builderImageURI", predicate.Materials[0].URI, fmt.Sprintf("bash@sha256:%s", predicate.Materials[0].Digest["sha256"]))
 	testutil.AssertNonEmpty(t, "command[0]", buildConfig.Command[0])
 	testutil.AssertNonEmpty(t, "command[1]", buildConfig.Command[1])
 }
@@ -147,7 +147,7 @@ func checkBuildConfig(got *BuildConfig, t *testing.T) {
 		t.Fatalf("couldn't parse imageURI (%q): %v", got.BuilderImage, err)
 	}
 	// Check that the provenance is generated correctly
-	testutil.AssertEq(t, "repoURL", got.Repo, "https://github.com/project-oak/oak")
+	testutil.AssertEq(t, "repoURL", got.Repo, "https://github.com/project-oak/transparent-release")
 	testutil.AssertEq(t, "commitHash length", len(got.CommitHash), wantSHA1HexDigitLength)
 	testutil.AssertEq(t, "builderImageID length", len(digest), wantSHA256HexDigitLength)
 	testutil.AssertEq(t, "builderImageID digest algorithm", alg, "sha256")
