@@ -37,14 +37,10 @@ func (p ProvenanceWrapper) EmitStatement() (UnattributedStatement, error) {
 		return UnattributedStatement{}, fmt.Errorf("provenance wrapper couldn't prase provenance file: %v", err)
 	}
 
+	sanitizedAppName := SanitizeName(validatedProvenance.GetBinaryName())
+	expectedHash := validatedProvenance.GetBinarySHA256Hash()
+
 	provenance := validatedProvenance.GetProvenance()
-	sanitizedAppName := SanitizeName(provenance.Subject[0].Name)
-	expectedHash, hashOk := provenance.Subject[0].Digest["sha256"]
-
-	if !hashOk {
-		return UnattributedStatement{}, fmt.Errorf("provenance file did not give an expected hash")
-	}
-
 	predicate := provenance.Predicate.(slsa.ProvenancePredicate)
 	builderName := predicate.Builder.ID
 
@@ -66,5 +62,5 @@ func GetAppNameFromProvenance(provenanceFilePath string) (string, error) {
 		return "", fmt.Errorf("provenance wrapper couldn't prase provenance file: %v", err)
 	}
 
-	return validatedProvenance.GetProvenance().Subject[0].Name, nil
+	return validatedProvenance.GetBinaryName(), nil
 }

@@ -56,8 +56,8 @@ func TestReproducibleProvenanceVerifier_invalidHash(t *testing.T) {
 
 	want := "failed to verify the hash of the built binary"
 
-	if err := verifier.Verify(invalidHashProvenancePath); !strings.Contains(err.Error(), want) {
-		t.Fatalf("want error containing message %q, got %v", want, err)
+	if got := verifier.Verify(invalidHashProvenancePath); !strings.Contains(got.Error(), want) {
+		t.Fatalf("got %v, want error message containing %q,", got, want)
 	}
 }
 
@@ -75,8 +75,8 @@ func TestReproducibleProvenanceVerifier_badCommand(t *testing.T) {
 
 	want := "couldn't build the binary"
 
-	if err := verifier.Verify(badCommandProvenancePath); !strings.Contains(err.Error(), want) {
-		t.Fatalf("want error containing message %q, got %v", want, err)
+	if got := verifier.Verify(badCommandProvenancePath); !strings.Contains(got.Error(), want) {
+		t.Fatalf("got %v, want error message containing %q,", got, want)
 	}
 }
 

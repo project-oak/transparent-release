@@ -45,8 +45,6 @@ func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 		return UnattributedStatement{}, fmt.Errorf("provenance build wrapper couldn't parse provenance file: %v", err)
 	}
 
-	provenance := validatedProvenance.GetProvenance()
-
 	// TODO(#69): Set the verifier as a field in pbw, and use that here.
 	verifier := verify.AmberProvenanceMetadataVerifier{}
 	if err := verifier.Verify(pbw.ProvenanceFilePath); err != nil {
@@ -54,8 +52,8 @@ func (pbw ProvenanceBuildWrapper) EmitStatement() (UnattributedStatement, error)
 	}
 
 	simpleProv := simplifiedProvenance{
-		AppName:        SanitizeName(provenance.Subject[0].Name),
-		MeasuredSha256: provenance.Subject[0].Digest["sha256"],
+		AppName:        SanitizeName(validatedProvenance.GetBinaryName()),
+		MeasuredSha256: validatedProvenance.GetBinarySHA256Hash(),
 	}
 
 	policyTemplate, err := template.ParseFiles(provenanceBuilderTemplate)

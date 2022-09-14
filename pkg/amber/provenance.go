@@ -72,6 +72,16 @@ func (p *ValidatedProvenance) GetProvenance() intoto.Statement {
 	}
 }
 
+// GetBinarySHA256Hash returns the SHA256 hash of the subject.
+func (p *ValidatedProvenance) GetBinarySHA256Hash() string {
+	return p.provenance.Subject[0].Digest["sha256"]
+}
+
+// GetBinaryName returns the name of the subject.
+func (p *ValidatedProvenance) GetBinaryName() string {
+	return p.provenance.Subject[0].Name
+}
+
 func validateSLSAProvenanceJSON(provenanceFile []byte) error {
 	schemaFile, err := os.ReadFile(SchemaPath)
 	if err != nil {
