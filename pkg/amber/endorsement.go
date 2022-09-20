@@ -21,7 +21,7 @@ import (
 	"time"
 
 	intoto "github.com/in-toto/in-toto-golang/in_toto"
-	"github.com/project-oak/transparent-release/bazel-transparent-release/pkg/amber"
+	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 )
 
 // AmberEndorsementV2 is the ClaimType for Amber Endorsements V2. This is
@@ -40,9 +40,9 @@ type EndorsementData struct {
 	ExpiresOn *time.Time
 }
 
-// ValidatedProvenances encapsulates a non-empty list of validated provenances, as well as metadata
+// ValidatedProvenanceSet encapsulates a non-empty list of validated provenances, as well as metadata
 // about the binary retrieved from the provenances.
-type ValidatedProvenances struct {
+type ValidatedProvenanceSet struct {
 	// Name of the binary that all validated provenances agree on.
 	BinaryName string
 	// SHA256 Hash of the binary that all validated provenances agree on.
@@ -54,7 +54,7 @@ type ValidatedProvenances struct {
 // ProvenanceData contains metadata about a provenance statement, identified by a URI and the
 // SHA256 hash of the content of the provenance.
 type ProvenanceData struct {
-	URI string
+	URI        string
 	SHA256Hash string
 }
 
@@ -116,29 +116,29 @@ func validateAmberClaim(statement intoto.Statement) error {
 
 // GenerateEndorsementStatement generates an endorsement object with the given subject, generated
 // on the given releaseTime, and valid for the given duration.
-func GenerateEndorsementStatement(metadata EndorsementData, provenances ValidatedProvenances) *intoto.Statement {
-	var evidence []amber.ClaimEvidence
+func GenerateEndorsementStatement(metadata EndorsementData, provenances ValidatedProvenanceSet) *intoto.Statement {
+	evidence := make([]ClaimEvidence, 0, len(provenances.Provenances))
 	for _, provenance := range provenances.Provenances {
-		evidence = append(evidence, amber.ClaimEvidence{
-			Role: "Provenance"
+		evidence = append(evidence, ClaimEvidence{
+			Role:   "Provenance",
 			URI:    provenance.URI,
 			Digest: slsa.DigestSet{"sha256": provenance.SHA256Hash},
 		})
 	}
 
-	predicate := amber.ClaimPredicate{
-		Issuer:    metadata.issuer,
+	predicate := ClaimPredicate{
+		Issuer:    ClaimIssuer{ID: metadata.Issuer},
 		ClaimType: AmberEndorsementV2,
-		Metadata: amber.ClaimMetadata{
+		Metadata: &ClaimMetadata{
 			// TODO(#30): Use current time for IssuedOn, and set EffectiveFrom to metadata.EndorsedFrom.
-			IssuedOn:      metadata.EndorsedFrom,
-			ExpiresOn:     metadata.ExpiresOn,
+			IssuedOn:  metadata.EndorsedFrom,
+			ExpiresOn: metadata.ExpiresOn,
 		},
 		Evidence: evidence,
 	}
 
-	subject := intoto.Subject {
-		Name: provenances.BinaryName,
+	subject := intoto.Subject{
+		Name:   provenances.BinaryName,
 		Digest: slsa.DigestSet{"sha256": provenances.BinaryHash},
 	}
 

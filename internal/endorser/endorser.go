@@ -31,32 +31,38 @@ func GenerateEndorsement(binaryHash string, metadata amber.EndorsementData, prov
 		return nil, fmt.Errorf("could not load provenances: %v", err)
 	}
 
-	for index, provenance := range provenances {
-		if err = verifyProvenance(provenance, binaryHash); err != nil {
+	for index := range provenances {
+		if err = verifyProvenance(&provenances[index], binaryHash); err != nil {
 			return nil, fmt.Errorf("verification of the provenance at index %d failed: %v", index, err)
 		}
 	}
 	// TODO: Perform any additional verification among provenances to ensure their consistency.
 
-	return GenerateEndorsementStatement(validatedProvenanceData, metadata), nil
+	return amber.GenerateEndorsementStatement(metadata, *validatedProvenanceData), nil
 }
 
 // Returns at least one provenance statement, or an error if the list of paths is empty, or any of the provenances cannot be loaded.
-func loadProvenances(provenanceURIs []string) ([]*intoto.Statement, *amber.ValidatedProvenances, error) {
+func loadProvenances(provenanceURIs []string) ([]intoto.Statement, *amber.ValidatedProvenanceSet, error) {
 	if len(provenanceURIs) < 1 {
-		return nil, fmt.Errorf("at least one provenance fath file must be provided")
+		return nil, nil, fmt.Errorf("at least one provenance fath file must be provided")
 	}
 
-	var provenances []*intoto.Statement
+	// TODO: load provenances from URIs
+
+	provenances := make([]intoto.Statement, 0, len(provenanceURIs))
 	for _, path := range provenanceURIs {
 		provenance, err := amber.ParseProvenanceFile(path)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't load the provenance file from %s: %v", path, err)
+			return nil, nil, fmt.Errorf("couldn't load the provenance file from %s: %v", path, err)
 		}
-		provenances = append(provenances, provenance)
+		provenances = append(provenances, provenance.GetProvenance())
 	}
 
-	return provenances, nil
+	// TODO: verify that all provenances have the same binary and name and binary hash
+	// TODO: create provenance data: URI + digest
+	// TODO: create validatedProvenance := amber.ValidatedProvenanceSet{}
+
+	return provenances, nil, nil
 }
 
 // verifyProvenance verifies that the provenance has the expected hash.
