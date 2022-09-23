@@ -58,7 +58,7 @@ number of examples.
 This section describes the semantics of each field in the claim format:
 
 - **subject** _(array of objects, required)_:
-  Set of artifacts that the claim applies to. Usually only one artifact (e.g., source code, or some binary).
+  Set of artifacts (e.g., source code, or some binary) that the claim applies to.
   - **subject[*].digest** and **subject[*].name** as defined by Statement in the in-toto standard.
 - **issuer** _(object, required)_:
   Identifies the entity (person, organization, or an automated tool) that reviewed/audited/examined
