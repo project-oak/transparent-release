@@ -1,23 +1,21 @@
 # Claim Transparency
 
-The following diagram shows the journey that the software takes from code to an application used by
-the end user. During this process several artifacts are generated and transformed to another. The
-premise of software supply chain security is that many things could go wrong during this process,
-either due to human error or attacks on the software supply chain by malicious actors.
+The following diagram shows the journey that software takes from code to a deployable application
+used by an end user (either as an application deployed locally or as a remote server). During this
+process several artifacts (e.g., code, software libraries, and binaries) are generated and
+transformed into another (e.g., through compiling and linking). The premise of software supply
+chain security is that many things could go wrong during this process, either due to human error
+or attacks on the software supply chain by malicious actors.
 
 ![The journey of a software binary](docs/images/journey.png)
 
-To provide assurances to the end users about the security and privacy of the software they interact
-with, in the transparent release project our goal is to provide transparency into this process. In
-our solution, in each step of the process the artifacts are being reviewed and audited and the
-result, a claim about the security and privacy properties of the software artifact, is signed and
-published into a transparency log. The goal is to make these claims easily discoverable so that
-they can be used in the assessment of privacy policies.
-
-The following diagram shows what needs to be reviewed or audited in each step of the software
-development process, from coding until the software is shipped.
-
-![The claim transparency architecture](docs/images/design.png)
+To provide assurances to the end users about the security and privacy of a software application, in
+the transparent release project our goal is to provide transparency into the build and release
+processes. In our solution, in each step of the process software artifacts are being reviewed and
+audited and the result, a claim about the security and privacy properties of the software artifact,
+is signed and published into a [transparency log](https://continusec.com/static/VerifiableDataStructures.pdf).
+The goal is to make these claims easily discoverable so that anyone can use the claims in the
+assessment of privacy policies.
 
 ## The Claim Format
 
@@ -64,10 +62,9 @@ This section describes the semantics of each field in the claim format:
   Identifies the entity (person, organization, or an automated tool) that reviewed/audited/examined
   the artifact in the subject of this claim.
   - **issuer.id** _(string ([TypeURI](https://github.com/in-toto/attestation/blob/main/spec/field_types.md#TypeURI)), required)_:
-    URI indicating the issuer’s identity. Could be an email address with mailto as the scheme
-    (e.g., mailto:issuer@example.com).
+    URI indicating the issuer’s identity (e.g., mailto:issuer@example.com).
 - **claimType** _(string ([TypeURI](https://github.com/in-toto/attestation/blob/main/spec/field_types.md#TypeURI)), required)_:
-  URI indicating what type of claim was issued. It determines the meaning of, claimSpec and evidence below.
+  URI indicating what type of claim was issued. It determines the meaning of claimSpec and evidence below.
 - **metadata** _(object, required)_:
   Additional details about the claim.
 
@@ -142,7 +139,7 @@ provenance statement.
 
 | Field in a Claim statement | Field in a SLSA provenance | Comments |
 |:----------------|:---------------|:-----------------------------------------------------------|
-| issuer | builder | SLSA distinguishes between the builder and signer. For now, in the context of claims, we assume that the issuer and the signer are the same entity. In the future, we may want to distinguish between them as well. However, more generally, we could assume that issuer and signer could be different entities, but the consumer MAY require them to be the same. Similar to the following from SLSA: _"Consumers MUST accept only specific (signer, builder) pairs. For example, “GitHub” can sign provenance for the “GitHub Actions” builder, and “Google” can sign provenance for the “Google Cloud Build builder, but “GitHub” cannot sign for the “Google Cloud Build” builder."_ |
+| issuer | builder | SLSA distinguishes between the builder and signer. In the context of claims, we expect the issuer and the signer to be the same entity.|
 | claimType | buildType | Both define the meanings of the other fields in the predicate.|
 | claimSpec | buildConfig | Both provide a flexible way of supporting different types of content (claims, and build processes).|
 | evidence | materials | Optional list of (a subset of ) additional artifacts that influenced the statement. |
@@ -152,7 +149,7 @@ provenance statement.
 The Remote ATtestation procedureS (RATS) working group has provided an [architecture](https://datatracker.ietf.org/doc/html/draft-ietf-rats-architecture)
 and glossary of concepts related to remote attestation. [This cheatsheet](https://github.com/thomas-fossati/rats-cheatsheet)
 and [this slides deck](https://confidentialcomputing.io/wp-content/uploads/sites/85/2021/09/IETF-Remote-Attestation-Architecture-Overview.pdf)
-give an overview of the architecture and the main concepts. This standard has many concepts similar
+give an overview of the architecture and the main concepts. RATS has many concepts similar
 to the ones in our design, but seems to be focused on claims and evidence that are generated and
 consumed automatically. Claims and evidence in RATS are designed to be used for remote attestation.
 The claims in our binary transparency ecosystem, however, are not limited to the ones used for
@@ -162,8 +159,12 @@ remote attestation. We target a wider range of use cases.
 
 ### Endorsement Claims
 
-With the schema given for claims, an endorsement statement can be seen as a claim where the claimSpec is empty. In this case, the claimType has to clearly state that the claim is an endorsement statement.
-An endorsement statement, in the evidence field, may provide links to a provenance statement. In this case, the provenance statement must have the same subject as the one in the endorsement statement. If the linked provenance is signed, the evidence list may as well include a reference to a Rekor log entry corresponding to the provenance.
+With the schema given for claims, an endorsement statement can be seen as a claim where the
+claimSpec is empty. In this case, the claimType has to clearly state that the claim is an
+endorsement statement. An endorsement statement, in the evidence field, may provide links to a
+provenance statement. In this case, the provenance statement must have the same subject as the one
+in the endorsement statement. If the linked provenance is signed, the evidence list may as well
+include a reference to a Rekor log entry corresponding to the provenance.
 
 ```json
 {
@@ -201,7 +202,12 @@ An endorsement statement, in the evidence field, may provide links to a provenan
 }
 ```
 
-A more sophisticated claimType for endorsements would have a non-empty claimSpec, containing a specification of the policy that was checked before issuing the endorsement statement. Authorization logic is a good candidate for providing a specification of such a policy. The claimSpec may in addition contain a signature from the tool that verified the policy and issued the endorsement statement. This is if we want to keep the product team as the issuer. Otherwise, we could use the tool as the issuer and the signer of the entire endorsement statement.
+A more sophisticated claimType for endorsements would have a non-empty claimSpec, containing a
+specification of the policy that was checked before issuing the endorsement statement.
+Authorization logic is a good candidate for providing a specification of such a policy. The
+claimSpec may in addition contain a signature from the tool that verified the policy and issued the
+endorsement statement. This is if we want to keep the product team as the issuer. Otherwise, we
+could use the tool as the issuer and the signer of the entire endorsement statement.
 
 ```json
 {
@@ -247,7 +253,8 @@ A more sophisticated claimType for endorsements would have a non-empty claimSpec
 
 For most use-cases, we can allow a claimType with a claimSpec containing free-format text. The text
 could be a short sentence like the following about the Oak Functions trusted runtime, or a more
-elaborate description, or a link to a full report, ideally identified by the hash of the content of the report.
+elaborate description, or a link to a full report, ideally identified by the hash of the content of
+the report.
 
 ```json
 {
@@ -289,9 +296,8 @@ elaborate description, or a link to a full report, ideally identified by the has
 ### Auto-generated Claims
 
 One type of auto-generated claim about a source code could be a fuzz testing report generated by an
-[OSS-Fuzz](https://github.com/google/oss-fuzz) project. Generating such claims requires integration
-with OSS-fuzz. The following is an example of such a claim. It tentatively shows the contents of
-the claimSpec, but is not meant to give a final design for it.
+[OSS-Fuzz](https://github.com/google/oss-fuzz) project. Such a claim may include coverage report as
+shown in the following example.
 
 ```json
 {
