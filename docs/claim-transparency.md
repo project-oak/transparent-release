@@ -19,7 +19,7 @@ assessment of privacy policies.
 
 ## The Claim Format
 
-We propose the following structure, based on the [in-toto Statement standard](https://github.com/in-toto/attestation/blob/main/spec/README.md#statement),
+We define the following structure, based on the [in-toto Statement standard](https://github.com/in-toto/attestation/blob/main/spec/README.md#statement),
 for specifying security and privacy claims. This format is meant to be generic and allow specifying
 different types of claims.
 
@@ -50,6 +50,8 @@ different types of claims.
   }
 }
 ```
+Section [Examples](##Examples) demonstrates the customization and use of the claim format via a
+number of examples.
 
 ### Fields
 
