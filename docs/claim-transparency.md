@@ -7,7 +7,7 @@ transformed into another (e.g., through compiling and linking). The premise of s
 chain security is that many things could go wrong during this process, either due to human error
 or attacks on the software supply chain by malicious actors.
 
-![The journey of a software binary](docs/images/journey.png)
+![The journey of a software binary](images/journey.png)
 
 To provide assurances to the end users about the security and privacy of a software application, in
 the transparent release project our goal is to provide transparency into the build and release
