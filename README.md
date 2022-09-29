@@ -1,11 +1,14 @@
 # The Transparent Release Project
 
-Transparent Release (not really the best name for the project) builds on the idea of binary
-transparency and expands in a few directions, as described below. 
+Transparent Release builds on the idea of binary transparency and expands it in a few directions,
+as described below. 
 
 ## Release Transparency
 
-The goal of release transparency is to generate and transparently publish ideally-verifiable metadata about a released binary. We refer to this kind of metadata as the endorsement statement. It can be used in scenarios where the identity of a binary must be verified before use. One prominent use case is remote attestation. See Oak’s remote attestation protocol for instance.
+The goal of release transparency is to generate and transparently publish non-forgeable metadata
+about a released binary. We refer to this kind of metadata as the endorsement statement. It can be
+used in scenarios where the identity of a binary must be verified before use. One prominent use
+case is remote attestation. See [Oak’s remote attestation protocol](https://github.com/project-oak/oak/tree/main/remote_attestation) for instance.
 
 The life cycle of an endorsement statement has three phases as shown in the diagram below:
 
@@ -13,13 +16,14 @@ The life cycle of an endorsement statement has three phases as shown in the diag
 
 ### The pre-release phase
 In this phase, a trusted builder, for instance [the generic slsa-generator GitHub workflow](https://github.com/slsa-framework/slsa-github-generator/blob/de4491844e9be4184f786666af40f5b1b8e7ddc0/internal/builders/generic/README.md),
-is used to generate the binary and a signed SLSA provenance statement about it. A provenance
-statement is another type of metadata about a binary that describes how and from which sources the
-binary was generated. Both the SLSA provenance statements, and our endorsement statements are
-customizations of the in-toto statements standard, and refer to one or more binaries as the subject
-of the statement. A binary can be uniquely identified by its cryptographic hash. The cryptographic
-hash function often used for identifying a binary is SHA256. For details about the format of the
-provenance statement please refer to [the SLSA provenance documentation](https://slsa.dev/provenance/v0.2).
+generates a binary and a corresponding SLSA provenance statement. The trusted builder also signs
+the generated SLSA provenance statement. A provenance statement is another type of metadata about a
+binary that describes how and from which sources the binary was generated. Both the SLSA provenance
+statements, and our endorsement statements are customizations of the in-toto statements standard,
+and refer to one or more binaries as the subject of the statement. A binary can be uniquely
+identified by its cryptographic hash. The cryptographic hash function often used for identifying a
+binary is SHA256. For details about the format of the provenance statement please refer to
+[the SLSA provenance documentation](https://slsa.dev/provenance/v0.2).
 
 We need provenance statements to be signed and published in a transparency log. This log, in case
 of the generic slsa-generator GitHub workflow, is an instance of Rekor hosted by sigstore. The
