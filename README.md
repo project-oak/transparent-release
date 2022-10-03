@@ -105,5 +105,7 @@ about a binary can be believed or trusted. More specifically, policies can be us
 release-readiness criteria, or for specifying conditions for accepting a binary, for instance in a
 remote attestation scenario.  
 
+Read more about Policy Transparency in [Policy Transparency: Authorization Logic Meets General Transparency to Prove Software Supply Chain Integrity](https://research.google/pubs/pub51673/).
+
 
 
