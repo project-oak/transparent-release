@@ -3,8 +3,8 @@
 <!-- markdownlint-disable-next-line MD033 -->
 <h1><picture><source media="(prefers-color-scheme: dark)" srcset="https://github.com/project-oak/oak/blob/main/docs/oak-logo/svgs/oak-transparent-release-negative-colour.svg?sanitize=true"><source media="(prefers-color-scheme: light)" srcset="https://github.com/project-oak/oak/blob/main/docs/oak-logo/svgs/oak-transparent-release.svg?sanitize=true"><img alt="Project Oak Logo" src="docs/oak-logo/svgs/oak-logo.svg?sanitize=true"></picture></h1>
 
-Transparent Release builds on the idea of binary transparency and expands it in a few directions,
-as described below. 
+The Transparent Release project builds on the idea of binary transparency and extends it in a few
+directions, as described below. 
 
 ## Release Transparency
 
