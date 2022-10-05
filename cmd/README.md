@@ -25,7 +25,7 @@ The [`cmd/builder`](/cmd/builder/) command line tool described above can be used
 binaries, and at the same time for generating a corresponding provenance file. To use this tool,
 the developers need to provide a toml file similar to the one in
 [`testdata/build.toml`](/testdata/build.toml). See the definition of `BuildConfig` in package
-[`common`](/internal/common/) for the￼description of each field.
+[`common`](/internal/common/) for the description of each field.
 
 To build a binary from the Git repository specified in
 [`testdata/oak_build.toml`](../testdata/oak_build.toml) and generate its provenance file, run
