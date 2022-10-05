@@ -42,7 +42,7 @@ type BuildConfig struct {
 	// that the binary is being release from the correct source.
 	// TODO(razieh): It might be better to instead use Git tree hash.
 	CommitHash string `toml:"commit_hash"`
-	// URI identifying the Docker image to use for building the binary.
+	// URI identifying the Docker image to use for building the binary in the NAME@DIGEST format.
 	BuilderImage string `toml:"builder_image"`
 	// Command to pass to the `docker run` command. The command is taken as an
 	// array instead of a single string to avoid unnecessary parsing. See
