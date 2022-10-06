@@ -62,6 +62,8 @@ $ bazel run  //cmd/builder:main -- \
   -git_root_dir <path-to-git-repo-root>
 ```
 
+For a guide to get started on a minimal example see our [hello-transparent-release repo](https://github.com/project-oak/hello-transparent-release).
+
 ## Verifying provenances
 
 The [`verifier`](/internal/verifier/) package provides functionality for verifying an input
