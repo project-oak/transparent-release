@@ -30,14 +30,11 @@ different types of claims.
 
   "predicateType": "https://github.com/project-oak/transparent-release/schema/claim/v1",
   "predicate": {
-    "issuer": {
-      "id": "<URI>"
-    },
     "claimType": "<URI>",
-    "metadata": {
-      "issuedOn": "<TIMESTAMP>",
-      "validFrom": "<TIMESTAMP>",
-      "expiresOn": "<TIMESTAMP>",
+    "issuedOn": "<TIMESTAMP>",
+    "validity": {
+      "notBefore": "<TIMESTAMP>",
+      "notAfter": "<TIMESTAMP>",
     },
     "claimSpec": { /* object */ },
     "evidence": [
@@ -60,27 +57,19 @@ This section describes the semantics of each field in the claim format:
 - **subject** _(array of objects, required)_:
   Set of artifacts (e.g., source code, or some binary) that the claim applies to.
   - **subject[*].digest** and **subject[*].name** as defined by Statement in the in-toto standard.
-- **issuer** _(object, required)_:
-  Identifies the entity (person, organization, or an automated tool) that reviewed/audited/examined
-  the artifact in the subject of this claim.
-  - **issuer.id** _(string ([TypeURI](https://github.com/in-toto/attestation/blob/main/spec/field_types.md#TypeURI)), required)_:
-    URI indicating the issuer’s identity (e.g., mailto:issuer@example.com).
 - **claimType** _(string ([TypeURI](https://github.com/in-toto/attestation/blob/main/spec/field_types.md#TypeURI)), required)_:
   URI indicating what type of claim was issued. It determines the meaning of claimSpec and evidence below.
-- **metadata** _(object, required)_:
-  Additional details about the claim.
+- **issuedOn** _(string ([Timestamp](https://github.com/in-toto/attestation/blob/main/spec/field_types.md#Timestamp)), required)_:
+    The timestamp at which this claims was generated.
+- **validity** _(object, required)_:
+  Validity duration of the claim.
 
-  - **metadata.issuedOn** _(string ([Timestamp](https://github.com/in-toto/attestation/blob/main/spec/field_types.md#Timestamp)), required)_:
-    The timestamp of when the assessment of the artifact was performed. In most cases, the
-    assessment involves manually auditing or reviewing some source code. The timestamp in this case
-    does not have to be the accurate moment the review process started, but only the date on which
-    the review was done.
-  - **metadata.validFrom** _(string ([Timestamp](https://github.com/in-toto/attestation/blob/main/spec/field_types.md#Timestamp)), required)_:
-    The timestamp from which the claim is effective, and the artifact is endorsed for use. In most
-    cases, it is the same as issuedOn timestamp, but can be any time after that.
-  - **metadata.expiresOn** _(string ([Timestamp](https://github.com/in-toto/attestation/blob/main/spec/field_types.md#Timestamp)), required)_:
+  - **validity.notBefore** _(string ([Timestamp](https://github.com/in-toto/attestation/blob/main/spec/field_types.md#Timestamp)), required)_:
+    The timestamp from which the claim is effective, and the artifact is endorsed for use. Must be
+    equal or after the issuedOn timestamp.
+  - **validity.notAfter** _(string ([Timestamp](https://github.com/in-toto/attestation/blob/main/spec/field_types.md#Timestamp)), required)_:
     The timestamp of when the artifact is no longer endorsed for use. This, combined with the
-    validFrom field, is particularly useful for implementing passive revocation.
+    `notBefore` field, is particularly useful for implementing passive revocation.
 
 - **claimSpec** _(object, optional)_:
   Gives a detailed description of the claim, and the steps that were taken to perform the assessment
@@ -92,7 +81,8 @@ This section describes the semantics of each field in the claim format:
     limitations & threats, and the additional material that was used to perform the assessment, for
     instance design docs may be used as one input. Such materials should not be included in the
     subject, unless the review is particularly about that material (e.g., a design doc).
-  - The content of a cargo-crev review.
+  - The content of a [cargo-crev](https://github.com/crev-dev/cargo-crev) review, or an
+    [audit recorded via cargo vet](https://mozilla.github.io/cargo-vet/recording-audits.html).
   - A link to a report similar to this security review of a cryptographic Rust crate, identified by
     its URI and digest.
   - An auto-generated report, for instance a fuzz testing report from ClusterFuzz.
@@ -141,7 +131,6 @@ provenance statement.
 
 | Field in a Claim statement | Field in a SLSA provenance | Comments |
 |:----------------|:---------------|:-----------------------------------------------------------|
-| issuer | builder | SLSA distinguishes between the builder and signer. In the context of claims, we expect the issuer and the signer to be the same entity.|
 | claimType | buildType | Both define the meanings of the other fields in the predicate.|
 | claimSpec | buildConfig | Both provide a flexible way of supporting different types of content (claims, and build processes).|
 | evidence | materials | Optional list of (a subset of ) additional artifacts that influenced the statement. |
@@ -182,14 +171,11 @@ include a reference to a Rekor log entry corresponding to the provenance.
 
   "predicateType": "https://github.com/project-oak/transparent-release/schema/claim/v1",
   "predicate": {
-    "issuer": {
-      "id": "mailto:oak-team@google.com"
-    },
     "claimType": "https://gh/project-oak/transparent-release/schema/endorsement/v2",
-    "metadata": {
-      "issuedOn": "2022-06-08T10:20:50.32Z",
-      "validFrom": "2022-06-08T10:20:50.32Z",
-      "expiresOn": "2022-06-09T10:20:50.32Z"
+    "issuedOn": "2022-06-08T10:20:50.32Z",
+    "validity": {
+      "notBefore": "2022-06-08T10:20:50.32Z",
+      "notAfter": "2022-06-09T10:20:50.32Z"
     },
     "evidence": [
       {
@@ -206,10 +192,8 @@ include a reference to a Rekor log entry corresponding to the provenance.
 
 A more sophisticated claimType for endorsements would have a non-empty claimSpec, containing a
 specification of the policy that was checked before issuing the endorsement statement.
-Authorization logic is a good candidate for providing a specification of such a policy. The
-claimSpec may in addition contain a signature from the tool that verified the policy and issued the
-endorsement statement. This is if we want to keep the product team as the issuer. Otherwise, we
-could use the tool as the issuer and the signer of the entire endorsement statement.
+Authorization logic is a good candidate for providing a specification of such a policy. In this
+case the tool that verified the policy and generated the claim will as well sign the claim. 
 
 ```json
 {
@@ -223,14 +207,11 @@ could use the tool as the issuer and the signer of the entire endorsement statem
 
   "predicateType": "https://gh/project-oak/transparent-release/schema/claim/v1",
   "predicate": {
-    "issuer": {
-      "id": "mailto:oak-team@google.com"
-    },
     "claimType": "https://gh/project-oak/transparent-release/schema/endorsement/v3",
-    "metadata": {
-      "issuedOn": "2022-06-08T10:20:50.32Z",
-      "validFrom": "2022-06-08T10:20:50.32Z",
-      "expiresOn": "2022-06-09T10:20:50.32Z",
+    "issuedOn": "2022-06-08T10:20:50.32Z",
+    "validity": {
+      "notBefore": "2022-06-08T10:20:50.32Z",
+      "notAfter": "2022-06-09T10:20:50.32Z",
     },
     "claimSpec": {
       "verification": "<The provenance verification policy, in authorization logic, that was verified as a precondition for issuing this endorsement statement.>",
@@ -272,14 +253,11 @@ the report.
 
   "predicateType": "https://gh/project-oak/transparent-release/schema/claim/v1",
   "predicate": {
-    "issuer": {
-      "id": "mailto:oak-team@google.com"
-    },
     "claimType": "https://github.com/project-oak/oak/claim/v1",
-    "metadata": {
-      "issuedOn": "2022-06-08T10:20:50.32Z",
-      "validFrom": "2022-06-08T10:20:50.32Z",
-      "expiresOn": "2022-06-09T10:20:50.32Z"
+    "issuedOn": "2022-06-08T10:20:50.32Z",
+    "validity": {
+      "notBefore": "2022-06-08T10:20:50.32Z",
+      "notAfter": "2022-06-09T10:20:50.32Z"
     },
     "claimSpec": "Oak trusted runtime does not store or log any parts of the incoming request",
     "evidence": [
@@ -312,14 +290,11 @@ shown in the following example.
 
   "predicateType": "https://gh/project-oak/transparent-release/schema/claim/v1",
   "predicate": {
-    "issuer": {
-      "id": "mailto:oak-team@google.com"
-    },
     "claimType": "https://gh/project-oak/transparent-release/schema/fuzz_report/v1",
-    "metadata": {
-      "issuedOn": "2022-06-08T10:20:50.32Z",
-      "validFrom": "2022-06-08T10:20:50.32Z",
-      "expiresOn": "2022-06-09T10:20:50.32Z"
+    "issuedOn": "2022-06-08T10:20:50.32Z",
+    "validity": {
+      "notBefore": "2022-06-08T10:20:50.32Z",
+      "notAfter": "2022-06-09T10:20:50.32Z"
     },
     "claimSpec": {
       "fuzz_target": {

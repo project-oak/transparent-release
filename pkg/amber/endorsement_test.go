@@ -37,8 +37,8 @@ func TestExampleAmberEndorsement(t *testing.T) {
 	}
 
 	want := time.Date(2022, 7, 8, 10, 20, 50, 32, time.UTC)
-	if claimPredicate.Metadata.IssuedOn.Equal(want) {
-		t.Errorf("Unexpected IssuedOn: got %v, want %v", claimPredicate.Metadata.IssuedOn, want)
+	if claimPredicate.IssuedOn.Equal(want) {
+		t.Errorf("Unexpected IssuedOn: got %v, want %v", claimPredicate.IssuedOn, want)
 	}
 
 	if len(claimPredicate.Evidence) != 1 {
