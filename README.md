@@ -33,6 +33,8 @@ of the generic slsa-generator GitHub workflow, is an instance of Rekor hosted by
 binary is often uploaded to a storage server for future use. This can be content-addressable storage
 such as [ent](https://github.com/google/ent). 
 
+To support the pre-release phase we provide the [cmd/builder](/cmd/README.md#building-binaries-using-the-cmdbuilder-tool) tool and a [guide on how get started on your repo](https://github.com/project-oak/hello-transparent-release).
+
 
 ### The release phase
 A binary is often released when some release-readiness criteria are met. Evaluating
