@@ -1,6 +1,0 @@
-testEndorsementReleaseQuery = query "OakFunctionsLoaderTeam" says
-    releaseEndorsement("""-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAErnyr7XY6gxXPnqRGYEpv5lDsbBeX
-izVFLckaF/cbgBuzx7kfmf1qi2j+3DDOQYgISQOj9/LYt4c1cxbt+XtG4g==
------END PUBLIC KEY-----""", 
-    "OakFunctionsLoaderTeam", "sha256:0f2189703c57845e09d8ab89164a4041c0af0a62", some_time)?

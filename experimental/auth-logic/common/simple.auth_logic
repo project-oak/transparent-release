@@ -1,7 +1,0 @@
-.decl this_demo(words : Words)
-
-"test_principal" says this_demo("is_working") :- this_demo("has_expected_outputs").
-"test_principal" says this_demo("has_expected_outputs").
-
-demo_working = query "test_principal" says this_demo("is_working")?
-demo_disappointing = query "test_principal" says this_demo("is_disappointing")?
