@@ -8,7 +8,6 @@ You need to have:
   - Note that if Docker is running as root on you local machine, you may run into some permission issues. 
 - [Go](https://go.dev/)
 - [Bazel](https://bazel.build/), e.g., with `$ sudo apt-get install bazel`.
-- `mcpp`, e.g., with `$ sudo apt-get install -y mcpp`. Otherwise, you'll get `Error what(): failed to locate mcpp pre-processor`.
 
 And optionally:
 
