@@ -62,14 +62,13 @@ This section describes the semantics of each field in the claim format:
 - **issuedOn** _(string ([Timestamp](https://github.com/in-toto/attestation/blob/main/spec/field_types.md#Timestamp)), required)_:
     The timestamp at which this claims was generated.
 - **validity** _(object, required)_:
-  Validity duration of the claim.
+  Validity duration of the claim. It enables implementing passive revocation.
 
   - **validity.notBefore** _(string ([Timestamp](https://github.com/in-toto/attestation/blob/main/spec/field_types.md#Timestamp)), required)_:
     The timestamp from which the claim is effective, and the artifact is endorsed for use. Must be
     equal or after the issuedOn timestamp.
   - **validity.notAfter** _(string ([Timestamp](https://github.com/in-toto/attestation/blob/main/spec/field_types.md#Timestamp)), required)_:
-    The timestamp of when the artifact is no longer endorsed for use. This, combined with the
-    `notBefore` field, is particularly useful for implementing passive revocation.
+    The timestamp of when the artifact is no longer endorsed for use.
 
 - **claimSpec** _(object, optional)_:
   Gives a detailed description of the claim, and the steps that were taken to perform the assessment

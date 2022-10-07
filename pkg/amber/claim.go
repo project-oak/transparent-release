@@ -47,7 +47,7 @@ type ClaimPredicate struct {
 	// claim was issued.
 	IssuedOn *time.Time `json:"issuedOn"`
 	// Validity duration of this claim.
-	Validity *ClaimValidity `json:"validity,omitempty"`
+	Validity *ClaimValidity `json:"validity"`
 	// A collection of artifacts that support the truth of the claim.
 	Evidence []ClaimEvidence `json:"evidence,omitempty"`
 }
@@ -105,21 +105,17 @@ func validateClaimPredicate(predicate ClaimPredicate) (*ClaimPredicate, error) {
 	}
 
 	// Verify that NotBefore is after than IssuedOn (inclusive).
-	if predicate.Validity != nil {
-		if predicate.Validity.NotBefore.Before(*predicate.IssuedOn) {
-			return nil, fmt.Errorf("notBefore (%v) is before issuedOn (%v)",
-				*predicate.Validity.NotBefore,
-				*predicate.IssuedOn)
-		}
+	if predicate.Validity.NotBefore.Before(*predicate.IssuedOn) {
+		return nil, fmt.Errorf("notBefore (%v) is before issuedOn (%v)",
+			*predicate.Validity.NotBefore,
+			*predicate.IssuedOn)
 	}
 
 	// Verify that NotAfter is after than NotBefore (exclusive).
-	if predicate.Validity != nil {
-		if !predicate.Validity.NotAfter.After(*predicate.Validity.NotBefore) {
-			return nil, fmt.Errorf("notAfter (%v) is not after notBefore (%v)",
-				*predicate.Validity.NotAfter,
-				*predicate.Validity.NotBefore)
-		}
+	if !predicate.Validity.NotAfter.After(*predicate.Validity.NotBefore) {
+		return nil, fmt.Errorf("notAfter (%v) is not after notBefore (%v)",
+			*predicate.Validity.NotAfter,
+			*predicate.Validity.NotBefore)
 	}
 
 	return &predicate, nil
