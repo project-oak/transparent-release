@@ -32,12 +32,10 @@ const AmberEndorsementV2 = "https://github.com/project-oak/transparent-release/e
 
 // EndorsementData is a helper struct for specifying metadata about an endorsement statement.
 type EndorsementData struct {
-	// Issuer of the endorsement.
-	Issuer string
-	// EndorsedFrom is the timestamp from which the endorsement is effective.
-	EndorsedFrom *time.Time
-	// ExpiresOn is the timestamp on which the endorsement expires.
-	ExpiresOn *time.Time
+	// NotBefore is the timestamp from which the endorsement is effective.
+	NotBefore *time.Time
+	// NotAfter is the timestamp on which the endorsement expires.
+	NotAfter *time.Time
 }
 
 // ValidatedProvenanceSet encapsulates a non-empty list of validated provenances, as well as metadata
@@ -127,12 +125,11 @@ func GenerateEndorsementStatement(metadata EndorsementData, provenances Validate
 	}
 
 	predicate := ClaimPredicate{
-		Issuer:    ClaimIssuer{ID: metadata.Issuer},
 		ClaimType: AmberEndorsementV2,
-		Metadata: &ClaimMetadata{
-			// TODO(#30): Use current time for IssuedOn, and set EffectiveFrom to metadata.EndorsedFrom.
-			IssuedOn:  metadata.EndorsedFrom,
-			ExpiresOn: metadata.ExpiresOn,
+		// TODO(#30): Use current time for IssuedOn, and set EffectiveFrom to metadata.EndorsedFrom.
+		Validity: &ClaimValidity{
+			NotBefore: metadata.NotBefore,
+			NotAfter:  metadata.NotAfter,
 		},
 		Evidence: evidence,
 	}
