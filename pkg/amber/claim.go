@@ -38,34 +38,28 @@ const AmberClaimV1 = "https://github.com/project-oak/transparent-release/claim/v
 
 // ClaimPredicate gives the claim predicate definition.
 type ClaimPredicate struct {
-	// The issuer of the claim.
-	Issuer ClaimIssuer `json:"issuer"`
 	// URI indicating the type of the claim. It determines the meaning of
 	// `ClaimSpec` and `Evidence`.
 	ClaimType string `json:"claimType"`
 	// An optional arbitrary object that gives a detailed description of the claim.
 	ClaimSpec interface{} `json:"claimSpec,omitempty"`
-	// Metadata about this claim.
-	Metadata *ClaimMetadata `json:"metadata,omitempty"`
+	// IssuedOn specifies the timestamp (encoded as an Epoch time) when the
+	// claim was issued.
+	IssuedOn *time.Time `json:"issuedOn"`
+	// Validity duration of this claim.
+	Validity *ClaimValidity `json:"validity"`
 	// A collection of artifacts that support the truth of the claim.
 	Evidence []ClaimEvidence `json:"evidence,omitempty"`
 }
 
-// ClaimIssuer identifies the entity that issued the claim.
-type ClaimIssuer struct {
-	// URI indicating the issuer's identity. Could be an email address with
-	// mailto as the scheme (e.g., mailto:issuer@example.com).
-	ID string `json:"id"`
-}
-
-// ClaimMetadata contains metadata about the issued claims.
-type ClaimMetadata struct {
-	// IssuedOn specifies the timestamp (encoded as the Epoch time) when the
-	// claim was issued.
-	IssuedOn *time.Time `json:"issuedOn"`
-	// ExpiresOn is an optional field specifying an expiry timestamp (also
-	// encoded as the Epoch time) for the claim.
-	ExpiresOn *time.Time `json:"expiresOn,omitempty"`
+// ClaimValidity contains validity time range of an issued claim.
+type ClaimValidity struct {
+	// NotBefore specifies the timestamp (encoded as an Epoch time) from which
+	// the claim is effective, and the subject artifact is endorsed for use.
+	NotBefore *time.Time `json:"notBefore"`
+	// NotAfter specifies the timestamp (encoded as an Epoch time) from which
+	// the artifact is no longer endorsed for use.
+	NotAfter *time.Time `json:"notAfter"`
 }
 
 // ClaimEvidence provides a list of artifacts that serve as the evidence for
@@ -102,12 +96,6 @@ func ValidateAmberClaim(statement intoto.Statement) (*ClaimPredicate, error) {
 
 // validateClaimPredicate validates details about the ClaimPredicate.
 func validateClaimPredicate(predicate ClaimPredicate) (*ClaimPredicate, error) {
-	// Verify that the issuer ID is a valid URI
-	parsedURI, err := url.Parse(predicate.Issuer.ID)
-	if err != nil || parsedURI.Scheme == "" {
-		return nil, fmt.Errorf("the Issuer ID (%s) is not a valid URI", predicate.Issuer.ID)
-	}
-
 	// Verify URIs of all evidence are valid.
 	for _, evidence := range predicate.Evidence[:] {
 		parsedURI, err := url.Parse(evidence.URI)
@@ -116,14 +104,18 @@ func validateClaimPredicate(predicate ClaimPredicate) (*ClaimPredicate, error) {
 		}
 	}
 
-	// Verify that ExpiresOn is greater than IssuedOn, if the former is provided.
-	if predicate.Metadata != nil {
-		if predicate.Metadata.ExpiresOn != nil &&
-			predicate.Metadata.ExpiresOn.Before(*predicate.Metadata.IssuedOn) {
-			return nil, fmt.Errorf("expiredOn (%v) is before issuedOn (%v)",
-				*predicate.Metadata.ExpiresOn,
-				*predicate.Metadata.IssuedOn)
-		}
+	// Verify that NotBefore is after than IssuedOn (inclusive).
+	if predicate.Validity.NotBefore.Before(*predicate.IssuedOn) {
+		return nil, fmt.Errorf("notBefore (%v) is before issuedOn (%v)",
+			*predicate.Validity.NotBefore,
+			*predicate.IssuedOn)
+	}
+
+	// Verify that NotAfter is after than NotBefore (exclusive).
+	if !predicate.Validity.NotAfter.After(*predicate.Validity.NotBefore) {
+		return nil, fmt.Errorf("notAfter (%v) is not after notBefore (%v)",
+			*predicate.Validity.NotAfter,
+			*predicate.Validity.NotBefore)
 	}
 
 	return &predicate, nil
