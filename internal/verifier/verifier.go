@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package verify provides a function for verifying a SLSA provenance file.
-package verify
+// Package verifier provides a function for verifying a SLSA provenance file.
+package verifier
 
 import (
 	"fmt"

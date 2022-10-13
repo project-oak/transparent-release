@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package build provides a function for building binaries.
-package build
+// Package endorser provides a function for building binaries.
+package endorser
 
 import (
 	"context"
