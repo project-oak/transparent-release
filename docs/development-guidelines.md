@@ -6,7 +6,9 @@ You need to have:
 
 - [rootless Docker](https://docs.docker.com/engine/security/rootless/)
   - Note that if Docker is running as root on you local machine, you may run into some permission issues. 
+  - Note that if you use Rootless mode, you might want to check that your Docker daemon is running properly, e.g., with `$ sudo systemctl status docker`. If your Docker daemon is inactive, you can start it manually using, e.g., with `$ sudo systemctl start docker`.  
 - [Go](https://go.dev/)
+  - Note that you might want to check that you have [golangci-lint](https://github.com/golangci/golangci-lint) installed, e.g., with `$ golangci-lint --version`. See [related issues](https://github.com/golangci/golangci-lint/issues/648) if you faced an error.
 - [Bazel](https://bazel.build/), e.g., with `$ sudo apt-get install bazel`.
 
 And optionally:
