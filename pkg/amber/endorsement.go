@@ -38,9 +38,8 @@ type EndorsementData struct {
 	NotAfter *time.Time
 }
 
-// ValidatedProvenanceSet encapsulates a non-empty list of validated provenances, as well as metadata
-// about the binary retrieved from the provenances.
-type ValidatedProvenanceSet struct {
+// VerifiedProvenanceSet encapsulates a non-empty list of metadata about verified provenances.
+type VerifiedProvenanceSet struct {
 	// Name of the binary that all validated provenances agree on.
 	BinaryName string
 	// SHA256 Hash of the binary that all validated provenances agree on.
@@ -114,7 +113,7 @@ func validateAmberClaim(statement intoto.Statement) error {
 
 // GenerateEndorsementStatement generates an endorsement object with the given subject, generated
 // on the given releaseTime, and valid for the given duration.
-func GenerateEndorsementStatement(metadata EndorsementData, provenances ValidatedProvenanceSet) *intoto.Statement {
+func GenerateEndorsementStatement(metadata EndorsementData, provenances VerifiedProvenanceSet) *intoto.Statement {
 	evidence := make([]ClaimEvidence, 0, len(provenances.Provenances))
 	for _, provenance := range provenances.Provenances {
 		evidence = append(evidence, ClaimEvidence{
