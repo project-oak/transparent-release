@@ -30,14 +30,6 @@ import (
 // version in `schema/amber-endorsement/v1`.
 const AmberEndorsementV2 = "https://github.com/project-oak/transparent-release/endorsement/v2"
 
-// EndorsementData is a helper struct for specifying metadata about an endorsement statement.
-type EndorsementData struct {
-	// NotBefore is the timestamp from which the endorsement is effective.
-	NotBefore *time.Time
-	// NotAfter is the timestamp on which the endorsement expires.
-	NotAfter *time.Time
-}
-
 // VerifiedProvenanceSet encapsulates a non-empty list of metadata about verified provenances.
 type VerifiedProvenanceSet struct {
 	// Name of the binary that all validated provenances agree on.
@@ -113,7 +105,7 @@ func validateAmberClaim(statement intoto.Statement) error {
 
 // GenerateEndorsementStatement generates an endorsement object with the given subject, generated
 // on the given releaseTime, and valid for the given duration.
-func GenerateEndorsementStatement(metadata EndorsementData, provenances VerifiedProvenanceSet) *intoto.Statement {
+func GenerateEndorsementStatement(validity ClaimValidity, provenances VerifiedProvenanceSet) *intoto.Statement {
 	evidence := make([]ClaimEvidence, 0, len(provenances.Provenances))
 	for _, provenance := range provenances.Provenances {
 		evidence = append(evidence, ClaimEvidence{
@@ -123,14 +115,12 @@ func GenerateEndorsementStatement(metadata EndorsementData, provenances Verified
 		})
 	}
 
+	currentTime := time.Now()
 	predicate := ClaimPredicate{
 		ClaimType: AmberEndorsementV2,
-		// TODO(#30): Use current time for IssuedOn, and set EffectiveFrom to metadata.EndorsedFrom.
-		Validity: &ClaimValidity{
-			NotBefore: metadata.NotBefore,
-			NotAfter:  metadata.NotAfter,
-		},
-		Evidence: evidence,
+		IssuedOn:  &currentTime,
+		Validity:  &validity,
+		Evidence:  evidence,
 	}
 
 	subject := intoto.Subject{

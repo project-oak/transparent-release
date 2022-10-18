@@ -156,7 +156,6 @@ func (b *BuildConfig) Build() error {
 	}
 
 	defaultDockerRunFlags := []string{
-		// TODO(razieh): Check that b.DockerRunFlags does not set similar flags.
 		// Mount the current working directory to workspace.
 		fmt.Sprintf("--volume=%s:/workspace", cwd),
 		"--workdir=/workspace",

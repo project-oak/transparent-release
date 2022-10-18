@@ -29,16 +29,16 @@ import (
 	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
-// GenerateEndorsement generates an endorsement statement for the given binary hash, with the
-// given metadata, using the given provenances as evidence. At least one provenance must be
+// GenerateEndorsement generates an endorsement statement for the given binary hash, for the given
+// validity duration, using the given provenances as evidence. At least one provenance must be
 // provided. The endorsement statement is generated only if the provenance statement is valid.
-func GenerateEndorsement(binaryHash string, metadata amber.EndorsementData, provenanceURIs []string) (*intoto.Statement, error) {
+func GenerateEndorsement(binaryHash string, validity amber.ClaimValidity, provenanceURIs []string) (*intoto.Statement, error) {
 	verifiedProvenances, err := loadAndVerifyProvenances(provenanceURIs, binaryHash)
 	if err != nil {
 		return nil, fmt.Errorf("could not load provenances: %v", err)
 	}
 
-	return amber.GenerateEndorsementStatement(metadata, *verifiedProvenances), nil
+	return amber.GenerateEndorsementStatement(validity, *verifiedProvenances), nil
 }
 
 // Returns at least one provenance statement, or an error if the list of paths is empty, or any of the provenances cannot be loaded.
@@ -51,7 +51,6 @@ func loadAndVerifyProvenances(provenanceURIs []string, binaryHash string) (*ambe
 	provenances := make([]amber.ValidatedProvenance, 0, len(provenanceURIs))
 	provenancesData := make([]amber.ProvenanceData, 0, len(provenanceURIs))
 	for _, uri := range provenanceURIs {
-		// TODO: process URI for file and http (in a util; return the bytes)
 		provenanceBytes, err := getProvenanceBytes(uri)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't load the provenance file from %s: %v", uri, err)
@@ -116,7 +115,7 @@ func getProvenanceBytes(provenanceURI string) ([]byte, error) {
 			return os.ReadFile(uri.Path)
 		}
 
-		return nil, fmt.Errorf("loading provenance files from a remote host (%q) is not supported", uri.Host)
+		return nil, fmt.Errorf("invalid scheme (%q) and host (%q) combination", uri.Scheme, uri.Host)
 	}
 
 	return nil, fmt.Errorf("unsupported URI scheme (%q)", uri.Scheme)
