@@ -19,6 +19,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -112,10 +113,12 @@ func getProvenanceBytes(provenanceURI string) ([]byte, error) {
 		return getJSONOverHTTP(provenanceURI)
 	} else if uri.Scheme == "file" {
 		if uri.Host != "" {
-			return os.ReadFile(uri.Path)
+			return nil, fmt.Errorf("invalid scheme (%q) and host (%q) combination", uri.Scheme, uri.Host)
 		}
-
-		return nil, fmt.Errorf("invalid scheme (%q) and host (%q) combination", uri.Scheme, uri.Host)
+		if _, err := os.Stat(uri.Path); errors.Is(err, os.ErrNotExist) {
+			return nil, fmt.Errorf("%q does not exist", uri.Path)
+		}
+		return os.ReadFile(uri.Path)
 	}
 
 	return nil, fmt.Errorf("unsupported URI scheme (%q)", uri.Scheme)
