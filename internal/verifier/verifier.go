@@ -17,6 +17,7 @@ package verify
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
@@ -52,7 +53,7 @@ func (verifier *ReproducibleProvenanceVerifier) Verify(provenanceFilePath string
 	if err != nil {
 		return fmt.Errorf("couldn't get current directory: %v", err)
 	}
-	defer os.Chdir(currentDir)
+	defer chdir(currentDir)
 
 	provenance, err := amber.ParseProvenanceFile(provenanceFilePath)
 	if err != nil {
@@ -85,6 +86,12 @@ func (verifier *ReproducibleProvenanceVerifier) Verify(provenanceFilePath string
 	}
 
 	return nil
+}
+
+func chdir(dir string) {
+	if err := os.Chdir(dir); err != nil {
+		log.Printf("Couldn't change directory to %s: %v", dir, err)
+	}
 }
 
 // AmberProvenanceMetadataVerifier verifies Amber provenances by comparing the
