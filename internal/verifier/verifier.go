@@ -17,6 +17,7 @@ package verify
 
 import (
 	"fmt"
+	"os"
 
 	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 	"github.com/project-oak/transparent-release/internal/common"
@@ -45,6 +46,14 @@ type ReproducibleProvenanceVerifier struct {
 // different returns an error, otherwise returns nil.
 // TODO(#126): Refactor and separate verification logic from the logic for reading the file.
 func (verifier *ReproducibleProvenanceVerifier) Verify(provenanceFilePath string) error {
+	// Below we change directory to the root of the Git repo. We have to change directory back to
+	// the current directory when we are done.
+	currentDir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("couldn't get current directory: %v", err)
+	}
+	defer os.Chdir(currentDir)
+
 	provenance, err := amber.ParseProvenanceFile(provenanceFilePath)
 	if err != nil {
 		return fmt.Errorf("couldn't load the provenance file from %s: %v", provenanceFilePath, err)

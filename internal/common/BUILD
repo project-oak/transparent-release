@@ -36,7 +36,6 @@ go_test(
     srcs = ["common_test.go"],
     data = [
         "//schema/amber-slsa-buildtype/v1:example.json",
-        "//schema/amber-slsa-buildtype/v1:provenance.json",
         "//testdata:build.toml",
         "//testdata:provenance.json",
         "//testdata:static.txt",
