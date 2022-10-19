@@ -31,7 +31,7 @@ go_library(
 
 go_test(
     name = "verifier_test",
-    size = "enormous",
+    size = "small",
     srcs = ["verifier_test.go"],
     data = [
         "//schema/amber-slsa-buildtype/v1:example.json",
