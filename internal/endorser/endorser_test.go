@@ -17,14 +17,16 @@ package endorser
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
+const binaryHash = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
+
 func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
-	binaryHash := "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
 	tomorrow := time.Now().AddDate(0, 0, 1)
 	nextWeek := time.Now().AddDate(0, 0, 7)
 	validity := amber.ClaimValidity{
@@ -44,6 +46,48 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 	}
 	if statement.Subject[0].Digest["sha256"] != binaryHash {
 		t.Fatal("invalid hash")
+	}
+}
+
+func TestGenerateEndorsement_MultipleValidEndorsement(t *testing.T) {
+	tomorrow := time.Now().AddDate(0, 0, 1)
+	nextWeek := time.Now().AddDate(0, 0, 7)
+	validity := amber.ClaimValidity{
+		NotBefore: &tomorrow,
+		NotAfter:  &nextWeek,
+	}
+
+	tempPath1, err := copyToTemp("../../testdata/provenance.json")
+	if err != nil {
+		t.Fatalf("Could not load provenance: %v", err)
+	}
+	tempPath2, err := copyToTemp("../../testdata/provenance.json")
+	if err != nil {
+		t.Fatalf("Could not load provenance: %v", err)
+	}
+	provenances := []string{"file://" + tempPath1, "file://" + tempPath2}
+	statement, err := GenerateEndorsement(binaryHash, validity, provenances)
+	if err != nil {
+		t.Fatalf("Could not generate endorsement from %q: %v", provenances[0], err)
+	}
+	if statement.Subject[0].Digest["sha256"] != binaryHash {
+		t.Fatal("invalid hash")
+	}
+}
+
+func TestGenerateEndorsement_FailingSingleRemoteProvenanceEndorsement(t *testing.T) {
+	tomorrow := time.Now().AddDate(0, 0, 1)
+	nextWeek := time.Now().AddDate(0, 0, 7)
+	validity := amber.ClaimValidity{
+		NotBefore: &tomorrow,
+		NotAfter:  &nextWeek,
+	}
+
+	provenances := []string{"https://github.com/project-oak/transparent-release/blob/main/testdata/provenance.json"}
+	_, err := GenerateEndorsement(binaryHash, validity, provenances)
+	want := "could not load provenances"
+	if err == nil || !strings.Contains(err.Error(), want) {
+		t.Fatalf("got %q, want error message containing %q,", err, want)
 	}
 }
 

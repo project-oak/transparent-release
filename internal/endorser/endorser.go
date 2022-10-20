@@ -95,7 +95,7 @@ func verifyProvenances(provenances []amber.ValidatedProvenance, binaryHash strin
 		if provenances[ind].GetBinaryName() != binaryName {
 			return fmt.Errorf("unexpected subject name in provenance @%d; got %q, want %q", ind, provenances[ind].GetBinaryName(), binaryName)
 		}
-		if provenances[ind].GetBinarySHA256Hash() != binaryName {
+		if provenances[ind].GetBinarySHA256Hash() != binaryHash {
 			return fmt.Errorf("unexpected subject digest in provenance @%d; got %q, want %q", ind, provenances[ind].GetBinarySHA256Hash(), binaryHash)
 		}
 		// TODO(b/222440937): Perform any additional verification among provenances to ensure their consistency.
