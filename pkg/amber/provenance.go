@@ -28,15 +28,17 @@ import (
 	intoto "github.com/in-toto/in-toto-golang/in_toto"
 	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 	"github.com/xeipuuv/gojsonschema"
+
+	_ "embed"
 )
 
 const (
 	// AmberBuildTypeV1 is the SLSA BuildType for Amber builds.
 	AmberBuildTypeV1 = "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json"
-
-	// SchemaPath is the path to Amber SLSA buildType schema.
-	SchemaPath = "schema/amber-slsa-buildtype/v1/provenance.json"
 )
+
+//go:embed schema/v1/provenance.json
+var schema []byte
 
 // BuildConfig represents the BuildConfig in the SLSA Provenance predicate. See the corresponding
 // JSON key in the Amber buildType schema.
@@ -83,12 +85,7 @@ func (p *ValidatedProvenance) GetBinaryName() string {
 }
 
 func validateSLSAProvenanceJSON(provenanceFile []byte) error {
-	schemaFile, err := os.ReadFile(SchemaPath)
-	if err != nil {
-		return err
-	}
-
-	schemaLoader := gojsonschema.NewStringLoader(string(schemaFile))
+	schemaLoader := gojsonschema.NewStringLoader(string(schema))
 	provenanceLoader := gojsonschema.NewStringLoader(string(provenanceFile))
 
 	result, err := gojsonschema.Validate(schemaLoader, provenanceLoader)

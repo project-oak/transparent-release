@@ -15,15 +15,8 @@
 package testutil
 
 import (
-	"os"
 	"testing"
 )
-
-func Chdir(t *testing.T, dir string) {
-	if err := os.Chdir(dir); err != nil {
-		t.Fatalf("couldn't change directory to %s: %v", dir, err)
-	}
-}
 
 func AssertEq[T comparable](t *testing.T, name string, got, want T) {
 	if got != want {

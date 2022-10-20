@@ -16,7 +16,6 @@ package amber
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
@@ -24,21 +23,12 @@ import (
 )
 
 const (
-	provenanceExamplePath    = "schema/amber-slsa-buildtype/v1/example.json"
+	provenanceExamplePath    = "../../schema/amber-slsa-buildtype/v1/example.json"
 	wantSHA1HexDigitLength   = 40
 	wantSHA256HexDigitLength = 64
 )
 
 func TestExampleProvenance(t *testing.T) {
-	// The path to provenance is specified relative to the root of the repo, so we need to go one level up.
-	// Get the current directory before that to restore the path at the end of the test.
-	currentDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("couldn't get current directory: %v", err)
-	}
-	defer testutil.Chdir(t, currentDir)
-	testutil.Chdir(t, "../../")
-
 	// Parses the provenance and validates it against the schema.
 	validatedProvenance, err := ParseProvenanceFile(provenanceExamplePath)
 	if err != nil {

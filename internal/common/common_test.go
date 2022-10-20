@@ -16,7 +16,6 @@ package common
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -27,7 +26,7 @@ import (
 
 const (
 	testdataPath             = "../../testdata/"
-	provenanceExamplePath    = "testdata/provenance.json"
+	provenanceExamplePath    = "provenance.json"
 	wantTOMLHash             = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
 	wantBuilderImageID       = "6e5beabe4ace0e3aaa01ce497f5f1ef30fed7c18c596f35621751176b1ab583d"
 	wantSHA1HexDigitLength   = 40
@@ -55,16 +54,9 @@ func TestLoadBuildConfigFromFile(t *testing.T) {
 }
 
 func TestLoadBuildConfigFromProvenance(t *testing.T) {
-	// The path to provenance is specified relative to the root of the repo, so we need to go one level up.
-	// Get the current directory before that to restore the path at the end of the test.
-	currentDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("couldn't get current directory: %v", err)
-	}
-	defer testutil.Chdir(t, currentDir)
-	testutil.Chdir(t, "../../")
+	path := filepath.Join(testdataPath, provenanceExamplePath)
 
-	provenance, err := amber.ParseProvenanceFile(provenanceExamplePath)
+	provenance, err := amber.ParseProvenanceFile(path)
 	if err != nil {
 		t.Fatalf("couldn't parse the provenance file: %v", err)
 	}

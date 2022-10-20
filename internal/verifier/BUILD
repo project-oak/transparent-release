@@ -31,11 +31,10 @@ go_library(
 
 go_test(
     name = "verifier_test",
-    size = "enormous",
+    size = "small",
     srcs = ["verifier_test.go"],
     data = [
         "//schema/amber-slsa-buildtype/v1:example.json",
-        "//schema/amber-slsa-buildtype/v1:provenance.json",
         "//testdata:provenance.json",
         "//testdata:bad_command_provenance.json",
         "//testdata:invalid_hash_provenance.json",
