@@ -30,7 +30,7 @@ import (
 // version in `schema/amber-endorsement/v1`.
 const AmberEndorsementV2 = "https://github.com/project-oak/transparent-release/endorsement/v2"
 
-// VerifiedProvenanceSet encapsulates a non-empty list of metadata about verified provenances.
+// VerifiedProvenanceSet encapsulates metadata about a non-empty list of verified provenances.
 type VerifiedProvenanceSet struct {
 	// Name of the binary that all validated provenances agree on.
 	BinaryName string
@@ -103,8 +103,8 @@ func validateAmberClaim(statement intoto.Statement) error {
 	return nil
 }
 
-// GenerateEndorsementStatement generates an endorsement object with the given subject, generated
-// on the given releaseTime, and valid for the given duration.
+// GenerateEndorsementStatement generates an endorsement object with the given subject, and
+// validity duration.
 func GenerateEndorsementStatement(validity ClaimValidity, provenances VerifiedProvenanceSet) *intoto.Statement {
 	evidence := make([]ClaimEvidence, 0, len(provenances.Provenances))
 	for _, provenance := range provenances.Provenances {

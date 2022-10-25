@@ -21,10 +21,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
-const binaryHash = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
+const (
+	binaryHash = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
+	binaryName = "test.txt-9b5f98310dbbad675834474fa68c37d880687cb9"
+)
 
 func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 	tomorrow := time.Now().AddDate(0, 0, 1)
@@ -44,9 +48,14 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not generate endorsement from %q: %v", provenances[0], err)
 	}
-	if statement.Subject[0].Digest["sha256"] != binaryHash {
-		t.Fatal("invalid hash")
-	}
+
+	testutil.AssertEq(t, "binary hash", statement.Subject[0].Digest["sha256"], binaryHash)
+	testutil.AssertEq(t, "binary name", statement.Subject[0].Name, binaryName)
+
+	predicate := statement.Predicate.(amber.ClaimPredicate)
+
+	testutil.AssertEq(t, "notBefore date", predicate.Validity.NotBefore, &tomorrow)
+	testutil.AssertEq(t, "notAfter date", predicate.Validity.NotAfter, &nextWeek)
 }
 
 func TestGenerateEndorsement_MultipleValidEndorsement(t *testing.T) {
@@ -70,9 +79,8 @@ func TestGenerateEndorsement_MultipleValidEndorsement(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not generate endorsement from %q: %v", provenances[0], err)
 	}
-	if statement.Subject[0].Digest["sha256"] != binaryHash {
-		t.Fatal("invalid hash")
-	}
+
+	testutil.AssertEq(t, "binary hash", statement.Subject[0].Digest["sha256"], binaryHash)
 }
 
 func TestGenerateEndorsement_FailingSingleRemoteProvenanceEndorsement(t *testing.T) {
@@ -92,6 +100,7 @@ func TestGenerateEndorsement_FailingSingleRemoteProvenanceEndorsement(t *testing
 }
 
 // copyToTemp creates a copy of the given file in `/tmp`.
+// This is used for creating URLs with `file` as the scheme.
 func copyToTemp(path string) (string, error) {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
