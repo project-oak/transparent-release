@@ -23,7 +23,7 @@ import (
 	"os"
 	"path/filepath"
 
-	builder "github.com/project-oak/transparent-release/internal/builder"
+	"github.com/project-oak/transparent-release/internal/builder"
 )
 
 func main() {

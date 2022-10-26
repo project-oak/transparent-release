@@ -18,8 +18,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	intoto "github.com/in-toto/in-toto-golang/in_toto"
+	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 )
 
 // AmberEndorsementV2 is the ClaimType for Amber Endorsements V2. This is
@@ -27,6 +29,23 @@ import (
 // an in-toto statement. This version of Amber Endorsement replaces the earlier
 // version in `schema/amber-endorsement/v1`.
 const AmberEndorsementV2 = "https://github.com/project-oak/transparent-release/endorsement/v2"
+
+// VerifiedProvenanceSet encapsulates metadata about a non-empty list of verified provenances.
+type VerifiedProvenanceSet struct {
+	// Name of the binary that all validated provenances agree on.
+	BinaryName string
+	// SHA256 digest of the binary that all validated provenances agree on.
+	BinaryDigest string
+	// Provenances contains metadata about provenances
+	Provenances []ProvenanceData
+}
+
+// ProvenanceData contains metadata about a provenance statement, identified by a URI and the
+// SHA256 digest of the content of the provenance.
+type ProvenanceData struct {
+	URI          string
+	SHA256Digest string
+}
 
 // ParseEndorsementV2File reads a JSON file from the given path, and parses it into an
 // instance of intoto.Statement, with the Amber Claim as the predicate type.
@@ -82,4 +101,41 @@ func validateAmberClaim(statement intoto.Statement) error {
 	}
 
 	return nil
+}
+
+// GenerateEndorsementStatement generates an endorsement object with the given subject, and
+// validity duration.
+func GenerateEndorsementStatement(validity ClaimValidity, provenances VerifiedProvenanceSet) *intoto.Statement {
+	evidence := make([]ClaimEvidence, 0, len(provenances.Provenances))
+	for _, provenance := range provenances.Provenances {
+		evidence = append(evidence, ClaimEvidence{
+			Role:   "Provenance",
+			URI:    provenance.URI,
+			Digest: slsa.DigestSet{"sha256": provenance.SHA256Digest},
+		})
+	}
+
+	currentTime := time.Now()
+	predicate := ClaimPredicate{
+		ClaimType: AmberEndorsementV2,
+		IssuedOn:  &currentTime,
+		Validity:  &validity,
+		Evidence:  evidence,
+	}
+
+	subject := intoto.Subject{
+		Name:   provenances.BinaryName,
+		Digest: slsa.DigestSet{"sha256": provenances.BinaryDigest},
+	}
+
+	statementHeader := intoto.StatementHeader{
+		Type:          intoto.StatementInTotoV01,
+		PredicateType: AmberClaimV1,
+		Subject:       []intoto.Subject{subject},
+	}
+
+	return &intoto.Statement{
+		StatementHeader: statementHeader,
+		Predicate:       predicate,
+	}
 }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package verify
+package verifier
 
 import (
 	"path/filepath"
@@ -43,7 +43,7 @@ func TestReproducibleProvenanceVerifier_invalidHash(t *testing.T) {
 
 	verifier := ReproducibleProvenanceVerifier{}
 
-	want := "failed to verify the hash of the built binary"
+	want := "failed to verify the digest of the built binary"
 
 	if got := verifier.Verify(path); !strings.Contains(got.Error(), want) {
 		t.Fatalf("got %v, want error message containing %q,", got, want)

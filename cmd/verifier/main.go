@@ -19,7 +19,7 @@ import (
 	"flag"
 	"log"
 
-	verify "github.com/project-oak/transparent-release/internal/verifier"
+	"github.com/project-oak/transparent-release/internal/verifier"
 )
 
 func main() {
@@ -29,11 +29,11 @@ func main() {
 		"Optional - Root of the Git repository. If not specified, sources are fetched from the repo specified in the config file.")
 	flag.Parse()
 
-	verifier := verify.ReproducibleProvenanceVerifier{
+	provenanceVerifier := verifier.ReproducibleProvenanceVerifier{
 		GitRootDir: *gitRootDirPtr,
 	}
 
-	if err := verifier.Verify(*buildConfigPathPtr); err != nil {
+	if err := provenanceVerifier.Verify(*buildConfigPathPtr); err != nil {
 		log.Fatalf("error when verifying the provenance: %v", err)
 	}
 }

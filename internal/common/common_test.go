@@ -27,20 +27,20 @@ import (
 const (
 	testdataPath             = "../../testdata/"
 	provenanceExamplePath    = "provenance.json"
-	wantTOMLHash             = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
+	wantTOMLDigest           = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
 	wantBuilderImageID       = "6e5beabe4ace0e3aaa01ce497f5f1ef30fed7c18c596f35621751176b1ab583d"
 	wantSHA1HexDigitLength   = 40
 	wantSHA256HexDigitLength = 64
 )
 
-func TestComputeBinarySha256Hash(t *testing.T) {
+func TestComputeBinarySHA256Digest(t *testing.T) {
 	path := filepath.Join(testdataPath, "static.txt")
-	got, err := computeSha256Hash(path)
+	got, err := computeSHA256Digest(path)
 	if err != nil {
-		t.Fatalf("couldn't get SHA256 hash: %v", err)
+		t.Fatalf("couldn't get SHA256 digest: %v", err)
 	}
-	if got != wantTOMLHash {
-		t.Errorf("invalid SHA256 hash: got %s, want %s", got, wantTOMLHash)
+	if got != wantTOMLDigest {
+		t.Errorf("invalid SHA256 digest: got %s, want %s", got, wantTOMLDigest)
 	}
 }
 
