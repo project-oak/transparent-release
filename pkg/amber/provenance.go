@@ -74,8 +74,8 @@ func (p *ValidatedProvenance) GetProvenance() intoto.Statement {
 	}
 }
 
-// GetBinarySHA256Hash returns the SHA256 hash of the subject.
-func (p *ValidatedProvenance) GetBinarySHA256Hash() string {
+// GetBinarySHA256Digest returns the SHA256 digest of the subject.
+func (p *ValidatedProvenance) GetBinarySHA256Digest() string {
 	return p.provenance.Subject[0].Digest["sha256"]
 }
 

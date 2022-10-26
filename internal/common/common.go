@@ -218,30 +218,30 @@ func (b *BuildConfig) VerifyCommit() error {
 	return nil
 }
 
-// ComputeBinarySha256Hash computes the SHA256 hash of the file in the
+// ComputeBinarySHA256Digest computes the SHA256 digest of the file in the
 // `OutputPath` of this BuildConfig.
-func (b *BuildConfig) ComputeBinarySha256Hash() (string, error) {
-	binarySha256Hash, err := computeSha256Hash(b.OutputPath)
+func (b *BuildConfig) ComputeBinarySHA256Digest() (string, error) {
+	binarySHA256Digest, err := computeSHA256Digest(b.OutputPath)
 	if err != nil {
-		return "", fmt.Errorf("couldn't compute SHA256 hash of %q: %v", b.OutputPath, err)
+		return "", fmt.Errorf("couldn't compute SHA256 digest of %q: %v", b.OutputPath, err)
 	}
 
-	return binarySha256Hash, nil
+	return binarySHA256Digest, nil
 }
 
 // GenerateProvenanceStatement generates a provenance statement from this config.
 func (b *BuildConfig) GenerateProvenanceStatement() (*intoto.Statement, error) {
-	binarySha256Hash, err := b.ComputeBinarySha256Hash()
+	binarySha256Digest, err := b.ComputeBinarySHA256Digest()
 	if err != nil {
 		return nil, err
 	}
 
-	log.Printf("The hash of the binary is: %s", binarySha256Hash)
+	log.Printf("The binary digest is: %s", binarySha256Digest)
 
 	subject := intoto.Subject{
 		// TODO(#57): Get the name as an input in the TOML file.
 		Name:   fmt.Sprintf("%s-%s", filepath.Base(b.OutputPath), b.CommitHash),
-		Digest: slsa.DigestSet{"sha256": binarySha256Hash},
+		Digest: slsa.DigestSet{"sha256": binarySha256Digest},
 	}
 
 	alg, digest, err := parseBuilderImageURI(b.BuilderImage)
@@ -314,18 +314,18 @@ func (b *BuildConfig) ChangeDirToGitRoot(gitRootDir string) (*RepoCheckoutInfo, 
 	return info, nil
 }
 
-// VerifyBinarySha256Hash computes the SHA256 hash of the binary built by this
-// BuildConfig, and checks that this hash is equal to the given `expectedSha256Hash`.
+// VerifyBinarySHA256Digest computes the SHA256 digest of the binary built by this
+// BuildConfig, and checks that this digest is equal to the given `expectedSha256Digest`.
 // Returns an error if the hashes are not equal.
-func (b *BuildConfig) VerifyBinarySha256Hash(expectedBinarySha256Hash string) error {
-	binarySha256Hash, err := b.ComputeBinarySha256Hash()
+func (b *BuildConfig) VerifyBinarySHA256Digest(expectedBinarySha256Digest string) error {
+	binarySha256Digest, err := b.ComputeBinarySHA256Digest()
 	if err != nil {
-		return fmt.Errorf("couldn't get the hash of the binary: %v", err)
+		return fmt.Errorf("couldn't get the digest of the binary: %v", err)
 	}
 
-	if binarySha256Hash != expectedBinarySha256Hash {
-		return fmt.Errorf("the hash of the generated binary does not match the expected SHA256 hash; got %s, want %s",
-			binarySha256Hash, expectedBinarySha256Hash)
+	if binarySha256Digest != expectedBinarySha256Digest {
+		return fmt.Errorf("the digest of the generated binary does not match the expected SHA256 digest; got %s, want %s",
+			binarySha256Digest, expectedBinarySha256Digest)
 	}
 
 	return nil
@@ -425,7 +425,7 @@ func FetchSourcesFromRepo(repoURL, commitHash string) (*RepoCheckoutInfo, error)
 	return &info, nil
 }
 
-func computeSha256Hash(path string) (string, error) {
+func computeSHA256Digest(path string) (string, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return "", fmt.Errorf("couldn't read file %q: %v", path, err)

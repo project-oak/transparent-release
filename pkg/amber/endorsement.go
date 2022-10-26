@@ -34,17 +34,17 @@ const AmberEndorsementV2 = "https://github.com/project-oak/transparent-release/e
 type VerifiedProvenanceSet struct {
 	// Name of the binary that all validated provenances agree on.
 	BinaryName string
-	// SHA256 Hash of the binary that all validated provenances agree on.
-	BinaryHash string
+	// SHA256 digest of the binary that all validated provenances agree on.
+	BinaryDigest string
 	// Provenances contains metadata about provenances
 	Provenances []ProvenanceData
 }
 
 // ProvenanceData contains metadata about a provenance statement, identified by a URI and the
-// SHA256 hash of the content of the provenance.
+// SHA256 digest of the content of the provenance.
 type ProvenanceData struct {
-	URI        string
-	SHA256Hash string
+	URI          string
+	SHA256Digest string
 }
 
 // ParseEndorsementV2File reads a JSON file from the given path, and parses it into an
@@ -111,7 +111,7 @@ func GenerateEndorsementStatement(validity ClaimValidity, provenances VerifiedPr
 		evidence = append(evidence, ClaimEvidence{
 			Role:   "Provenance",
 			URI:    provenance.URI,
-			Digest: slsa.DigestSet{"sha256": provenance.SHA256Hash},
+			Digest: slsa.DigestSet{"sha256": provenance.SHA256Digest},
 		})
 	}
 
@@ -125,7 +125,7 @@ func GenerateEndorsementStatement(validity ClaimValidity, provenances VerifiedPr
 
 	subject := intoto.Subject{
 		Name:   provenances.BinaryName,
-		Digest: slsa.DigestSet{"sha256": provenances.BinaryHash},
+		Digest: slsa.DigestSet{"sha256": provenances.BinaryDigest},
 	}
 
 	statementHeader := intoto.StatementHeader{
