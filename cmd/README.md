@@ -8,7 +8,7 @@ This repository provides tooling for building and verifying provenance claims. W
 and [SLSA provenances](https://slsa.dev/provenance/v0.2) for making provenance claims. The
 `buildType` in a SLSA provenance predicate describes the meaning of `materials` and `buildConfig`.
 We define our own `buildType` on top of SLSA provenances: the
-[Amber Provenance](/schema/amber-slsa-buildtype/v1/provenance.json) schema.
+[Amber Provenance](/schema/provenance/v1/provenance.json) schema.
 
 ## Building binaries using the `cmd/builder` tool
 
@@ -68,7 +68,7 @@ For a guide to get started on a minimal example see our [hello-transparent-relea
 
 The [`verifier`](/internal/verifier/) package provides functionality for verifying an input
 provenance file. The provenance file should follow the
-[Amber provenance](/schema/amber-slsa-buildtype/v1/provenance.json) format and provide a list of
+[Amber provenance](/schema/provenance/v1/provenance.json) format and provide a list of
 materials (including the source code and the build toolchain), and steps for building a binary from
 the listed materials. The verification logic uses the provenance file to build a binary, and checks
 that the binary has a SHA256 hash equal to the expected digest given in the provenance file.
@@ -77,7 +77,7 @@ To verify a SLSA provenance of the Amber build type run:
 
 ```bash
 $ bazel run  //cmd/verifier:main -- \
-  -config <absolute-path-to-transparent-release>/schema/amber-slsa-buildtype/v1/example.json
+  -config <absolute-path-to-transparent-release>/schema/provenance/v1/example.json
 ```
 
 This fetches the sources from the Git repository specified in the SLSA statement file, re-runs the
@@ -92,6 +92,6 @@ error otherwise.
 
 ```bash
 $ bazel run  //cmd/verifier:main -- \
-  -config <absolute-path-to-transparent-release>/schema/amber-slsa-buildtype/v1/example.json \
+  -config <absolute-path-to-transparent-release>/schema/provenance/v1/example.json \
   -git_root_dir <path-to-git-repo-root>
 ```

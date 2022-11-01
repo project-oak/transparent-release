@@ -39,8 +39,8 @@ go_test(
     size = "small",
     srcs = glob(["*_test.go"]),
     data = [
-        "//schema/amber-claim/v1:example.json",
-        "//schema/amber-slsa-buildtype/v1:example.json",
+        "//schema/claim/v1:example.json",
+        "//schema/provenance/v1:example.json",
     ],
     embed = [":amber"],
     deps = [

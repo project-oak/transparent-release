@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	provenanceExamplePath    = "../../schema/amber-slsa-buildtype/v1/example.json"
+	provenanceExamplePath    = "../../schema/provenance/v1/example.json"
 	wantSHA1HexDigitLength   = 40
 	wantSHA256HexDigitLength = 64
 )

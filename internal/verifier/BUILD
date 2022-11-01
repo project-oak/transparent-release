@@ -34,7 +34,7 @@ go_test(
     size = "small",
     srcs = ["verifier_test.go"],
     data = [
-        "//schema/amber-slsa-buildtype/v1:example.json",
+        "//schema/provenance/v1:example.json",
         "//testdata:provenance.json",
         "//testdata:bad_command_provenance.json",
         "//testdata:invalid_hash_provenance.json",
