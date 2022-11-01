@@ -46,7 +46,7 @@ is generated, signed, and published transparently.
 An endorsement statement specifies that a binary, identified by its cryptographic hash, is endorsed
 for use for a specific time range. An endorsement statement is a special type of claim in our
 design. For more information about the format of an endorsement statement see [the claim format](docs/claim-transparency.md#the-claim-format)
-and [this example endorsement](schema/amber-claim/v1/example.json). 
+and [this example endorsement](schema/claim/v1/example.json). 
 
 Endorsement statements can be generated using a tool that we call _endorser_. Given a binary, a
 non-empty list of its provenances, and a validity time range, the endorser generates an endorsement

@@ -22,7 +22,7 @@ import (
 )
 
 func TestExampleAmberEndorsement(t *testing.T) {
-	examplePath := "../../schema/amber-claim/v1/example.json"
+	examplePath := "../../schema/claim/v1/example.json"
 
 	endorsement, err := ParseEndorsementV2File(examplePath)
 	if err != nil {
@@ -70,7 +70,7 @@ func TestNotAfterBeforeNotBeforeEndorsement(t *testing.T) {
 
 // Helper function for creating new test cases from the hard-coded one.
 func tweakValidity(t *testing.T, daysAddedToNotBefore, daysAddedToNotAfter int) []byte {
-	examplePath := "../../schema/amber-claim/v1/example.json"
+	examplePath := "../../schema/claim/v1/example.json"
 
 	endorsement, err := ParseEndorsementV2File(examplePath)
 	if err != nil {
