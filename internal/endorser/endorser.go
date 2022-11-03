@@ -26,8 +26,8 @@ import (
 	"net/url"
 	"os"
 
-	intoto "github.com/in-toto/in-toto-golang/in_toto"
 	"github.com/project-oak/transparent-release/pkg/amber"
+	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
 // GenerateEndorsement generates an endorsement statement for the given binary SHA256 digest, for

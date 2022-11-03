@@ -25,7 +25,7 @@ go_library(
     deps = [
         "//pkg/amber",
         "//internal/common",
-        "@com_github_in_toto_in_toto_golang//in_toto/slsa_provenance/v0.2:go_default_library",
+        "//pkg/intoto/slsa_provenance/v0.2:slsa",
     ],
 )
 

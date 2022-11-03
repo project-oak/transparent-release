@@ -20,8 +20,7 @@ import (
 	"os"
 	"time"
 
-	intoto "github.com/in-toto/in-toto-golang/in_toto"
-	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
+	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
 // AmberEndorsementV2 is the ClaimType for Amber Endorsements V2. This is
@@ -111,7 +110,7 @@ func GenerateEndorsementStatement(validity ClaimValidity, provenances VerifiedPr
 		evidence = append(evidence, ClaimEvidence{
 			Role:   "Provenance",
 			URI:    provenance.URI,
-			Digest: slsa.DigestSet{"sha256": provenance.SHA256Digest},
+			Digest: intoto.DigestSet{"sha256": provenance.SHA256Digest},
 		})
 	}
 
@@ -125,7 +124,7 @@ func GenerateEndorsementStatement(validity ClaimValidity, provenances VerifiedPr
 
 	subject := intoto.Subject{
 		Name:   provenances.BinaryName,
-		Digest: slsa.DigestSet{"sha256": provenances.BinaryDigest},
+		Digest: intoto.DigestSet{"sha256": provenances.BinaryDigest},
 	}
 
 	statementHeader := intoto.StatementHeader{

@@ -19,12 +19,9 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 package(default_visibility = ["//:__subpackages__"])
 
 go_library(
-    name = "builder",
-    srcs = ["builder.go"],
-    importpath = "github.com/project-oak/transparent-release/internal/builder",
-    deps = [
-        "//pkg/amber",
-        "//pkg/intoto",
-        "//internal/common",
+    name = "intoto",
+    srcs = [
+        "intoto.go",
     ],
+    importpath = "github.com/project-oak/transparent-release/pkg/intoto",
 )

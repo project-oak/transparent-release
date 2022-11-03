@@ -20,8 +20,8 @@ import (
 	"log"
 	"os"
 
-	intoto "github.com/in-toto/in-toto-golang/in_toto"
 	"github.com/project-oak/transparent-release/internal/common"
+	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
 // Build automates the steps for building a binary from a Git repository, and

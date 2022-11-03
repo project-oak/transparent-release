@@ -28,8 +28,8 @@ go_library(
     embedsrcs = ["schema/v1/provenance.json"],
     importpath = "github.com/project-oak/transparent-release/pkg/amber",
     deps = [
-        "@com_github_in_toto_in_toto_golang//in_toto:go_default_library",
-        "@com_github_in_toto_in_toto_golang//in_toto/slsa_provenance/v0.2:go_default_library",
+        "//pkg/intoto",
+        "//pkg/intoto/slsa_provenance/v0.2:slsa",
         "@com_github_xeipuuv_gojsonschema//:go_default_library",
     ],
 )
@@ -45,7 +45,7 @@ go_test(
     embed = [":amber"],
     deps = [
         "//internal/testutil",
+        "//pkg/intoto/slsa_provenance/v0.2:slsa",
         "@com_github_google_go_cmp//cmp:go_default_library",
-        "@com_github_in_toto_in_toto_golang//in_toto/slsa_provenance/v0.2:go_default_library",
     ],
 )

@@ -19,12 +19,12 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 package(default_visibility = ["//:__subpackages__"])
 
 go_library(
-    name = "builder",
-    srcs = ["builder.go"],
-    importpath = "github.com/project-oak/transparent-release/internal/builder",
+    name = "slsa",
+    srcs = [
+        "provenance.go",
+    ],
+    importpath = "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2",
     deps = [
-        "//pkg/amber",
         "//pkg/intoto",
-        "//internal/common",
     ],
 )

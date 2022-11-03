@@ -28,8 +28,7 @@ import (
 	"net/url"
 	"time"
 
-	intoto "github.com/in-toto/in-toto-golang/in_toto"
-	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
+	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
 // AmberClaimV1 is the URI that should be used as the PredicateType in in-toto
@@ -70,7 +69,7 @@ type ClaimEvidence struct {
 	// URI uniquely identifies this evidence.
 	URI string `json:"uri"`
 	// Collection of cryptographic digests for the contents of this artifact.
-	Digest slsa.DigestSet `json:"digest"`
+	Digest intoto.DigestSet `json:"digest"`
 }
 
 // ValidateAmberClaim validates that an in-toto statement is an Amber Claim with a valid ClaimPredicate.
