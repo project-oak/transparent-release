@@ -23,8 +23,8 @@ go_library(
     srcs = ["builder.go"],
     importpath = "github.com/project-oak/transparent-release/internal/builder",
     deps = [
+        "//internal/common",
         "//pkg/amber",
         "//pkg/intoto",
-        "//internal/common",
     ],
 )

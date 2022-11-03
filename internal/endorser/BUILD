@@ -23,8 +23,8 @@ go_library(
     srcs = ["endorser.go"],
     importpath = "github.com/project-oak/transparent-release/internal/endorser",
     deps = [
-        "//pkg/amber",
         "//internal/common",
+        "//pkg/amber",
         "//pkg/intoto",
         "//pkg/intoto/slsa_provenance/v0.2:slsa",
     ],

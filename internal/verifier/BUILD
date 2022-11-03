@@ -23,8 +23,8 @@ go_library(
     srcs = ["verifier.go"],
     importpath = "github.com/project-oak/transparent-release/internal/verifier",
     deps = [
-        "//pkg/amber",
         "//internal/common",
+        "//pkg/amber",
         "//pkg/intoto/slsa_provenance/v0.2:slsa",
     ],
 )
@@ -35,9 +35,9 @@ go_test(
     srcs = ["verifier_test.go"],
     data = [
         "//schema/provenance/v1:example.json",
-        "//testdata:provenance.json",
         "//testdata:bad_command_provenance.json",
         "//testdata:invalid_hash_provenance.json",
+        "//testdata:provenance.json",
     ],
     embed = [":verifier"],
     deps = ["//internal/testutil"],
