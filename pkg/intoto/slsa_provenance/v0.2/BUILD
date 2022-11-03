@@ -14,29 +14,17 @@
 # limitations under the License.
 #
 
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 package(default_visibility = ["//:__subpackages__"])
 
 go_library(
-    name = "endorser",
-    srcs = ["endorser.go"],
-    importpath = "github.com/project-oak/transparent-release/internal/endorser",
+    name = "slsa",
+    srcs = [
+        "provenance.go",
+    ],
+    importpath = "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2",
     deps = [
-        "//internal/common",
-        "//pkg/amber",
         "//pkg/intoto",
-        "//pkg/intoto/slsa_provenance/v0.2:slsa",
     ],
-)
-
-go_test(
-    name = "endorser_test",
-    size = "small",
-    srcs = ["endorser_test.go"],
-    data = [
-        "//testdata:provenance.json",
-    ],
-    embed = [":endorser"],
-    deps = ["//internal/testutil"],
 )

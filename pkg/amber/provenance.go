@@ -25,8 +25,8 @@ import (
 	"fmt"
 	"os"
 
-	intoto "github.com/in-toto/in-toto-golang/in_toto"
-	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
+	"github.com/project-oak/transparent-release/pkg/intoto"
+	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 	"github.com/xeipuuv/gojsonschema"
 
 	_ "embed"
@@ -59,7 +59,7 @@ type ValidatedProvenance struct {
 func (p *ValidatedProvenance) GetProvenance() intoto.Statement {
 	subject := intoto.Subject{
 		Name:   p.provenance.Subject[0].Name,
-		Digest: slsa.DigestSet{"sha256": p.provenance.Subject[0].Digest["sha256"]},
+		Digest: intoto.DigestSet{"sha256": p.provenance.Subject[0].Digest["sha256"]},
 	}
 
 	statementHeader := intoto.StatementHeader{

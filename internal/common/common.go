@@ -27,11 +27,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	intoto "github.com/in-toto/in-toto-golang/in_toto"
-	slsa "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 	toml "github.com/pelletier/go-toml"
+	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 
 	"github.com/project-oak/transparent-release/pkg/amber"
+	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
 // BuildConfig is a struct wrapping arguments for building a binary from source.
@@ -241,7 +241,7 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*intoto.Statement, error) {
 	subject := intoto.Subject{
 		// TODO(#57): Get the name as an input in the TOML file.
 		Name:   fmt.Sprintf("%s-%s", filepath.Base(b.OutputPath), b.CommitHash),
-		Digest: slsa.DigestSet{"sha256": binarySha256Digest},
+		Digest: intoto.DigestSet{"sha256": binarySha256Digest},
 	}
 
 	alg, digest, err := parseBuilderImageURI(b.BuilderImage)
@@ -259,12 +259,12 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*intoto.Statement, error) {
 			// Builder image
 			{
 				URI:    b.BuilderImage,
-				Digest: slsa.DigestSet{alg: digest},
+				Digest: intoto.DigestSet{alg: digest},
 			},
 			// Source code
 			{
 				URI:    b.Repo,
-				Digest: slsa.DigestSet{"sha1": b.CommitHash},
+				Digest: intoto.DigestSet{"sha1": b.CommitHash},
 			},
 		},
 	}

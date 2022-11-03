@@ -24,9 +24,9 @@ go_library(
     importpath = "github.com/project-oak/transparent-release/internal/common",
     deps = [
         "//pkg/amber",
-        "@com_github_in_toto_in_toto_golang//in_toto:go_default_library",
-        "@com_github_in_toto_in_toto_golang//in_toto/slsa_provenance/v0.2:go_default_library",
-        "@com_github_pelletier_toml//:go_default_library",
+        "//pkg/intoto",
+        "//pkg/intoto/slsa_provenance/v0.2:slsa",
+        "@com_github_pelletier_go_toml//:go_default_library",
     ],
 )
 
@@ -42,8 +42,8 @@ go_test(
     ],
     embed = [":common"],
     deps = [
-        "//pkg/amber",
         "//internal/testutil",
+        "//pkg/amber",
         "@com_github_google_go_cmp//cmp:go_default_library",
     ],
 )
