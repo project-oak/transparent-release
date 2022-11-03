@@ -78,7 +78,7 @@ linters:
     - staticcheck
     - structcheck
     - stylecheck
-    - tagliatelle
+    # - tagliatelle
     - tenv
     # - testpackage
     # - thelper # expects helper functions to start from t.Helper.
@@ -173,7 +173,7 @@ linters:
     # - staticcheck
     # - structcheck
     # - stylecheck
-    # - tagliatelle
+    - tagliatelle
     # - tenv
     - testpackage
     - thelper
