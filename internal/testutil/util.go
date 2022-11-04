@@ -12,18 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package testutil contains utility functions often used in tests.
 package testutil
 
 import (
 	"testing"
 )
 
+// AssertEq is a generic function that checks the equality of two comparable values. Fails with an
+// error if the two values are not equal.
 func AssertEq[T comparable](t *testing.T, name string, got, want T) {
 	if got != want {
 		t.Errorf("Unexpected %s: got %v, want %v", name, got, want)
 	}
 }
 
+// AssertNonEmpty verifies that an input string is not empty. Fails with an error if the input
+// string is empty.
 func AssertNonEmpty(t *testing.T, name, got string) {
 	if len(got) == 0 {
 		t.Errorf("Unexpected %s: non-empty string must be provided", name)
