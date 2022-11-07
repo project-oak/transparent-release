@@ -282,11 +282,12 @@ shown in the following example.
 {
   "_type": "https://in-toto.io/Statement/v0.1",
   "subject": [{
-    "name": "oak_functions",
+    "name": "https://github.com/project-oak/oak",
     "digest": {
       "sha1": "012a5206e5ab35d2778832638519441dd27664da"
-  },
-
+      }
+    }
+  ],
   "predicateType": "https://gh/project-oak/transparent-release/schema/claim/v1",
   "predicate": {
     "claimType": "https://gh/project-oak/transparent-release/schema/fuzz_report/v1",
