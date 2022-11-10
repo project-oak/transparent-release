@@ -61,7 +61,7 @@ type PerProjectSpec struct {
 	Coverage *FuzzCoverage `json:"coverage"`
 	// Bugs specifies the  number of detected bugs using all fuzz-targets.
 	Bugs int `json:"bugs"`
-	// Crashes specifies the  number of crashes obtained using all fuzz-targets.
+	// Crashes specifies the total number of crashes that happened when running the fuzz-targets.
 	Crashes int `json:"crashes"`
 	// FuzzEffort specifies the fuzzing efforts spent while using all fuzz-targets.
 	FuzzEffort *FuzzEffortSpec `json:"fuzzEffort,omitempty"`
