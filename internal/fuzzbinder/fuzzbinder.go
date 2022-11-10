@@ -14,5 +14,4 @@
 
 // Package fuzzbinder provides a function for generating a fuzzing claim
 // for a revision of the source code.
-
 package fuzzbinder
