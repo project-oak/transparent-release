@@ -50,7 +50,7 @@ type PerTargetSpec struct {
 	Bugs int `json:"bugs"`
 	// Crashes specifies the number of crashes obtained using the fuzz-target.
 	Crashes int `json:"crashes"`
-	// FuzzEffort specifies the fuzzing efforts spent while using the fuzz-target.
+	// FuzzEffort specifies the fuzzing efforts spent on running the fuzz-target.
 	FuzzEffort *FuzzEffortSpec `json:"fuzzEffort,omitempty"`
 }
 
