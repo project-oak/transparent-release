@@ -30,7 +30,7 @@ import (
 // Claim representing a V1 Fuzz Claim.
 const FuzzClaimV1 = "https://github.com/project-oak/transparent-release/fuzz_claim/v1"
 
-// FuzzClaimSpec gives the `ClaimSpec` definition.
+// FuzzClaimSpec gives the `ClaimSpec` definition. It will be included in a Claim, which itself is part of an in-toto statement where the subject refers to a Git repository. 
 type FuzzClaimSpec struct {
 	// `ClaimSpec` per fuzz-target.
 	PerTarget []PerTargetSpec `json:"perTarget"`
