@@ -11,6 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+// Package fuzzbinder provides a function for generating a fuzzing claim
+// for a revision of a source code.
 package fuzzbinder
 
 // This file provides a custom `ClaimSpec` type, FuzzClaimSpec, to be used
@@ -21,7 +24,6 @@ package fuzzbinder
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/project-oak/transparent-release/pkg/amber"
 )
@@ -30,40 +32,33 @@ import (
 // Claim representing a V1 Fuzz Claim.
 const FuzzClaimV1 = "https://github.com/project-oak/transparent-release/fuzz_claim/v1"
 
-// FuzzClaimSpec gives the `ClaimSpec` definition. It will be included in a Claim, which itself is part of an in-toto statement where the subject refers to a Git repository. 
+// FuzzClaimSpec gives the `ClaimSpec` definition. It will be included in a
+// Claim, which itself is part of an in-toto statement where the subject refers
+// to a Git repository.
 type FuzzClaimSpec struct {
 	// `ClaimSpec` per fuzz-target.
-	PerTarget []PerTargetSpec `json:"perTarget"`
+	PerTarget []FuzzSpec `json:"perTarget"`
 	// `ClaimSpec` for all the fuzz-targets.
-	PerProject *PerProjectSpec `json:"perProject"`
+	PerProject *FuzzSpec `json:"perProject"`
 }
 
-// PerTargetSpec contains the fuzzing claims specification per fuzz-target.
-type PerTargetSpec struct {
-	// Name of the fuzz-target.
-	Name string `json:"name"`
-	// URI of the fuzz-target.
-	URI string `json:"uri"`
-	// Coverage specifies the code coverage by the fuzz-target.
+// FuzzSpec contains the fuzzing claims specification of a revision of
+// a source code per fuzz-target or for all fuzz-targets.
+type FuzzSpec struct {
+	// Name of the fuzz-target if FuzzSpec is used for one fuzz-target.
+	Name string `json:"name,omitempty"`
+	// Path of the fuzz-target, relative to the root of the Git repository,
+	// if FuzzSpec is used for one fuzz-target.
+	Path string `json:"path,omitempty"`
+	// Coverage specifies the code coverage by a fuzz-target or all fuzz-targets.
 	Coverage *FuzzCoverage `json:"coverage"`
-	// Bugs specifies the number of detected bugs using the fuzz-target.
+	// Bugs specifies the number of detected bugs using a fuzz-target or all fuzz-targets.
 	Bugs int `json:"bugs"`
-	// Crashes specifies the number of fuzzer runs that crashed for the fuzz-target.
+	// Crashes specifies the number of fuzzer runs that crashed for a fuzz-target or
+	// the total number of crashes that happened when running the fuzz-targets.
 	Crashes int `json:"crashes"`
-	// FuzzEffort specifies the fuzzing efforts spent on running the fuzz-target.
-	FuzzEffort *FuzzEffortSpec `json:"fuzzEffort,omitempty"`
-}
-
-// PerProjectSpec contains the fuzzing claims specification of the revision
-// of the source code for all fuzz-targets.
-type PerProjectSpec struct {
-	// Coverage specifies the code coverage by all fuzz-targets.
-	Coverage *FuzzCoverage `json:"coverage"`
-	// Bugs specifies the  number of detected bugs using all fuzz-targets.
-	Bugs int `json:"bugs"`
-	// Crashes specifies the total number of crashes that happened when running the fuzz-targets.
-	Crashes int `json:"crashes"`
-	// FuzzEffort specifies the fuzzing efforts spent while using all fuzz-targets.
+	// FuzzEffort specifies the fuzzing efforts spent on running a fuzz-target or
+	// all fuzz-targets.
 	FuzzEffort *FuzzEffortSpec `json:"fuzzEffort,omitempty"`
 }
 
@@ -77,8 +72,8 @@ type FuzzCoverage struct {
 
 // FuzzEffortSpec contains the fuzzing efforts.
 type FuzzEffortSpec struct {
-	// FuzzTime specifies the fuzzing time.
-	FuzzTime *time.Duration `json:"fuzzTime,omitempty"`
+	// FuzzTime specifies the fuzzing time in seconds.
+	FuzzTime int `json:"fuzzTime,omitempty"`
 	// NumberTests specifies the number of executed fuzzing tests.
 	NumberTests int `json:"numberTests,omitempty"`
 }
@@ -106,6 +101,6 @@ func ValidateFuzzClaim(claimPredicate amber.ClaimPredicate) (*amber.ClaimPredica
 
 // validateFuzzClaimSpec validates details about the FuzzClaimSpec.
 func validateFuzzClaimSpec(claimPredicate amber.ClaimPredicate) (*amber.ClaimPredicate, error) {
-	// TBA
+	fmt.Println("Not yet implemented!")
 	return &claimPredicate, nil
 }

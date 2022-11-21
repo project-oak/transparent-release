@@ -20,10 +20,7 @@ package(default_visibility = ["//:__subpackages__"])
 
 go_library(
     name = "fuzzbinder",
-    srcs = [
-        "fuzzbinder.go",
-        "fuzzclaim.go",
-    ],
+    srcs = ["fuzzclaim.go"],
     importpath = "github.com/project-oak/transparent-release/internal/fuzzbinder",
     deps = [
         "//pkg/amber",
