@@ -50,7 +50,7 @@ type FuzzSpecPerTarget struct {
 	// Path of the fuzz-target, relative to the root of the Git repository.
 	Path string `json:"path"`
 	// Fuzzing statistics of the fuzz-target.
-	FuzzStatsPerTarget *FuzzStats `json:"fuzzStats"`
+	FuzzStats *FuzzStats `json:"fuzzStats"`
 }
 
 // FuzzStats contains the fuzzing statistics of the revision
