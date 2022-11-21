@@ -221,7 +221,7 @@ func (b *BuildConfig) VerifyCommit() error {
 // ComputeBinarySHA256Digest computes the SHA256 digest of the file in the
 // `OutputPath` of this BuildConfig.
 func (b *BuildConfig) ComputeBinarySHA256Digest() (string, error) {
-	binarySHA256Digest, err := computeSHA256Digest(b.OutputPath)
+	binarySHA256Digest, err := ComputeSHA256Digest(b.OutputPath)
 	if err != nil {
 		return "", fmt.Errorf("couldn't compute SHA256 digest of %q: %v", b.OutputPath, err)
 	}
@@ -425,7 +425,9 @@ func FetchSourcesFromRepo(repoURL, commitHash string) (*RepoCheckoutInfo, error)
 	return &info, nil
 }
 
-func computeSHA256Digest(path string) (string, error) {
+// ComputeSHA256Digest returns the SHA256 digest of the file in the given path, or an error if the
+// file cannot be read.
+func ComputeSHA256Digest(path string) (string, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return "", fmt.Errorf("couldn't read file %q: %v", path, err)

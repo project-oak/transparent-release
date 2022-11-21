@@ -35,7 +35,7 @@ const (
 
 func TestComputeBinarySHA256Digest(t *testing.T) {
 	path := filepath.Join(testdataPath, "static.txt")
-	got, err := computeSHA256Digest(path)
+	got, err := ComputeSHA256Digest(path)
 	if err != nil {
 		t.Fatalf("couldn't get SHA256 digest: %v", err)
 	}
