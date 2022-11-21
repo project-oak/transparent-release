@@ -16,6 +16,10 @@
 // for a revision of the source code.
 package main
 
+import (
+	"log"
+)
+
 func main() {
-	// Not yet implemented!
+	log.Println("Not yet implemented!")
 }

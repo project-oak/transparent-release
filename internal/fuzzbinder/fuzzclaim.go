@@ -24,6 +24,7 @@ package fuzzbinder
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/project-oak/transparent-release/pkg/amber"
 )
@@ -33,47 +34,53 @@ import (
 const FuzzClaimV1 = "https://github.com/project-oak/transparent-release/fuzz_claim/v1"
 
 // FuzzClaimSpec gives the `ClaimSpec` definition. It will be included in a
-// Claim, which itself is part of an in-toto statement where the subject refers
-// to a Git repository.
+// Claim, which itself is part of an in-toto statement where the subject
+// refers to a Git repository.
 type FuzzClaimSpec struct {
 	// `ClaimSpec` per fuzz-target.
-	PerTarget []FuzzSpec `json:"perTarget"`
-	// `ClaimSpec` for all the fuzz-targets.
-	PerProject *FuzzSpec `json:"perProject"`
+	PerTarget []FuzzSpecPerTarget `json:"perTarget"`
+	// `ClaimSpec` for all fuzz-targets.
+	PerProject *FuzzStats `json:"perProject"`
 }
 
-// FuzzSpec contains the fuzzing claims specification of a revision of
-// a source code per fuzz-target or for all fuzz-targets.
-type FuzzSpec struct {
-	// Name of the fuzz-target if FuzzSpec is used for one fuzz-target.
-	Name string `json:"name,omitempty"`
-	// Path of the fuzz-target, relative to the root of the Git repository,
-	// if FuzzSpec is used for one fuzz-target.
-	Path string `json:"path,omitempty"`
-	// Coverage specifies the code coverage by a fuzz-target or all fuzz-targets.
+// FuzzSpecPerTarget contains the fuzzing claims specification per fuzz-target.
+type FuzzSpecPerTarget struct {
+	// Name of the fuzz-target.
+	Name string `json:"name"`
+	// Path of the fuzz-target, relative to the root of the Git repository.
+	Path string `json:"path"`
+	// Fuzzing statistics of the fuzz-target.
+	FuzzStatsPerTarget *FuzzStats `json:"fuzzStats"`
+}
+
+// FuzzStats contains the fuzzing statistics of the revision
+// of the source code for all fuzz-targets or a fuzz-target.
+type FuzzStats struct {
+	// Coverage specifies the code coverage by all fuzz-targets or a fuzz-target.
 	Coverage *FuzzCoverage `json:"coverage"`
-	// Bugs specifies the number of detected bugs using a fuzz-target or all fuzz-targets.
-	Bugs int `json:"bugs"`
-	// Crashes specifies the number of fuzzer runs that crashed for a fuzz-target or
-	// the total number of crashes that happened when running the fuzz-targets.
+	// Bugs specifies the  number of detected bugs using all fuzz-targets
+	// or a fuzz-target.
+	DetectedBugs int `json:"detectedBugs"`
+	// Crashes specifies the total number of crashes that happened when running
+	// the fuzz-targets or the number of fuzzer runs that crashed for a fuzz-target.
 	Crashes int `json:"crashes"`
-	// FuzzEffort specifies the fuzzing efforts spent on running a fuzz-target or
-	// all fuzz-targets.
+	// FuzzEffort specifies the fuzzing efforts spent while using all fuzz-targets
+	// or on running a fuzz-target.
 	FuzzEffort *FuzzEffortSpec `json:"fuzzEffort,omitempty"`
 }
 
 // FuzzCoverage contains the code coverage by fuzz testing.
 type FuzzCoverage struct {
 	// Line specifies line coverage.
-	Line string `json:"line"`
+	LineCoverage string `json:"lineCoverage"`
 	// Branch specifies branch coverage.
-	Branch string `json:"branch"`
+	BranchCoverage string `json:"branchCoverage"`
 }
 
 // FuzzEffortSpec contains the fuzzing efforts.
 type FuzzEffortSpec struct {
-	// FuzzTime specifies the fuzzing time in seconds.
-	FuzzTime int `json:"fuzzTime,omitempty"`
+	// FuzzTimeSeconds specifies the fuzzing time in seconds.
+	FuzzTimeSeconds int `json:"fuzzTimeSeconds,omitempty"`
 	// NumberTests specifies the number of executed fuzzing tests.
 	NumberTests int `json:"numberTests,omitempty"`
 }
@@ -101,6 +108,6 @@ func ValidateFuzzClaim(claimPredicate amber.ClaimPredicate) (*amber.ClaimPredica
 
 // validateFuzzClaimSpec validates details about the FuzzClaimSpec.
 func validateFuzzClaimSpec(claimPredicate amber.ClaimPredicate) (*amber.ClaimPredicate, error) {
-	// Not yet implemented!
+	log.Println("Not yet implemented!")
 	return &claimPredicate, nil
 }
