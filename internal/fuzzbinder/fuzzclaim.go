@@ -101,6 +101,6 @@ func ValidateFuzzClaim(claimPredicate amber.ClaimPredicate) (*amber.ClaimPredica
 
 // validateFuzzClaimSpec validates details about the FuzzClaimSpec.
 func validateFuzzClaimSpec(claimPredicate amber.ClaimPredicate) (*amber.ClaimPredicate, error) {
-	fmt.Println("Not yet implemented!")
+	// Not yet implemented!
 	return &claimPredicate, nil
 }

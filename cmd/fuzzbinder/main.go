@@ -16,10 +16,6 @@
 // for a revision of the source code.
 package main
 
-import (
-	"fmt"
-)
-
 func main() {
-	fmt.Println("Not yet implemented!")
+	// Not yet implemented!
 }
