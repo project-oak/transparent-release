@@ -15,26 +15,16 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
-
-      - name: Mount bazel cache
-        uses: actions/cache@v3
+      - uses: actions/setup-go@v3
         with:
-          path: '/home/runner/.cache/bazel'
-          key: bazel
-
-      - name: Install bazelisk
-        run: |
-          curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.1.0/bazelisk-linux-amd64"
-          mkdir -p "${GITHUB_WORKSPACE}/bin/"
-          mv bazelisk-linux-amd64 "${GITHUB_WORKSPACE}/bin/bazel"
-          chmod +x "${GITHUB_WORKSPACE}/bin/bazel"
+          go-version: '=1.18.4'
 
       - name: Build
         run: |
-          "${GITHUB_WORKSPACE}/bin/bazel" build //...
+          go build ./...
       - name: Test
         run: |
-          "${GITHUB_WORKSPACE}/bin/bazel" test --test_output=streamed //...
+          go test ./...
 
   # TODO(#113): Find a better, and easier-to-navigate way to report coverage.
   # Generate coverage report for ./pkg/... and ./internal/... and upload the report as an html file.
