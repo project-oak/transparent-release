@@ -56,33 +56,20 @@ type FuzzSpecPerTarget struct {
 // FuzzStats contains the fuzzing statistics of the revision
 // of the source code for all fuzz-targets or a fuzz-target.
 type FuzzStats struct {
-	// Coverage specifies the code coverage by all fuzz-targets or a fuzz-target.
-	Coverage *FuzzCoverage `json:"coverage"`
-	// Bugs specifies the  number of detected bugs using all fuzz-targets
+	// LineCoverage specifies line coverage.
+	LineCoverage string `json:"lineCoverage"`
+	// BranchCoverage specifies branch coverage.
+	BranchCoverage string `json:"branchCoverage"`
+	// DetectedBugs specifies the  number of detected bugs using all fuzz-targets
 	// or a fuzz-target.
 	DetectedBugs int `json:"detectedBugs"`
 	// Crashes specifies the total number of crashes that happened when running
 	// the fuzz-targets or the number of fuzzer runs that crashed for a fuzz-target.
 	Crashes int `json:"crashes"`
-	// FuzzEffort specifies the fuzzing efforts spent while using all fuzz-targets
-	// or on running a fuzz-target.
-	FuzzEffort *FuzzEffortSpec `json:"fuzzEffort,omitempty"`
-}
-
-// FuzzCoverage contains the code coverage by fuzz testing.
-type FuzzCoverage struct {
-	// Line specifies line coverage.
-	LineCoverage string `json:"lineCoverage"`
-	// Branch specifies branch coverage.
-	BranchCoverage string `json:"branchCoverage"`
-}
-
-// FuzzEffortSpec contains the fuzzing efforts.
-type FuzzEffortSpec struct {
 	// FuzzTimeSeconds specifies the fuzzing time in seconds.
 	FuzzTimeSeconds int `json:"fuzzTimeSeconds,omitempty"`
-	// NumberTests specifies the number of executed fuzzing tests.
-	NumberTests int `json:"numberTests,omitempty"`
+	// NumberFuzzTests specifies the number of executed fuzzing tests.
+	NumberFuzzTests int `json:"numberFuzzTests,omitempty"`
 }
 
 // ValidateFuzzClaim validates that an Amber Claim is a Fuzz Claim with a valid ClaimType.
