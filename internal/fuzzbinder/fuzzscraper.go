@@ -27,6 +27,7 @@ import (
 	"google.golang.org/api/iterator"
 )
 
+// CoverageBucket is the OSS-Fuzz bucket containing the coverage reports.
 const CoverageBucket = "oss-fuzz-coverage"
 
 // CoverageSummary contains the coverage report summary.
