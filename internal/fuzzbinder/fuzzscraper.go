@@ -37,7 +37,7 @@ type CoverageSummary struct {
 	Version interface{}   `json:"version"`
 }
 
-// CoverageSummary contains the data of the coverage report summary.
+// SummaryData contains the data of the coverage report summary.
 type SummaryData struct {
 	Files  interface{}                     `json:"files"`
 	Totals map[string](map[string]float64) `json:"totals"`
@@ -117,7 +117,7 @@ func GetFuzzedHash(date string, projectName string) string {
 	return rev
 }
 
-// getCoverage gets the branch and line coverage from a coverage report blob.
+// parseCoverageSummary gets the branch and line coverage from a coverage report summary.
 func parseCoverageSummary(rc *storage.Reader) (map[string]float64, map[string]float64, error) {
 	var payload CoverageSummary
 	content, _ := ioutil.ReadAll(rc)
