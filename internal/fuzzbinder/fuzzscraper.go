@@ -91,7 +91,7 @@ func getRev(rc *storage.Reader, projectName string) (string, error) {
 	content, _ := ioutil.ReadAll(rc)
 	err := json.Unmarshal(content, &payload)
 	if err != nil {
-		return "", fmt.Errorf("Unmarshal: %v", err)
+		return "", fmt.Errorf("unmarshal: %v", err)
 	}
 	rev := payload[fmt.Sprintf("/src/%s", projectName)]["rev"]
 	return rev, nil
@@ -117,28 +117,33 @@ func GetFuzzedHash(date string, projectName string) string {
 }
 
 // getCoverage gets the branch and line coverage from a coverage report blob.
-func getCoverage(rc *storage.Reader) (map[string]float64, map[string]float64, error) {
+func parseCoverageSummary(rc *storage.Reader) (map[string]float64, map[string]float64, error) {
 	var payload CoverageSummary
 	content, _ := ioutil.ReadAll(rc)
 	err := json.Unmarshal(content, &payload)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Unmarshal: %v", err)
+		return nil, nil, fmt.Errorf("unmarshal: %v", err)
 	}
 	return payload.Data[0].Totals["branches"], payload.Data[0].Totals["lines"], nil
 }
 
 // GetCoveragePerProject gets the branch and line coverage per project.
-func GetCoveragePerProject(date string, projectName string) (map[string]float64, map[string]float64) {
+func GetCoveragePerProject(date string, projectName string, level string, fuzzTargetName string) (map[string]float64, map[string]float64) {
+	var fileName string
 	bucket, err := GetBucket(CoverageBucket)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fileName := fmt.Sprintf("%s/reports/%s/linux/summary.json", projectName, date)
+	if level == "perProject" {
+		fileName = fmt.Sprintf("%s/reports/%s/linux/summary.json", projectName, date)
+	} else {
+		fileName = fmt.Sprintf("%s/fuzzer_stats/%s/%s.json", projectName, date, fuzzTargetName)
+	}
 	rc, err := GetBlob(bucket, fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
-	branchCoverage, lineCoverage, err := getCoverage(rc)
+	branchCoverage, lineCoverage, err := parseCoverageSummary(rc)
 	if err != nil {
 		log.Fatal(err)
 	}
