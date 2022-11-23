@@ -128,8 +128,8 @@ func parseCoverageSummary(rc *storage.Reader) (map[string]float64, map[string]fl
 	return payload.Data[0].Totals["branches"], payload.Data[0].Totals["lines"], nil
 }
 
-// GetCoveragePerProject gets the branch and line coverage per project.
-func GetCoveragePerProject(date string, projectName string, level string, fuzzTargetName string) (map[string]float64, map[string]float64) {
+// GetCoverage gets the branch and line coverage per project or per fuzz-target.
+func GetCoverage(date string, projectName string, level string, fuzzTargetName string) (map[string]float64, map[string]float64) {
 	var fileName string
 	bucket, err := GetBucket(CoverageBucket)
 	if err != nil {
