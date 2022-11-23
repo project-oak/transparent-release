@@ -91,7 +91,7 @@ func getRev(rc *storage.Reader, projectName string) (string, error) {
 	content, _ := ioutil.ReadAll(rc)
 	err := json.Unmarshal(content, &payload)
 	if err != nil {
-		return "", fmt.Errorf("Error during unmarshal(): %v", err)
+		return "", fmt.Errorf("Unmarshal: %v", err)
 	}
 	rev := payload[fmt.Sprintf("/src/%s", projectName)]["rev"]
 	return rev, nil
@@ -122,7 +122,7 @@ func getCoverage(rc *storage.Reader) (map[string]float64, map[string]float64, er
 	content, _ := ioutil.ReadAll(rc)
 	err := json.Unmarshal(content, &payload)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Error during unmarshal(): %v", err)
+		return nil, nil, fmt.Errorf("Unmarshal: %v", err)
 	}
 	return payload.Data[0].Totals["branches"], payload.Data[0].Totals["lines"], nil
 }
