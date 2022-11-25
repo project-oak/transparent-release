@@ -10,9 +10,6 @@
     ],
     "predicateType": "https://github.com/project-oak/transparent-release/claim/v1",
     "predicate": {
-      "issuer": {
-        "id": "mailto:oak@google.com"
-      },
       "claimType": "https://github.com/project-oak/transparent-release/endorsement/v2",
       "issuedOn": "2022-07-08T10:20:50.32Z",
       "validity": {
