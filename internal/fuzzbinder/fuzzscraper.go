@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strings"
 
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/iterator"
@@ -43,8 +44,8 @@ type SummaryData struct {
 	Totals map[string](map[string]float64) `json:"totals"`
 }
 
-// GetBucket gets a GCS bucket given its name.
-func GetBucket(bucketName string) (*storage.BucketHandle, error) {
+// getBucket gets a GCS bucket given its name.
+func getBucket(bucketName string) (*storage.BucketHandle, error) {
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
 	if err != nil {
@@ -56,8 +57,8 @@ func GetBucket(bucketName string) (*storage.BucketHandle, error) {
 	return bucket, nil
 }
 
-// ListBlobs gets all the objects in a GCS bucket under a given relative path.
-func ListBlobs(bucket *storage.BucketHandle, relativePath string) ([]string, error) {
+// listBlobs gets all the objects in a GCS bucket under a given relative path.
+func listBlobs(bucket *storage.BucketHandle, relativePath string) ([]string, error) {
 	var blobs []string
 	ctx := context.Background()
 	query := &storage.Query{Prefix: relativePath}
@@ -75,8 +76,8 @@ func ListBlobs(bucket *storage.BucketHandle, relativePath string) ([]string, err
 	return blobs, nil
 }
 
-// GetBlob gets the file reader of a blob in a GCS bucket.
-func GetBlob(bucket *storage.BucketHandle, blobName string) (*storage.Reader, error) {
+// getBlob gets the file reader of a blob in a GCS bucket.
+func getBlob(bucket *storage.BucketHandle, blobName string) (*storage.Reader, error) {
 	ctx := context.Background()
 	rc, err := bucket.Object(blobName).NewReader(ctx)
 	if err != nil {
@@ -98,25 +99,6 @@ func getRev(rc *storage.Reader, projectName string) (string, error) {
 	return rev, nil
 }
 
-// GetFuzzedHash gets the revision (a hash) of the source code for which
-// a coverage report was generated on a given day.
-func GetFuzzedHash(date string, projectName string) string {
-	bucket, err := GetBucket(CoverageBucket)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fileName := fmt.Sprintf("%s/srcmap/%s.json", projectName, date)
-	rc, err := GetBlob(bucket, fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	rev, err := getRev(rc, projectName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return rev
-}
-
 // parseCoverageSummary gets the branch and line coverage from a coverage report summary.
 func parseCoverageSummary(rc *storage.Reader) (map[string]float64, map[string]float64, error) {
 	var payload CoverageSummary
@@ -128,19 +110,39 @@ func parseCoverageSummary(rc *storage.Reader) (map[string]float64, map[string]fl
 	return payload.Data[0].Totals["branches"], payload.Data[0].Totals["lines"], nil
 }
 
+// GetFuzzedHash gets the revision (a hash) of the source code for which
+// a coverage report was generated on a given day.
+func GetFuzzedHash(date string, projectName string) string {
+	bucket, err := getBucket(CoverageBucket)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fileName := fmt.Sprintf("%s/srcmap/%s.json", projectName, date)
+	rc, err := getBlob(bucket, fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	rev, err := getRev(rc, projectName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return rev
+}
+
 // GetCoverage gets the branch and line coverage per project or per fuzz-target.
-func GetCoverage(date string, projectName string, level string, fuzzTargetName string) (map[string]float64, map[string]float64) {
+func GetCoverage(date string, projectName string, level string,
+	fuzzTarget string) (map[string]float64, map[string]float64) {
 	var fileName string
-	bucket, err := GetBucket(CoverageBucket)
+	bucket, err := getBucket(CoverageBucket)
 	if err != nil {
 		log.Fatal(err)
 	}
 	if level == "perProject" {
 		fileName = fmt.Sprintf("%s/reports/%s/linux/summary.json", projectName, date)
 	} else {
-		fileName = fmt.Sprintf("%s/fuzzer_stats/%s/%s.json", projectName, date, fuzzTargetName)
+		fileName = fmt.Sprintf("%s/fuzzer_stats/%s/%s.json", projectName, date, fuzzTarget)
 	}
-	rc, err := GetBlob(bucket, fileName)
+	rc, err := getBlob(bucket, fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -149,4 +151,36 @@ func GetCoverage(date string, projectName string, level string, fuzzTargetName s
 		log.Fatal(err)
 	}
 	return branchCoverage, lineCoverage
+}
+
+// GetFuzzTargets gets the list of the fuzz-targets for which fuzzing
+// reports were generated.
+func GetFuzzTargets(projectName string, date string) []string {
+	var fuzzTargets []string
+	bucket, err := getBucket(CoverageBucket)
+	if err != nil {
+		log.Fatal(err)
+	}
+	relativePath := fmt.Sprintf("%s/fuzzer_stats/%s", projectName, date)
+	blobs, err := listBlobs(bucket, relativePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, blob := range blobs {
+		fuzzTargets = append(fuzzTargets, strings.Split(strings.Split(blob, "/")[3], ".")[0])
+	}
+	return fuzzTargets
+}
+
+// GetEvidences gets the list of the evidence files used by the fuzzscraper.
+func GetEvidences(projectName string, date string, fuzztargets []string) map[string]string {
+	evidences := make(map[string]string)
+	evidences["revision"] = fmt.Sprintf("gs://%s/%s/srcmap/%s.json", CoverageBucket, projectName, date)
+	evidences["project coverage"] = fmt.Sprintf("gs://%s/%s/reports/%s/linux/summary.json",
+		CoverageBucket, projectName, date)
+	for _, fuzztarget := range fuzztargets {
+		evidences[fmt.Sprintf("libFuzzer_%s_%v coverage", projectName, fuzztarget)] =
+			fmt.Sprintf("gs://%s/%s/fuzzer_stats/%s/%v.json", CoverageBucket, projectName, date, fuzztarget)
+	}
+	return evidences
 }
