@@ -1,0 +1,7 @@
+{
+  "/src/oak": {
+    "type": "git",
+    "url": "https://github.com/project-oak/oak",
+    "rev": "1586496a1cbb76e044cc17dcc98203417957c793"
+  }
+}
