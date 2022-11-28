@@ -156,7 +156,6 @@ func GetCoverage(date string, projectName string, level string,
 // GetFuzzTargets gets the list of the fuzz-targets for which fuzzing
 // reports were generated.
 func GetFuzzTargets(projectName string, date string) []string {
-	var fuzzTargets []string
 	bucket, err := getBucket(CoverageBucket)
 	if err != nil {
 		log.Fatal(err)
@@ -166,6 +165,7 @@ func GetFuzzTargets(projectName string, date string) []string {
 	if err != nil {
 		log.Fatal(err)
 	}
+	fuzzTargets := make([]string, 0, len(blobs))
 	for _, blob := range blobs {
 		fuzzTargets = append(fuzzTargets, strings.Split(strings.Split(blob, "/")[3], ".")[0])
 	}
