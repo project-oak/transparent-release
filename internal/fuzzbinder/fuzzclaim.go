@@ -63,9 +63,6 @@ type FuzzStats struct {
 	// DetectedBugs specifies the  number of detected bugs using all fuzz-targets
 	// or a fuzz-target.
 	DetectedBugs int `json:"detectedBugs"`
-	// Crashes specifies the total number of crashes that happened when running
-	// the fuzz-targets or the number of fuzzer runs that crashed for a fuzz-target.
-	Crashes int `json:"crashes"`
 	// FuzzTimeSeconds specifies the fuzzing time in seconds.
 	FuzzTimeSeconds int `json:"fuzzTimeSeconds,omitempty"`
 	// NumberFuzzTests specifies the number of executed fuzzing tests.
