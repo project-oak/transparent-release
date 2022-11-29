@@ -11,10 +11,10 @@
   "predicateType": "https://github.com/project-oak/transparent-release/claim/v1",
   "predicate": {
     "claimType": "https://github.com/project-oak/transparent-release/fuzz_claim/v1",
-    "issuedOn": "2022-11-26T10:20:50.32Z",
+    "issuedOn": "2022-11-28T10:20:50.32Z",
     "validity": {
-      "notBefore": "2022-11-26T10:20:50.32Z",
-      "notAfter": "2023-11-26T10:20:50.32Z"
+      "notBefore": "2022-11-28T10:20:50.32Z",
+      "notAfter": "2023-11-28T10:20:50.32Z"
     },
     "claimSpec": {
       "perTarget": [
@@ -24,7 +24,7 @@
           "fuzzStats": {
             "lineCoverage": "3.89% (215/5524)",
             "branchCoverage": "0.00% (0/0)",
-            "detectedBugs": -1,
+            "detectedBugs": 0,
             "fuzzTimeSeconds": -1,
             "numberFuzzTests": -1
           }
@@ -33,18 +33,18 @@
           "name": "libFuzzer_oak_failing",
           "path": "oak/fuzz/fuzz_targets/failing.rs",
           "fuzzStats": {
-            "lineCoverage": "0.77% (16/2054)",
+            "lineCoverage": "24.88% (511/2054)",
             "branchCoverage": "0.00% (0/0)",
-            "detectedBugs": -1,
+            "detectedBugs": 1,
             "fuzzTimeSeconds": -1,
             "numberFuzzTests": -1
           }
         }
       ],
       "perProject": {
-        "lineCoverage": "3.06% (215/7019)",
+        "lineCoverage": "9.54% (668/7000)",
         "branchCoverage": "0.00% (0/0)",
-        "detectedBugs": -1,
+        "detectedBugs": 1,
         "fuzzTimeSeconds": -1,
         "numberFuzzTests": -1
       }
@@ -52,30 +52,30 @@
     "evidence": [
       {
         "role": "revision",
-        "uri": "gs://oss-fuzz-coverage/oak/srcmap/20221126.json",
+        "uri": "gs://oss-fuzz-coverage/oak/srcmap/20221127.json",
         "digest": {
           "sha256": "9e1b3b92f84ed95524228e294833675968580e561d7b122da1be4ad20002c064"
         }
       },
       {
         "role": "project coverage",
-        "uri": "gs://oss-fuzz-coverage/oak/reports/20221126/linux/summary.json",
+        "uri": "gs://oss-fuzz-coverage/oak/reports/20221127/linux/summary.json",
         "digest": {
-          "sha256": "8395e52f8d85c5a46521aae1e345d97c16b79d529f246237ab0279e103195cee"
+          "sha256": "d14122d646f3a497fa36bb3f7639e407826d412145161e4368c0a1fa820afc9d"
         }
       },
       {
         "role": "libFuzzer_oak_apply_policy coverage",
-        "uri": "gs://oss-fuzz-coverage/oak/fuzzer_stats/20221126/apply_policy.json",
+        "uri": "gs://oss-fuzz-coverage/oak/fuzzer_stats/20221127/apply_policy.json",
         "digest": {
           "sha256": "bbc1f04cd460a705574d9064b0c361658bd67ff49d706815799dff1091af9758"
         }
       },
       {
         "role": "libFuzzer_oak_failing coverage",
-        "uri": "gs://oss-fuzz-coverage/oak/fuzzer_stats/20221126/failing.json",
+        "uri": "gs://oss-fuzz-coverage/oak/fuzzer_stats/20221127/failing.json",
         "digest": {
-          "sha256": "0f5ee251db8169bb173df76f4df97a3b86d671ea43c4bf79e07e0fc754684f05"
+          "sha256": "c8968bdafefa858d9bb60580fa8fa8bc3402362d4f16e301bb3b8417f7577c10"
         }
       }
     ]
