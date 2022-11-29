@@ -26,6 +26,9 @@ import (
 	"strconv"
 	"strings"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/iterator"
 )
@@ -205,11 +208,12 @@ func GetEvidences(project string, date string, fuzztargets []string, fuzzEngine 
 func getSingleEffort(rc *storage.Reader, hash string, project string) (int, float64) {
 	var logHash string
 	var err error
-	numTests := 0
 	var timeFuzz float64
+	var numTests int
+	caser := cases.Title(language.English)
 	scanner := bufio.NewScanner(rc)
 	for scanner.Scan() {
-		if strings.Contains(scanner.Text(), strings.Title(project)) {
+		if strings.Contains(scanner.Text(), caser.String(project)) {
 			logHash = strings.Split(scanner.Text(), " ")[1]
 		}
 		if strings.Contains(scanner.Text(), "Time ran:") {
