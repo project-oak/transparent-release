@@ -17,11 +17,13 @@ package fuzzbinder
 // statistics from the ClusterFuzz and OSS-Fuzz reports.
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
+	"strconv"
 	"strings"
 
 	"cloud.google.com/go/storage"
@@ -88,21 +90,21 @@ func getBlob(bucket *storage.BucketHandle, blobName string) (*storage.Reader, er
 }
 
 // getRev gets the revision of a source code given a source map file.
-func getRev(rc *storage.Reader, projectName string) (string, error) {
+func getRev(rc *storage.Reader, project string) (string, error) {
 	var payload map[string](map[string]string)
-	content, _ := ioutil.ReadAll(rc)
+	content, _ := io.ReadAll(rc)
 	err := json.Unmarshal(content, &payload)
 	if err != nil {
 		return "", fmt.Errorf("unmarshal: %v", err)
 	}
-	rev := payload[fmt.Sprintf("/src/%s", projectName)]["rev"]
+	rev := payload[fmt.Sprintf("/src/%s", project)]["rev"]
 	return rev, nil
 }
 
-// parseCoverageSummary gets the branch and line coverage from a coverage report summary.
-func parseCoverageSummary(rc *storage.Reader) (map[string]float64, map[string]float64, error) {
+// parseCoverage gets the branch coverage and line coverage from a coverage report summary.
+func parseCoverage(rc *storage.Reader) (map[string]float64, map[string]float64, error) {
 	var payload CoverageSummary
-	content, _ := ioutil.ReadAll(rc)
+	content, _ := io.ReadAll(rc)
 	err := json.Unmarshal(content, &payload)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unmarshal: %v", err)
@@ -110,19 +112,35 @@ func parseCoverageSummary(rc *storage.Reader) (map[string]float64, map[string]fl
 	return payload.Data[0].Totals["branches"], payload.Data[0].Totals["lines"], nil
 }
 
-// GetFuzzedHash gets the revision (a hash) of the source code for which
-// a coverage report was generated on a given day.
-func GetFuzzedHash(date string, projectName string) string {
+// getLogs gets the log files of a fuzz-target on a given day.
+func getLogs(date string, project string, fuzzTarget string, fuzzEngine string, sanitizer string) (*storage.BucketHandle, []string) {
+	logsBucket := fmt.Sprintf("%s-logs.clusterfuzz-external.appspot.com", project)
+	bucket, err := getBucket(logsBucket)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fuzzengine := strings.ToLower(fuzzEngine)
+	relativePath := fmt.Sprintf("%s_%s_%s/%s_%s_%s/%s", fuzzEngine, project, fuzzTarget, fuzzengine, sanitizer, project, date)
+	blobs, err := listBlobs(bucket, relativePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return bucket, blobs
+}
+
+// GetFuzzedHash gets the revision (a hash) of the source code for which a coverage report
+// was generated on a given day.
+func GetFuzzedHash(date string, project string) string {
 	bucket, err := getBucket(CoverageBucket)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fileName := fmt.Sprintf("%s/srcmap/%s.json", projectName, date)
+	fileName := fmt.Sprintf("%s/srcmap/%s.json", project, date)
 	rc, err := getBlob(bucket, fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
-	rev, err := getRev(rc, projectName)
+	rev, err := getRev(rc, project)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -130,37 +148,35 @@ func GetFuzzedHash(date string, projectName string) string {
 }
 
 // GetCoverage gets the branch and line coverage per project or per fuzz-target.
-func GetCoverage(date string, projectName string, level string,
-	fuzzTarget string) (map[string]float64, map[string]float64) {
+func GetCoverage(date string, project string, level string, fuzzTarget string) (map[string]float64, map[string]float64) {
 	var fileName string
 	bucket, err := getBucket(CoverageBucket)
 	if err != nil {
 		log.Fatal(err)
 	}
 	if level == "perProject" {
-		fileName = fmt.Sprintf("%s/reports/%s/linux/summary.json", projectName, date)
+		fileName = fmt.Sprintf("%s/reports/%s/linux/summary.json", project, date)
 	} else {
-		fileName = fmt.Sprintf("%s/fuzzer_stats/%s/%s.json", projectName, date, fuzzTarget)
+		fileName = fmt.Sprintf("%s/fuzzer_stats/%s/%s.json", project, date, fuzzTarget)
 	}
 	rc, err := getBlob(bucket, fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
-	branchCoverage, lineCoverage, err := parseCoverageSummary(rc)
+	branchCoverage, lineCoverage, err := parseCoverage(rc)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return branchCoverage, lineCoverage
 }
 
-// GetFuzzTargets gets the list of the fuzz-targets for which fuzzing
-// reports were generated.
-func GetFuzzTargets(projectName string, date string) []string {
+// GetFuzzTargets gets the list of the fuzz-targets for which fuzzing reports were generated.
+func GetFuzzTargets(project string, date string) []string {
 	bucket, err := getBucket(CoverageBucket)
 	if err != nil {
 		log.Fatal(err)
 	}
-	relativePath := fmt.Sprintf("%s/fuzzer_stats/%s", projectName, date)
+	relativePath := fmt.Sprintf("%s/fuzzer_stats/%s", project, date)
 	blobs, err := listBlobs(bucket, relativePath)
 	if err != nil {
 		log.Fatal(err)
@@ -173,14 +189,73 @@ func GetFuzzTargets(projectName string, date string) []string {
 }
 
 // GetEvidences gets the list of the evidence files used by the fuzzscraper.
-func GetEvidences(projectName string, date string, fuzztargets []string) map[string]string {
+func GetEvidences(project string, date string, fuzztargets []string, fuzzEngine string) map[string]string {
 	evidences := make(map[string]string)
-	evidences["revision"] = fmt.Sprintf("gs://%s/%s/srcmap/%s.json", CoverageBucket, projectName, date)
-	evidences["project coverage"] = fmt.Sprintf("gs://%s/%s/reports/%s/linux/summary.json",
-		CoverageBucket, projectName, date)
+	evidences["revision"] = fmt.Sprintf("gs://%s/%s/srcmap/%s.json", CoverageBucket, project, date)
+	evidences["project coverage"] = fmt.Sprintf("gs://%s/%s/reports/%s/linux/summary.json", CoverageBucket, project, date)
 	for _, fuzztarget := range fuzztargets {
-		evidences[fmt.Sprintf("libFuzzer_%s_%v coverage", projectName, fuzztarget)] =
-			fmt.Sprintf("gs://%s/%s/fuzzer_stats/%s/%v.json", CoverageBucket, projectName, date, fuzztarget)
+		role := fmt.Sprintf("%s_%s_%v coverage", fuzzEngine, project, fuzztarget)
+		uri := fmt.Sprintf("gs://%s/%s/fuzzer_stats/%s/%v.json", CoverageBucket, project, date, fuzztarget)
+		evidences[role] = uri
 	}
 	return evidences
+}
+
+// getSingleEffort gets the fuzzingEffort from a single log file.
+func getSingleEffort(rc *storage.Reader, hash string, project string) (int, float64) {
+	var logHash string
+	var err error
+	numTests := 0
+	var timeFuzz float64
+	scanner := bufio.NewScanner(rc)
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), strings.Title(project)) {
+			logHash = strings.Split(scanner.Text(), " ")[1]
+		}
+		if strings.Contains(scanner.Text(), "Time ran:") {
+			timeFuzz, err = strconv.ParseFloat(strings.Split(scanner.Text(), " ")[2], 32)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		if strings.Contains(scanner.Text(), "stat::number_of_executed_units") {
+			numTests, err = strconv.Atoi(strings.Split(scanner.Text(), " ")[1])
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+	if logHash == hash {
+		return numTests, timeFuzz
+	}
+	return 0, 0.0
+}
+
+// GetFuzzEffort gets the the fuzzing efforts for a given revision of a source
+// code on a given day.
+func GetFuzzEffort(hash string, date string, project string, fuzzTarget string, fuzzEngine string, sanitizer string) (int, int) {
+	totalNumTests := 0
+	totalTimeSeconds := 0.0
+	bucket, blobs := getLogs(date, project, fuzzTarget, fuzzEngine, sanitizer)
+	for _, blob := range blobs {
+		if strings.Contains(blob, ".log") {
+			rc, err := getBlob(bucket, blob)
+			if err != nil {
+				log.Fatal(err)
+			}
+			numTests, timeSeconds := getSingleEffort(rc, hash, project)
+			totalNumTests += numTests
+			totalTimeSeconds += timeSeconds
+		}
+	}
+	return totalNumTests, int(totalTimeSeconds)
+}
+
+// GetCrashes checks whether there are any detected crashes for a revison of a
+// source code.
+func GetCrashes(hash string, date string, project string, level string, fuzzTarget string) {
+
 }

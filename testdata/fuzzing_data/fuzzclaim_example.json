@@ -25,8 +25,8 @@
             "lineCoverage": "3.89% (215/5524)",
             "branchCoverage": "0.00% (0/0)",
             "detectedBugs": 0,
-            "fuzzTimeSeconds": -1,
-            "numberFuzzTests": -1
+            "fuzzTimeSeconds": 2121466,
+            "numberFuzzTests": 861621487
           }
         },
         {
@@ -36,8 +36,8 @@
             "lineCoverage": "24.88% (511/2054)",
             "branchCoverage": "0.00% (0/0)",
             "detectedBugs": 1,
-            "fuzzTimeSeconds": -1,
-            "numberFuzzTests": -1
+            "fuzzTimeSeconds": 495,
+            "numberFuzzTests": 1130659
           }
         }
       ],
@@ -45,8 +45,8 @@
         "lineCoverage": "9.54% (668/7000)",
         "branchCoverage": "0.00% (0/0)",
         "detectedBugs": 1,
-        "fuzzTimeSeconds": -1,
-        "numberFuzzTests": -1
+        "fuzzTimeSeconds": 2121961,
+        "numberFuzzTests": 862752146
       }
     },
     "evidence": [
