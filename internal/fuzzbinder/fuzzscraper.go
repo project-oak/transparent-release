@@ -84,18 +84,18 @@ func listBlobs(bucket *storage.BucketHandle, relativePath string) ([]string, err
 // getBlob gets the file reader of a blob in a GCS bucket.
 func getBlob(bucket *storage.BucketHandle, blobName string) (*storage.Reader, error) {
 	ctx := context.Background()
-	rc, err := bucket.Object(blobName).NewReader(ctx)
+	reader, err := bucket.Object(blobName).NewReader(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Object(%q).NewReader: %v", blobName, err)
 	}
-	defer rc.Close()
-	return rc, nil
+	defer reader.Close()
+	return reader, nil
 }
 
 // getRev gets the revision of a source code given a source map file.
-func getRev(rc *storage.Reader, project string) (string, error) {
+func getRev(reader *storage.Reader, project string) (string, error) {
 	var payload map[string](map[string]string)
-	content, _ := io.ReadAll(rc)
+	content, _ := io.ReadAll(reader)
 	err := json.Unmarshal(content, &payload)
 	if err != nil {
 		return "", fmt.Errorf("unmarshal: %v", err)
@@ -105,9 +105,9 @@ func getRev(rc *storage.Reader, project string) (string, error) {
 }
 
 // parseCoverage gets the branch coverage and line coverage from a coverage report summary.
-func parseCoverage(rc *storage.Reader) (map[string]float64, map[string]float64, error) {
+func parseCoverage(reader *storage.Reader) (map[string]float64, map[string]float64, error) {
 	var payload CoverageSummary
-	content, _ := io.ReadAll(rc)
+	content, _ := io.ReadAll(reader)
 	err := json.Unmarshal(content, &payload)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unmarshal: %v", err)
@@ -139,11 +139,11 @@ func GetFuzzedHash(date string, project string) string {
 		log.Fatal(err)
 	}
 	fileName := fmt.Sprintf("%s/srcmap/%s.json", project, date)
-	rc, err := getBlob(bucket, fileName)
+	reader, err := getBlob(bucket, fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
-	rev, err := getRev(rc, project)
+	rev, err := getRev(reader, project)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -162,11 +162,11 @@ func GetCoverage(date string, project string, level string, fuzzTarget string) (
 	} else {
 		fileName = fmt.Sprintf("%s/fuzzer_stats/%s/%s.json", project, date, fuzzTarget)
 	}
-	rc, err := getBlob(bucket, fileName)
+	reader, err := getBlob(bucket, fileName)
 	if err != nil {
 		log.Fatal(err)
 	}
-	branchCoverage, lineCoverage, err := parseCoverage(rc)
+	branchCoverage, lineCoverage, err := parseCoverage(reader)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -205,13 +205,13 @@ func GetEvidences(project string, date string, fuzztargets []string, fuzzEngine 
 }
 
 // getSingleEffort gets the fuzzingEffort from a single log file.
-func getSingleEffort(rc *storage.Reader, hash string, project string) (int, float64) {
+func getSingleEffort(reader *storage.Reader, hash string, project string) (int, float64) {
 	var logHash string
 	var err error
 	var timeFuzz float64
 	var numTests int
 	caser := cases.Title(language.English)
-	scanner := bufio.NewScanner(rc)
+	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
 		if strings.Contains(scanner.Text(), caser.String(project)) {
 			logHash = strings.Split(scanner.Text(), " ")[1]
@@ -246,11 +246,11 @@ func GetFuzzEffort(hash string, date string, project string, fuzzTarget string, 
 	bucket, blobs := getLogs(date, project, fuzzTarget, fuzzEngine, sanitizer)
 	for _, blob := range blobs {
 		if strings.Contains(blob, ".log") {
-			rc, err := getBlob(bucket, blob)
+			reader, err := getBlob(bucket, blob)
 			if err != nil {
 				log.Fatal(err)
 			}
-			numTests, timeSeconds := getSingleEffort(rc, hash, project)
+			numTests, timeSeconds := getSingleEffort(reader, hash, project)
 			totalNumTests += numTests
 			totalTimeSeconds += timeSeconds
 		}
