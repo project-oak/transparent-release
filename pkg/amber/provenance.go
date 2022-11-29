@@ -49,6 +49,7 @@ type BuildConfig struct {
 
 // ValidatedProvenance wraps an intoto.Statement representing a valid SLSA provenance statement.
 // A provenance statement is valid if it contains a single subject, with a SHA256 hash.
+// Deprecated: Instead use ValidatedProvenance in `pkg/intoto/slsa_provenance/v0.2`.
 type ValidatedProvenance struct {
 	// The field is private so that invalid instances cannot be created.
 	provenance intoto.Statement
@@ -124,6 +125,7 @@ func ParseProvenanceFile(path string) (*ValidatedProvenance, error) {
 // ParseProvenanceData validates the given bytes against the Amber buildType schema, and parses it
 // into an instance of intoto.Statement.
 // Returns an error if the bytes do not represent a valid JSON-encoded provenance statement.
+// Deprecated: Instead use ParseProvenanceData in `pkg/intoto/slsa_provenance/v0.2`.
 func ParseProvenanceData(statementBytes []byte) (*ValidatedProvenance, error) {
 	if err := validateSLSAProvenanceJSON(statementBytes); err != nil {
 		return nil, err
