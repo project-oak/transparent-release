@@ -225,7 +225,10 @@ func ParseProvenanceData(statementBytes []byte) (*ValidatedProvenance, error) {
 
 	var predicate ProvenancePredicate
 	if err = json.Unmarshal(predicateBytes, &predicate); err != nil {
-		return nil, fmt.Errorf("could not unmarshal JSON bytes into a slsa.ProvenancePredicate: %v", err)
+		return nil, fmt.Errorf(
+			"could not unmarshal JSON bytes into a slsa.ProvenancePredicate: %v",
+			err,
+		)
 	}
 
 	// Replace maps with objects

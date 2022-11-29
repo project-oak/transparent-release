@@ -44,10 +44,30 @@ func TestParseProvenanceData(t *testing.T) {
 	predicate := provenance.Predicate.(ProvenancePredicate)
 
 	// Check that the provenance parses correctly
-	testutil.AssertEq(t, "repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")
-	testutil.AssertEq(t, "commitHash length", len(predicate.Materials[1].Digest["sha1"]), wantSHA1HexDigitLength)
-	testutil.AssertEq(t, "builderImageID length", len(predicate.Materials[0].Digest["sha256"]), wantSHA256HexDigitLength)
-	testutil.AssertEq(t, "builderImageURI", predicate.Materials[0].URI, fmt.Sprintf("gcr.io/oak-ci/oak@sha256:%s", predicate.Materials[0].Digest["sha256"]))
+	testutil.AssertEq(
+		t,
+		"repoURL",
+		predicate.Materials[1].URI,
+		"https://github.com/project-oak/oak",
+	)
+	testutil.AssertEq(
+		t,
+		"commitHash length",
+		len(predicate.Materials[1].Digest["sha1"]),
+		wantSHA1HexDigitLength,
+	)
+	testutil.AssertEq(
+		t,
+		"builderImageID length",
+		len(predicate.Materials[0].Digest["sha256"]),
+		wantSHA256HexDigitLength,
+	)
+	testutil.AssertEq(
+		t,
+		"builderImageURI",
+		predicate.Materials[0].URI,
+		fmt.Sprintf("gcr.io/oak-ci/oak@sha256:%s", predicate.Materials[0].Digest["sha256"]),
+	)
 	testutil.AssertEq(t, "subjectName", validatedProvenance.GetBinaryName(), "oak_functions_loader")
 	testutil.AssertNonEmpty(t, "builderId", predicate.Builder.ID)
 }
