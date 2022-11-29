@@ -30,12 +30,20 @@ func TestExampleAmberEndorsement(t *testing.T) {
 	}
 
 	if endorsement.PredicateType != AmberClaimV1 {
-		t.Errorf("Unexpected PredicateType: got %s, want %s", endorsement.PredicateType, AmberClaimV1)
+		t.Errorf(
+			"Unexpected PredicateType: got %s, want %s",
+			endorsement.PredicateType,
+			AmberClaimV1,
+		)
 	}
 
 	claimPredicate := endorsement.Predicate.(ClaimPredicate)
 	if claimPredicate.ClaimType != AmberEndorsementV2 {
-		t.Errorf("Unexpected ClaimType: got %s, want %s", claimPredicate.ClaimType, AmberEndorsementV2)
+		t.Errorf(
+			"Unexpected ClaimType: got %s, want %s",
+			claimPredicate.ClaimType,
+			AmberEndorsementV2,
+		)
 	}
 
 	want := time.Date(2022, 7, 8, 10, 20, 50, 32, time.UTC)

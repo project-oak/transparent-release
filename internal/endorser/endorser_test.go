@@ -91,7 +91,9 @@ func TestGenerateEndorsement_FailingSingleRemoteProvenanceEndorsement(t *testing
 		NotAfter:  &nextWeek,
 	}
 
-	provenances := []string{"https://github.com/project-oak/transparent-release/blob/main/testdata/provenance.json"}
+	provenances := []string{
+		"https://github.com/project-oak/transparent-release/blob/main/testdata/provenance.json",
+	}
 	_, err := GenerateEndorsement(binaryHash, validity, provenances)
 	want := "could not load provenances"
 	if err == nil || !strings.Contains(err.Error(), want) {

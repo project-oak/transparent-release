@@ -100,7 +100,10 @@ func validateSLSAProvenanceJSON(provenanceFile []byte) error {
 			buffer.WriteString(err.String())
 		}
 
-		return fmt.Errorf("the provided provenance file is not valid. See errors:\n%v", buffer.String())
+		return fmt.Errorf(
+			"the provided provenance file is not valid. See errors:\n%v",
+			buffer.String(),
+		)
 	}
 
 	return nil
@@ -143,7 +146,10 @@ func ParseProvenanceData(statementBytes []byte) (*ValidatedProvenance, error) {
 
 	var predicate slsa.ProvenancePredicate
 	if err = json.Unmarshal(predicateBytes, &predicate); err != nil {
-		return nil, fmt.Errorf("could not unmarshal JSON bytes into a slsa.ProvenancePredicate: %v", err)
+		return nil, fmt.Errorf(
+			"could not unmarshal JSON bytes into a slsa.ProvenancePredicate: %v",
+			err,
+		)
 	}
 
 	// Now predicate.BuildConfig is just a map, we have to parse it into an instance of BuildConfig

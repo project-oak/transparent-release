@@ -35,7 +35,11 @@ import (
 // must be provided. The endorsement statement is generated only if the provenance statements are
 // valid. Each provenanceURI must either specify a local file (using the `file` scheme), or a
 // remote file (using the `http/https` scheme).
-func GenerateEndorsement(binaryDigest string, validityDuration amber.ClaimValidity, provenanceURIs []string) (*intoto.Statement, error) {
+func GenerateEndorsement(
+	binaryDigest string,
+	validityDuration amber.ClaimValidity,
+	provenanceURIs []string,
+) (*intoto.Statement, error) {
 	verifiedProvenances, err := loadAndVerifyProvenances(provenanceURIs, binaryDigest)
 	if err != nil {
 		return nil, fmt.Errorf("could not load provenances: %v", err)
@@ -50,7 +54,10 @@ func GenerateEndorsement(binaryDigest string, validityDuration amber.ClaimValidi
 // (2) Any of the provenances cannot be loaded (e.g., invalid URI),
 // (3) Any of the provenances is invalid (see verifyProvenances for details on validity),
 // (4) Provenances do not match (e.g., have different binary names).
-func loadAndVerifyProvenances(provenanceURIs []string, binaryDigest string) (*amber.VerifiedProvenanceSet, error) {
+func loadAndVerifyProvenances(
+	provenanceURIs []string,
+	binaryDigest string,
+) (*amber.VerifiedProvenanceSet, error) {
 	if len(provenanceURIs) == 0 {
 		return nil, fmt.Errorf("at least one provenance file must be provided")
 	}
@@ -65,7 +72,11 @@ func loadAndVerifyProvenances(provenanceURIs []string, binaryDigest string) (*am
 		}
 		provenance, err := amber.ParseProvenanceData(provenanceBytes)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't parse bytes from %s into a provenance statement: %v", uri, err)
+			return nil, fmt.Errorf(
+				"couldn't parse bytes from %s into a provenance statement: %v",
+				uri,
+				err,
+			)
 		}
 		sum256 := sha256.Sum256(provenanceBytes)
 		provenances = append(provenances, *provenance)
@@ -148,7 +159,11 @@ func getJSONOverHTTP(uri string) ([]byte, error) {
 
 func getLocalJSONFile(uri *url.URL) ([]byte, error) {
 	if uri.Host != "" {
-		return nil, fmt.Errorf("invalid scheme (%q) and host (%q) combination", uri.Scheme, uri.Host)
+		return nil, fmt.Errorf(
+			"invalid scheme (%q) and host (%q) combination",
+			uri.Scheme,
+			uri.Host,
+		)
 	}
 	if _, err := os.Stat(uri.Path); errors.Is(err, os.ErrNotExist) {
 		return nil, fmt.Errorf("%q does not exist", uri.Path)
@@ -161,9 +176,11 @@ func getLocalJSONFile(uri *url.URL) ([]byte, error) {
 func verifyProvenance(provenance *amber.ValidatedProvenance, binaryDigest string) error {
 	provenanceSubjectDigest := provenance.GetBinarySHA256Digest()
 	if binaryDigest != provenanceSubjectDigest {
-		return fmt.Errorf("the binary digest (%s) is different from the provenance subject digest (%s)",
+		return fmt.Errorf(
+			"the binary digest (%s) is different from the provenance subject digest (%s)",
 			binaryDigest,
-			provenanceSubjectDigest)
+			provenanceSubjectDigest,
+		)
 	}
 	return nil
 }

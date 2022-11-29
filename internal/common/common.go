@@ -94,12 +94,18 @@ func LoadBuildConfigFromProvenance(provenance *amber.ValidatedProvenance) (*Buil
 	statement := provenance.GetProvenance()
 	predicate := statement.Predicate.(slsa.ProvenancePredicate)
 	if len(predicate.Materials) != 2 {
-		return nil, fmt.Errorf("the provenance must have exactly two Materials, got %d", len(predicate.Materials))
+		return nil, fmt.Errorf(
+			"the provenance must have exactly two Materials, got %d",
+			len(predicate.Materials),
+		)
 	}
 
 	builderImage := predicate.Materials[0].URI
 	if builderImage == "" {
-		return nil, fmt.Errorf("the provenance's first material must specify a URI, got %s", builderImage)
+		return nil, fmt.Errorf(
+			"the provenance's first material must specify a URI, got %s",
+			builderImage,
+		)
 	}
 
 	repo := predicate.Materials[1].URI
@@ -109,18 +115,27 @@ func LoadBuildConfigFromProvenance(provenance *amber.ValidatedProvenance) (*Buil
 
 	commitHash := predicate.Materials[1].Digest["sha1"]
 	if commitHash == "" {
-		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %s", commitHash)
+		return nil, fmt.Errorf(
+			"the provenance's second material must have an sha1 hash, got %s",
+			commitHash,
+		)
 	}
 
 	buildConfig := predicate.BuildConfig.(amber.BuildConfig)
 	command := buildConfig.Command
 	if command[0] == "" {
-		return nil, fmt.Errorf("the provenance's buildConfig must specify a command, got %s", command)
+		return nil, fmt.Errorf(
+			"the provenance's buildConfig must specify a command, got %s",
+			command,
+		)
 	}
 
 	outputPath := buildConfig.OutputPath
 	if outputPath == "" {
-		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %s", outputPath)
+		return nil, fmt.Errorf(
+			"the provenance's second material must have an sha1 hash, got %s",
+			outputPath,
+		)
 	}
 
 	config := BuildConfig{
@@ -213,7 +228,11 @@ func (b *BuildConfig) VerifyCommit() error {
 	lastCommitID := strings.TrimSpace(string(lastCommitIDBytes))
 
 	if lastCommitID != b.CommitHash {
-		return fmt.Errorf("the last commit hash (%q) does not match the given commit hash (%q)", lastCommitID, b.CommitHash)
+		return fmt.Errorf(
+			"the last commit hash (%q) does not match the given commit hash (%q)",
+			lastCommitID,
+			b.CommitHash,
+		)
 	}
 	return nil
 }
@@ -324,8 +343,11 @@ func (b *BuildConfig) VerifyBinarySHA256Digest(expectedBinarySha256Digest string
 	}
 
 	if binarySha256Digest != expectedBinarySha256Digest {
-		return fmt.Errorf("the digest of the generated binary does not match the expected SHA256 digest; got %s, want %s",
-			binarySha256Digest, expectedBinarySha256Digest)
+		return fmt.Errorf(
+			"the digest of the generated binary does not match the expected SHA256 digest; got %s, want %s",
+			binarySha256Digest,
+			expectedBinarySha256Digest,
+		)
 	}
 
 	return nil
@@ -335,12 +357,18 @@ func parseBuilderImageURI(imageURI string) (string, string, error) {
 	// We expect the URI of the builder image to be of the form NAME@DIGEST
 	URIParts := strings.Split(imageURI, "@")
 	if len(URIParts) != 2 {
-		return "", "", fmt.Errorf("the builder image URI (%q) does not have the required NAME@DIGEST format", imageURI)
+		return "", "", fmt.Errorf(
+			"the builder image URI (%q) does not have the required NAME@DIGEST format",
+			imageURI,
+		)
 	}
 	// We expect the DIGEST to be of the form ALG:VALUE
 	digestParts := strings.Split(URIParts[1], ":")
 	if len(digestParts) != 2 {
-		return "", "", fmt.Errorf("the builder image digest (%q) does not have the required ALG:VALUE format", URIParts[1])
+		return "", "", fmt.Errorf(
+			"the builder image digest (%q) does not have the required ALG:VALUE format",
+			URIParts[1],
+		)
 	}
 
 	return digestParts[0], digestParts[1], nil

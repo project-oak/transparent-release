@@ -88,19 +88,39 @@ func TestParseBuilderImageURIValidURI(t *testing.T) {
 
 func TestParseBuilderImageURIInvalidURIs(t *testing.T) {
 	imageURIWithTag := "gcr.io/oak-ci/oak@latest"
-	want := fmt.Sprintf("the builder image digest (%q) does not have the required ALG:VALUE format", "latest")
+	want := fmt.Sprintf(
+		"the builder image digest (%q) does not have the required ALG:VALUE format",
+		"latest",
+	)
 	alg, digest, err := parseBuilderImageURI(imageURIWithTag)
 	got := fmt.Sprintf("%v", err)
 	if got != want {
-		t.Fatalf("got (%s, %s, %v) = parseBuilderImageURI(%q), want (_, _, %s)", alg, digest, err, imageURIWithTag, want)
+		t.Fatalf(
+			"got (%s, %s, %v) = parseBuilderImageURI(%q), want (_, _, %s)",
+			alg,
+			digest,
+			err,
+			imageURIWithTag,
+			want,
+		)
 	}
 
 	invalidURI := "gcr.io/oak-ci/oak"
-	want = fmt.Sprintf("the builder image URI (%q) does not have the required NAME@DIGEST format", invalidURI)
+	want = fmt.Sprintf(
+		"the builder image URI (%q) does not have the required NAME@DIGEST format",
+		invalidURI,
+	)
 	alg, digest, err = parseBuilderImageURI(invalidURI)
 	got = fmt.Sprintf("%v", err)
 	if got != want {
-		t.Fatalf("got (%s, %s, %v) = parseBuilderImageURI(%q), want (_, _, %s)", alg, digest, err, invalidURI, want)
+		t.Fatalf(
+			"got (%s, %s, %v) = parseBuilderImageURI(%q), want (_, _, %s)",
+			alg,
+			digest,
+			err,
+			invalidURI,
+			want,
+		)
 	}
 }
 
@@ -123,12 +143,37 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 	buildConfig := predicate.BuildConfig.(amber.BuildConfig)
 
 	// Check that the provenance is generated correctly
-	testutil.AssertEq(t, "repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/transparent-release")
+	testutil.AssertEq(
+		t,
+		"repoURL",
+		predicate.Materials[1].URI,
+		"https://github.com/project-oak/transparent-release",
+	)
 	testutil.AssertNonEmpty(t, "subjectName", prov.Subject[0].Name)
-	testutil.AssertEq(t, "subjectDigest", len(prov.Subject[0].Digest["sha256"]), wantSHA256HexDigitLength)
-	testutil.AssertEq(t, "commitHash length", len(predicate.Materials[1].Digest["sha1"]), wantSHA1HexDigitLength)
-	testutil.AssertEq(t, "builderImageID length", len(predicate.Materials[0].Digest["sha256"]), wantSHA256HexDigitLength)
-	testutil.AssertEq(t, "builderImageURI", predicate.Materials[0].URI, fmt.Sprintf("bash@sha256:%s", predicate.Materials[0].Digest["sha256"]))
+	testutil.AssertEq(
+		t,
+		"subjectDigest",
+		len(prov.Subject[0].Digest["sha256"]),
+		wantSHA256HexDigitLength,
+	)
+	testutil.AssertEq(
+		t,
+		"commitHash length",
+		len(predicate.Materials[1].Digest["sha1"]),
+		wantSHA1HexDigitLength,
+	)
+	testutil.AssertEq(
+		t,
+		"builderImageID length",
+		len(predicate.Materials[0].Digest["sha256"]),
+		wantSHA256HexDigitLength,
+	)
+	testutil.AssertEq(
+		t,
+		"builderImageURI",
+		predicate.Materials[0].URI,
+		fmt.Sprintf("bash@sha256:%s", predicate.Materials[0].Digest["sha256"]),
+	)
 	testutil.AssertNonEmpty(t, "command[0]", buildConfig.Command[0])
 	testutil.AssertNonEmpty(t, "command[1]", buildConfig.Command[1])
 }

@@ -25,8 +25,11 @@ import (
 func main() {
 	buildConfigPathPtr := flag.String("config", "",
 		"Required - Path to SLSA provenance file of the Amber build type.")
-	gitRootDirPtr := flag.String("git_root_dir", "",
-		"Optional - Root of the Git repository. If not specified, sources are fetched from the repo specified in the config file.")
+	gitRootDirPtr := flag.String(
+		"git_root_dir",
+		"",
+		"Optional - Root of the Git repository. If not specified, sources are fetched from the repo specified in the config file.",
+	)
 	flag.Parse()
 
 	provenanceVerifier := verifier.ReproducibleProvenanceVerifier{

@@ -73,7 +73,10 @@ func ParseEndorsementV2Bytes(statementBytes []byte) (*intoto.Statement, error) {
 
 	var predicate ClaimPredicate
 	if err = json.Unmarshal(predicateBytes, &predicate); err != nil {
-		return nil, fmt.Errorf("could not unmarshal JSON bytes into a slsa.ProvenancePredicate: %v", err)
+		return nil, fmt.Errorf(
+			"could not unmarshal JSON bytes into a slsa.ProvenancePredicate: %v",
+			err,
+		)
 	}
 
 	// Replace the Predicate map with ClaimPredicate
@@ -104,7 +107,10 @@ func validateAmberClaim(statement intoto.Statement) error {
 
 // GenerateEndorsementStatement generates an endorsement object with the given subject, and
 // validity duration.
-func GenerateEndorsementStatement(validity ClaimValidity, provenances VerifiedProvenanceSet) *intoto.Statement {
+func GenerateEndorsementStatement(
+	validity ClaimValidity,
+	provenances VerifiedProvenanceSet,
+) *intoto.Statement {
 	evidence := make([]ClaimEvidence, 0, len(provenances.Provenances))
 	for _, provenance := range provenances.Provenances {
 		evidence = append(evidence, ClaimEvidence{
