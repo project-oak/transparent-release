@@ -201,6 +201,11 @@ func crashDetected(reader *storage.Reader, revisionHash string, projectName stri
 	return false
 }
 
+// FormatCoverage transforms a coverage map into a string in the expected format.
+func FormatCoverage(coverage map[string]float64) string {
+	return fmt.Sprintf("%.2f%% (%v/%v)", coverage["percent"], coverage["covered"], coverage["count"])
+}
+
 // GetCoverageRevision gets the revision hash of the source code for which a coverage report
 // was generated on a given day, given that day.
 func GetCoverageRevision(date string, projectName string) string {
@@ -307,7 +312,7 @@ func GetFuzzEffort(revisionHash string, date string, projectName string, fuzzTar
 
 // GetCrashes checks whether there are any detected crashes for a revision
 // of a source code on a given day.
-func GetCrashes(revisionHash string, date string, projectName string, fuzzTarget string, fuzzEngine string, sanitizer string) int {
+func GetCrashes(revisionHash string, date string, projectName string, fuzzTarget string, fuzzEngine string, sanitizer string) bool {
 	bucket, blobs := getLogs(date, projectName, fuzzTarget, fuzzEngine, sanitizer)
 	for _, blob := range blobs {
 		if strings.Contains(blob, ".log") {
@@ -316,9 +321,9 @@ func GetCrashes(revisionHash string, date string, projectName string, fuzzTarget
 				log.Fatal(err)
 			}
 			if crashDetected(reader, revisionHash, projectName) {
-				return 1
+				return true
 			}
 		}
 	}
-	return 0
+	return false
 }

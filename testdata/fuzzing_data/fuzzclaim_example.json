@@ -24,7 +24,7 @@
           "fuzzStats": {
             "lineCoverage": "3.89% (215/5524)",
             "branchCoverage": "0.00% (0/0)",
-            "detectedBugs": 0,
+            "detectedCrashes": false,
             "fuzzTimeSeconds": 2121466,
             "numberFuzzTests": 861621487
           }
@@ -35,7 +35,7 @@
           "fuzzStats": {
             "lineCoverage": "24.88% (511/2054)",
             "branchCoverage": "0.00% (0/0)",
-            "detectedBugs": 1,
+            "detectedCrashes": true,
             "fuzzTimeSeconds": 495,
             "numberFuzzTests": 1130659
           }
@@ -44,7 +44,7 @@
       "perProject": {
         "lineCoverage": "9.54% (668/7000)",
         "branchCoverage": "0.00% (0/0)",
-        "detectedBugs": 1,
+        "detectedCrashes": true,
         "fuzzTimeSeconds": 2121961,
         "numberFuzzTests": 862752146
       }

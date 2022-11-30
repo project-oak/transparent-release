@@ -60,9 +60,9 @@ type FuzzStats struct {
 	LineCoverage string `json:"lineCoverage"`
 	// BranchCoverage specifies branch coverage.
 	BranchCoverage string `json:"branchCoverage"`
-	// DetectedBugs specifies the  number of detected bugs using all fuzz-targets
-	// or a fuzz-target.
-	DetectedBugs int `json:"detectedBugs"`
+	// DetectedCrashes specifies if any bugs/crashes were detected by
+	// a given fuzz-target or all fuzz-targets.
+	DetectedCrashes bool `json:"detectedCrashes"`
 	// FuzzTimeSeconds specifies the fuzzing time in seconds.
 	FuzzTimeSeconds int `json:"fuzzTimeSeconds,omitempty"`
 	// NumberFuzzTests specifies the number of executed fuzzing tests.
