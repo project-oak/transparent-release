@@ -149,7 +149,6 @@ func (p *ProvenanceIR) FromAmber(provenance *amber.ValidatedProvenance) {
 // We assume that we want to verify all fields the actual ProvenanceIR contains against the expected.
 // TODO(b/222440937): In future, also verify the details of the given provenance and the signature.
 func VerifyWithReference(actual ProvenanceIR, expected ProvenanceIR) error {
-
 	if expected.BinarySHA256Digest == nil {
 		return fmt.Errorf("no reference binary SHA256 digest given")
 	}
