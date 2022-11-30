@@ -119,3 +119,43 @@ func (verifier *AmberProvenanceMetadataVerifier) Verify() error {
 
 	return nil
 }
+
+// Internal intermediate representation of Provenances for verification.
+// We use the ProvenanceIR to
+// (1) map different provenance formats, and
+// (2) hold reference values.
+// To be usable with different provenance formats, we allow fields to be empty ([]) and to hold several reference values.
+type ProvenanceIR struct {
+	BinarySHA256Digest []string
+}
+
+func (p *ProvenanceIR) From(provenance *slsa.ValidatedProvenance) {
+	// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
+	p.BinarySHA256Digest = []string{provenance.GetBinarySHA256Digest()}
+}
+
+// VerifyWithReference verifies a provenance against a given reference.
+// We assume that we want to verify all fields the actual ProvenanceIR contains against the expected.
+// TODO(b/222440937): In future, also verify the details of the given provenance and the signature.
+func VerifyWithReference(actual ProvenanceIR, expected ProvenanceIR) error {
+
+	if expected.BinarySHA256Digest == nil {
+		return fmt.Errorf("no reference binary SHA256 digest given")
+	}
+
+	if actual.BinarySHA256Digest == nil {
+		// We don't want to verify the binary SHA256 digest.
+		return nil
+	}
+
+	for _, expected := range expected.BinarySHA256Digest {
+		if expected == actual.BinarySHA256Digest[0] {
+			// We found the expected SHA256 digest.
+			return nil
+		}
+	}
+
+	return fmt.Errorf("the expected binary SHA256 digests (%v) do not contain the actual binary SHA256 digest (%v)",
+		expected.BinarySHA256Digest,
+		actual.BinarySHA256Digest)
+}
