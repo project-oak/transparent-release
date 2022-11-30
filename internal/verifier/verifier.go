@@ -74,10 +74,16 @@ func (verifier *ReproducibleProvenanceVerifier) Verify() error {
 		return fmt.Errorf("couldn't build the binary: %v", err)
 	}
 
-	// The provenance is valid, therefore `expectedBinaryHash` is guaranteed to be non-empty.
-	expectedBinaryDigest := verifier.Provenance.GetBinarySHA256Digest()
+	var actual ProvenanceIR
+	actual.FromAmber(verifier.Provenance)
 
-	if err := buildConfig.VerifyBinarySHA256Digest(expectedBinaryDigest); err != nil {
+	expectedBinaryDigest, err := buildConfig.ComputeBinarySHA256Digest()
+	if err != nil {
+		return fmt.Errorf("couldn't get the digest of the binary: %v", err)
+	}
+	expected := ProvenanceIR{BinarySHA256Digest: []string{expectedBinaryDigest}}
+
+	if err := VerifyWithReference(actual, expected); err != nil {
 		return fmt.Errorf("failed to verify the digest of the built binary: %v", err)
 	}
 
@@ -129,8 +135,13 @@ type ProvenanceIR struct {
 	BinarySHA256Digest []string
 }
 
-func (p *ProvenanceIR) From(provenance *slsa.ValidatedProvenance) {
+func (p *ProvenanceIR) FromSLSA(provenance *slsa.ValidatedProvenance) {
 	// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
+	p.BinarySHA256Digest = []string{provenance.GetBinarySHA256Digest()}
+}
+
+func (p *ProvenanceIR) FromAmber(provenance *amber.ValidatedProvenance) {
+	// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
 	p.BinarySHA256Digest = []string{provenance.GetBinarySHA256Digest()}
 }
 

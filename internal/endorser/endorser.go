@@ -99,7 +99,7 @@ func loadAndVerifyProvenances(provenanceURIs []string, expected verifier.Provena
 func verifyProvenances(provenances []slsa.ValidatedProvenance, expected verifier.ProvenanceIR) error {
 	for index := range provenances {
 		var actual verifier.ProvenanceIR
-		actual.From(&provenances[index])
+		actual.FromSLSA(&provenances[index])
 		if err := verifier.VerifyWithReference(actual, expected); err != nil {
 			return fmt.Errorf("verification of the provenance at index %d failed: %v", index, err)
 		}

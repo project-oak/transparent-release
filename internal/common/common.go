@@ -317,6 +317,7 @@ func (b *BuildConfig) ChangeDirToGitRoot(gitRootDir string) (*RepoCheckoutInfo, 
 // VerifyBinarySHA256Digest computes the SHA256 digest of the binary built by this
 // BuildConfig, and checks that this digest is equal to the given `expectedSha256Digest`.
 // Returns an error if the hashes are not equal.
+// TODO(mschett): Is this still used?
 func (b *BuildConfig) VerifyBinarySHA256Digest(expectedBinarySha256Digest string) error {
 	binarySha256Digest, err := b.ComputeBinarySHA256Digest()
 	if err != nil {
