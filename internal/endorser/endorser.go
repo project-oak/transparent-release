@@ -31,14 +31,18 @@ import (
 	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 )
 
-// Internal intermediate representation of the different provenance formats.
+// Internal intermediate representation of Provenances for verification.
+// We use the ProvenanceIR to
+// (1) map different provenance formats, and
+// (2) hold reference values.
+// To be usable with different provenance formats, we allow fields to be empty ([]) and to hold several reference values.
 type ProvenanceIR struct {
-	BinarySHA256Digest string
+	BinarySHA256Digest []string
 }
 
 func (p *ProvenanceIR) from(provenance *slsa.ValidatedProvenance) {
-	// A slsa.ValidatedProvenance contains a SHA256 hash.
-	p.BinarySHA256Digest = provenance.GetBinarySHA256Digest()
+	// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
+	p.BinarySHA256Digest = []string{provenance.GetBinarySHA256Digest()}
 }
 
 // GenerateEndorsement generates an endorsement statement for the given binary SHA256 digest, for
@@ -47,7 +51,7 @@ func (p *ProvenanceIR) from(provenance *slsa.ValidatedProvenance) {
 // valid. Each provenanceURI must either specify a local file (using the `file` scheme), or a
 // remote file (using the `http/https` scheme).
 func GenerateEndorsement(binaryDigest string, validityDuration amber.ClaimValidity, provenanceURIs []string) (*intoto.Statement, error) {
-	expected := ProvenanceIR{BinarySHA256Digest: binaryDigest}
+	expected := ProvenanceIR{BinarySHA256Digest: []string{binaryDigest}}
 
 	verifiedProvenances, err := loadAndVerifyProvenances(provenanceURIs, expected)
 	if err != nil {
@@ -94,7 +98,7 @@ func loadAndVerifyProvenances(provenanceURIs []string, expected ProvenanceIR) (*
 
 	verifiedProvenances := amber.VerifiedProvenanceSet{
 		BinaryName:   provenances[0].GetBinaryName(),
-		BinaryDigest: expected.BinarySHA256Digest,
+		BinaryDigest: expected.BinarySHA256Digest[0],
 		Provenances:  provenancesData,
 	}
 
@@ -173,11 +177,26 @@ func getLocalJSONFile(uri *url.URL) ([]byte, error) {
 
 // verifyProvenance verifies that the provenance has the expected digest.
 // TODO(b/222440937): In future, also verify the details of the given provenance and the signature.
+// We assume that we want to verify all fields the actual ProvenanceIR contains against the expected.
 func verifyProvenance(actual ProvenanceIR, expected ProvenanceIR) error {
-	if actual.BinarySHA256Digest != expected.BinarySHA256Digest {
-		return fmt.Errorf("the expected binary SHA256 digest (%s) is different from the actual binary SHA256 digest (%s)",
-			expected.BinarySHA256Digest,
-			actual.BinarySHA256Digest)
+
+	if expected.BinarySHA256Digest == nil {
+		return fmt.Errorf("no reference binary SHA256 digest given")
 	}
-	return nil
+
+	if actual.BinarySHA256Digest == nil {
+		// We don't want to verify the binary SHA256 digest.
+		return nil
+	}
+
+	for _, expected := range expected.BinarySHA256Digest {
+		if expected == actual.BinarySHA256Digest[0] {
+			// We found the expected SHA256 digest.
+			return nil
+		}
+	}
+
+	return fmt.Errorf("the expected binary SHA256 digests (%v) do not contain the actual binary SHA256 digest (%v)",
+		expected.BinarySHA256Digest,
+		actual.BinarySHA256Digest)
 }
