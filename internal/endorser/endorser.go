@@ -36,12 +36,9 @@ type ProvenanceIR struct {
 	BinarySHA256Digest string
 }
 
-// TODO(mschett): Check whether fromAmberProvenance makes sense as name.
-// TODO(mschett): Define what we expect from the amberProvenance re: validation.
-func fromAmberProvenance(amberProvenance *slsa.ValidatedProvenance) ProvenanceIR {
-	return ProvenanceIR {
-		BinarySHA256Digest : amberProvenance.GetBinarySHA256Digest(),
-	}
+func (p *ProvenanceIR) from(provenance *slsa.ValidatedProvenance) {
+	// A slsa.ValidatedProvenance contains a SHA256 hash.
+	p.BinarySHA256Digest = provenance.GetBinarySHA256Digest()
 }
 
 // GenerateEndorsement generates an endorsement statement for the given binary SHA256 digest, for
@@ -50,7 +47,7 @@ func fromAmberProvenance(amberProvenance *slsa.ValidatedProvenance) ProvenanceIR
 // valid. Each provenanceURI must either specify a local file (using the `file` scheme), or a
 // remote file (using the `http/https` scheme).
 func GenerateEndorsement(binaryDigest string, validityDuration amber.ClaimValidity, provenanceURIs []string) (*intoto.Statement, error) {
-	expected := ProvenanceIR { BinarySHA256Digest : binaryDigest }
+	expected := ProvenanceIR{BinarySHA256Digest: binaryDigest}
 
 	verifiedProvenances, err := loadAndVerifyProvenances(provenanceURIs, expected)
 	if err != nil {
@@ -110,7 +107,8 @@ func loadAndVerifyProvenances(provenanceURIs []string, expected ProvenanceIR) (*
 // TODO(b/222440937): Document any additional checks.
 func verifyProvenances(provenances []slsa.ValidatedProvenance, expected ProvenanceIR) error {
 	for index := range provenances {
-		actual := fromAmberProvenance(&provenances[index])
+		var actual ProvenanceIR
+		actual.from(&provenances[index])
 		if err := verifyProvenance(actual, expected); err != nil {
 			return fmt.Errorf("verification of the provenance at index %d failed: %v", index, err)
 		}
@@ -178,8 +176,8 @@ func getLocalJSONFile(uri *url.URL) ([]byte, error) {
 func verifyProvenance(actual ProvenanceIR, expected ProvenanceIR) error {
 	if actual.BinarySHA256Digest != expected.BinarySHA256Digest {
 		return fmt.Errorf("the expected binary SHA256 digest (%s) is different from the actual binary SHA256 digest (%s)",
-		expected.BinarySHA256Digest,
-		actual.BinarySHA256Digest)
+			expected.BinarySHA256Digest,
+			actual.BinarySHA256Digest)
 	}
 	return nil
 }
