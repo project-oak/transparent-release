@@ -135,7 +135,7 @@ type ProvenanceIR struct {
 	BinarySHA256Digest []string
 }
 
-func (p *ProvenanceIR) FromSLSA(provenance *slsa.ValidatedProvenance) {
+func (p *ProvenanceIR) FromSLSAv0(provenance *slsa.ValidatedProvenance) {
 	// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
 	p.BinarySHA256Digest = []string{provenance.GetBinarySHA256Digest()}
 }
