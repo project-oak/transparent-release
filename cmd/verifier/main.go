@@ -20,20 +20,28 @@ import (
 	"log"
 
 	"github.com/project-oak/transparent-release/internal/verifier"
+	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
 func main() {
-	buildConfigPathPtr := flag.String("config", "",
+	provenancePath := flag.String("provenance_path", "",
 		"Required - Path to SLSA provenance file of the Amber build type.")
 	gitRootDirPtr := flag.String("git_root_dir", "",
 		"Optional - Root of the Git repository. If not specified, sources are fetched from the repo specified in the config file.")
 	flag.Parse()
 
+	provenance, err := amber.ParseProvenanceFile(*provenancePath)
+	if err != nil {
+		log.Fatalf("couldn't load the provenance file from %s: %v", *provenancePath, err)
+		return
+	}
+
 	provenanceVerifier := verifier.ReproducibleProvenanceVerifier{
+		Provenance: provenance,
 		GitRootDir: *gitRootDirPtr,
 	}
 
-	if err := provenanceVerifier.Verify(*buildConfigPathPtr); err != nil {
+	if err := provenanceVerifier.Verify(); err != nil {
 		log.Fatalf("error when verifying the provenance: %v", err)
 	}
 }
