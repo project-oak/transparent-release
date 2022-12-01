@@ -74,16 +74,10 @@ func (verifier *ReproducibleProvenanceVerifier) Verify() error {
 		return fmt.Errorf("couldn't build the binary: %v", err)
 	}
 
-	var actual ProvenanceIR
-	actual.FromAmber(verifier.Provenance)
+	// The provenance is valid, therefore `expectedBinaryHash` is guaranteed to be non-empty.
+	expectedBinaryDigest := verifier.Provenance.GetBinarySHA256Digest()
 
-	expectedBinaryDigest, err := buildConfig.ComputeBinarySHA256Digest()
-	if err != nil {
-		return fmt.Errorf("couldn't get the digest of the binary: %v", err)
-	}
-	expected := ProvenanceIR{BinarySHA256Digest: []string{expectedBinaryDigest}}
-
-	if err := VerifyWithReference(actual, expected); err != nil {
+	if err := buildConfig.VerifyBinarySHA256Digest(expectedBinaryDigest); err != nil {
 		return fmt.Errorf("failed to verify the digest of the built binary: %v", err)
 	}
 
@@ -149,13 +143,15 @@ func (p *ProvenanceIR) FromAmber(provenance *amber.ValidatedProvenance) {
 // We assume that we want to verify all fields the actual ProvenanceIR contains against the expected.
 // TODO(b/222440937): In future, also verify the details of the given provenance and the signature.
 func VerifyWithReference(actual ProvenanceIR, expected ProvenanceIR) error {
+	if actual.BinarySHA256Digest != nil {
+		return actual.verifyBinarySHA256Digest(expected)
+	}
+	return nil
+}
+
+func (actual *ProvenanceIR) verifyBinarySHA256Digest(expected ProvenanceIR) error {
 	if expected.BinarySHA256Digest == nil {
 		return fmt.Errorf("no reference binary SHA256 digest given")
-	}
-
-	if actual.BinarySHA256Digest == nil {
-		// We don't want to verify the binary SHA256 digest.
-		return nil
 	}
 
 	for _, expected := range expected.BinarySHA256Digest {
