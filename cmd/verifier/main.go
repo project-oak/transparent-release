@@ -24,15 +24,15 @@ import (
 )
 
 func main() {
-	provenance_path := flag.String("provenance_path", "",
-		"Required - Path to SLSA provenance file of the Amber build type.")
+	provenancePath := flag.String("provenance_path", "",
+		"Required - Path to SLSA provenance file of th.e Amber build type.")
 	gitRootDirPtr := flag.String("git_root_dir", "",
 		"Optional - Root of the Git repository. If not specified, sources are fetched from the repo specified in the config file.")
 	flag.Parse()
 
-	provenance, err := amber.ParseProvenanceFile(*provenance_path)
+	provenance, err := amber.ParseProvenanceFile(*provenancePath)
 	if err != nil {
-		log.Fatalf("couldn't load the provenance file from %s: %v", *provenance_path, err)
+		log.Fatalf("couldn't load the provenance file from %s: %v", *provenancePath, err)
 		return
 	}
 
