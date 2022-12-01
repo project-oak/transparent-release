@@ -28,6 +28,7 @@ import (
 // ProvenanceVerifier defines an interface with a single method `Verify` for
 // verifying provenances.
 type ProvenanceVerifier interface {
+	// Verifies a provenance.
 	Verify() error
 }
 
