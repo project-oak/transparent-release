@@ -28,9 +28,7 @@ import (
 // ProvenanceVerifier defines an interface with a single method `Verify` for
 // verifying provenances.
 type ProvenanceVerifier interface {
-	// Verify verifies an Amber/SLSA provenance file in the given path.
-	// Returns an error if the verification fails, or nil if it is successful.
-	Verify(path string) error
+	Verify() error
 }
 
 // ReproducibleProvenanceVerifier is a verifier for verifying provenances that
@@ -38,6 +36,7 @@ type ProvenanceVerifier interface {
 // specified in the provenance and checking that the hash of the binary is the
 // same as the digest in the subject of the provenance file.
 type ReproducibleProvenanceVerifier struct {
+	provenance *amber.ValidatedProvenance
 	GitRootDir string
 }
 
@@ -46,7 +45,7 @@ type ReproducibleProvenanceVerifier struct {
 // specified in the subject of the given provenance file. If the hashes are
 // different returns an error, otherwise returns nil.
 // TODO(#126): Refactor and separate verification logic from the logic for reading the file.
-func (verifier *ReproducibleProvenanceVerifier) Verify(provenanceFilePath string) error {
+func (verifier *ReproducibleProvenanceVerifier) Verify() error {
 	// Below we change directory to the root of the Git repo. We have to change directory back to
 	// the current directory when we are done.
 	currentDir, err := os.Getwd()
@@ -55,11 +54,7 @@ func (verifier *ReproducibleProvenanceVerifier) Verify(provenanceFilePath string
 	}
 	defer chdir(currentDir)
 
-	provenance, err := amber.ParseProvenanceFile(provenanceFilePath)
-	if err != nil {
-		return fmt.Errorf("couldn't load the provenance file from %s: %v", provenanceFilePath, err)
-	}
-	buildConfig, err := common.LoadBuildConfigFromProvenance(provenance)
+	buildConfig, err := common.LoadBuildConfigFromProvenance(verifier.provenance)
 	if err != nil {
 		return fmt.Errorf("couldn't load BuildConfig from provenance: %v", err)
 	}
@@ -79,7 +74,7 @@ func (verifier *ReproducibleProvenanceVerifier) Verify(provenanceFilePath string
 	}
 
 	// The provenance is valid, therefore `expectedBinaryHash` is guaranteed to be non-empty.
-	expectedBinaryDigest := provenance.GetBinarySHA256Digest()
+	expectedBinaryDigest := verifier.provenance.GetBinarySHA256Digest()
 
 	if err := buildConfig.VerifyBinarySHA256Digest(expectedBinaryDigest); err != nil {
 		return fmt.Errorf("failed to verify the digest of the built binary: %v", err)
@@ -97,6 +92,7 @@ func chdir(dir string) {
 // AmberProvenanceMetadataVerifier verifies Amber provenances by comparing the
 // content of the provenance predicate against a given set of expected values.
 type AmberProvenanceMetadataVerifier struct {
+	provenanceFilePath string
 	// TODO(#69): Add metadata fields.
 }
 
@@ -106,10 +102,10 @@ type AmberProvenanceMetadataVerifier struct {
 // values is not as expected. Otherwise returns nil, indicating success.
 // TODO(#69): Check metadata against the expected values.
 // TODO(#126): Refactor and separate verification logic from the logic for reading the file.
-func (verifier *AmberProvenanceMetadataVerifier) Verify(provenanceFilePath string) error {
-	provenance, err := amber.ParseProvenanceFile(provenanceFilePath)
+func (verifier *AmberProvenanceMetadataVerifier) Verify() error {
+	provenance, err := amber.ParseProvenanceFile(verifier.provenanceFilePath)
 	if err != nil {
-		return fmt.Errorf("couldn't load the provenance file from %s: %v", provenanceFilePath, err)
+		return fmt.Errorf("couldn't load the provenance file from %s: %v", verifier.provenanceFilePath, err)
 	}
 
 	predicate := provenance.GetProvenance().Predicate.(slsa.ProvenancePredicate)

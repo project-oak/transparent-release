@@ -18,6 +18,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
 const (
@@ -29,10 +31,16 @@ const (
 
 func TestReproducibleProvenanceVerifier_validProvenance(t *testing.T) {
 	path := filepath.Join(testdataPath, validProvenancePath)
+	provenance, err := amber.ParseProvenanceFile(path)
+	if err != nil {
+		t.Fatalf("couldn't load the provenance file from %s: %v", path, err)
+	}
 
-	verifier := ReproducibleProvenanceVerifier{}
+	verifier := ReproducibleProvenanceVerifier{
+		provenance: provenance,
+	}
 
-	if err := verifier.Verify(path); err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("couldn't verify the provenance file: %v", err)
 	}
 }
@@ -40,12 +48,18 @@ func TestReproducibleProvenanceVerifier_validProvenance(t *testing.T) {
 // TODO(#126): Update the test once Verify is refactored.
 func TestReproducibleProvenanceVerifier_invalidHash(t *testing.T) {
 	path := filepath.Join(testdataPath, invalidHashProvenancePath)
+	provenance, err := amber.ParseProvenanceFile(path)
+	if err != nil {
+		t.Fatalf("couldn't load the provenance file from %s: %v", path, err)
+	}
 
-	verifier := ReproducibleProvenanceVerifier{}
+	verifier := ReproducibleProvenanceVerifier{
+		provenance: provenance,
+	}
 
 	want := "failed to verify the digest of the built binary"
 
-	if got := verifier.Verify(path); !strings.Contains(got.Error(), want) {
+	if got := verifier.Verify(); !strings.Contains(got.Error(), want) {
 		t.Fatalf("got %v, want error message containing %q,", got, want)
 	}
 }
@@ -53,22 +67,34 @@ func TestReproducibleProvenanceVerifier_invalidHash(t *testing.T) {
 // TODO(#126): Update the test once Verify is refactored.
 func TestReproducibleProvenanceVerifier_badCommand(t *testing.T) {
 	path := filepath.Join(testdataPath, badCommandProvenancePath)
+	provenance, err := amber.ParseProvenanceFile(path)
+	if err != nil {
+		t.Fatalf("couldn't load the provenance file from %s: %v", path, err)
+	}
 
-	verifier := ReproducibleProvenanceVerifier{}
+	verifier := ReproducibleProvenanceVerifier{
+		provenance: provenance,
+	}
 
 	want := "couldn't build the binary"
 
-	if got := verifier.Verify(path); !strings.Contains(got.Error(), want) {
+	if got := verifier.Verify(); !strings.Contains(got.Error(), want) {
 		t.Fatalf("got %v, want error message containing %q,", got, want)
 	}
 }
 
 func TestAmberProvenanceMetadataVerifier(t *testing.T) {
 	path := filepath.Join(testdataPath, validProvenancePath)
+	provenance, err := amber.ParseProvenanceFile(path)
+	if err != nil {
+		t.Fatalf("couldn't load the provenance file from %s: %v", path, err)
+	}
 
-	verifier := AmberProvenanceMetadataVerifier{}
+	verifier := ReproducibleProvenanceVerifier{
+		provenance: provenance,
+	}
 
-	if err := verifier.Verify(path); err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("couldn't verify the provenance file: %v", err)
 	}
 }
