@@ -37,7 +37,7 @@ func TestParseFuzzClaimFile(t *testing.T) {
 	}
 
 	// Verify that the fuzzclaim JSON file parses correctly
-	testutil.AssertEq(t, "repoURL", statement.Subject[0].Name, "https://github.com/project-oak/oak")
+	testutil.AssertEq(t, "subject[0].name", statement.Subject[0].Name, "https://github.com/project-oak/oak")
 	testutil.AssertEq(t, "commitHash length", len(statement.Subject[0].Digest["sha1"]), wantSHA1HexDigitLength)
 	testutil.AssertNonEmpty(t, "perProject.branchCoverage", statement.Predicate.(*amber.ClaimPredicate).ClaimSpec.(FuzzClaimSpec).PerProject.BranchCoverage)
 	testutil.AssertNonEmpty(t, "perProject.lineCoverage", statement.Predicate.(*amber.ClaimPredicate).ClaimSpec.(FuzzClaimSpec).PerProject.LineCoverage)
