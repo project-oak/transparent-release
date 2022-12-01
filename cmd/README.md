@@ -69,7 +69,7 @@ binary has a SHA256 hash equal to the expected digest given in the provenance fi
 To verify a SLSA provenance of the Amber build type run:
 
 ```bash
-$ go run cmd/verifier/main.go -config schema/provenance/v1/example.json
+$ go run cmd/verifier/main.go -provenance_path schema/provenance/v1/example.json
 ```
 
 This fetches the sources from the Git repository specified in the SLSA statement file, re-runs the
@@ -84,6 +84,6 @@ error otherwise.
 
 ```bash
 $ go run cmd/verifier/main.go \
-  -config schema/provenance/v1/example.json \
+  -provenance_path schema/provenance/v1/example.json \
   -git_root_dir <path-to-git-repo-root>
 ```
