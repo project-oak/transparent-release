@@ -25,7 +25,6 @@ package fuzzbinder
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/project-oak/transparent-release/pkg/amber"
@@ -95,7 +94,36 @@ func ValidateFuzzClaim(predicate amber.ClaimPredicate) (*amber.ClaimPredicate, e
 
 // validateFuzzClaimSpec validates details about the FuzzClaimSpec.
 func validateFuzzClaimSpec(predicate amber.ClaimPredicate) (*amber.ClaimPredicate, error) {
-	log.Println("Not yet implemented!")
+	// validate that perProject.fuzzTimeSeconds/perProject.numberFuzzTests is the sum
+	// of fuzzTimeSeconds/numberFuzzTests for all fuzz-targets.
+	projectTimeSeconds := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.FuzzTimeSeconds
+	projectNumberTests := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.NumberFuzzTests
+	sumTargetsTimeSeconds := 0
+	sumTargetsNumberTests := 0
+	for i := 0; i < len(predicate.ClaimSpec.(FuzzClaimSpec).PerTarget); i++ {
+		sumTargetsTimeSeconds += predicate.ClaimSpec.(FuzzClaimSpec).PerTarget[i].FuzzStats.FuzzTimeSeconds
+		sumTargetsNumberTests += predicate.ClaimSpec.(FuzzClaimSpec).PerTarget[i].FuzzStats.NumberFuzzTests
+	}
+	if projectTimeSeconds != sumTargetsTimeSeconds {
+		return nil, fmt.Errorf("perProject.fuzzTimeSeconds (%v) is not equal to fuzzTimeSeconds for all fuzz-targets (%v)",
+			projectTimeSeconds, sumTargetsTimeSeconds)
+	}
+	if projectNumberTests != sumTargetsNumberTests {
+		return nil, fmt.Errorf("perProject.numberFuzzTests (%v) is not equal to numberFuzzTests for all fuzz-targets (%v)",
+			projectNumberTests, sumTargetsNumberTests)
+	}
+
+	// validate that the detectedCrashes perProject are consistent with
+	// the detectedCrashes for all fuzz-targets.
+	targetsDetectedCrashes := false
+	for i := 0; i < len(predicate.ClaimSpec.(FuzzClaimSpec).PerTarget); i++ {
+		targetsDetectedCrashes = targetsDetectedCrashes || predicate.ClaimSpec.(FuzzClaimSpec).PerTarget[i].FuzzStats.DetectedCrashes
+	}
+	if predicate.ClaimSpec.(FuzzClaimSpec).PerProject.DetectedCrashes != targetsDetectedCrashes {
+		return nil, fmt.Errorf("perProject.DetectedCrashes (%v) is not consistent with the detectedCrashes for all fuzz-targets (%v)",
+			predicate.ClaimSpec.(FuzzClaimSpec).PerProject.DetectedCrashes, targetsDetectedCrashes)
+	}
+
 	return &predicate, nil
 }
 
