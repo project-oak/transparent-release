@@ -1,0 +1,125 @@
+Component revisions (build r202211270607):
+Oak: 1586496a1cbb76e044cc17dcc98203417957c793
+
+Bot name: oss-fuzz-linux-zone5-host-lzp7-11
+Return code: 1
+
+Command: /mnt/scratch0/clusterfuzz/resources/platform/linux/unshare -c -n /mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing -timeout=25 -rss_limit_mb=2560 -use_value_profile=1 -fork=2 -artifact_prefix=/mnt/scratch0/clusterfuzz/bot/inputs/fuzzer-testcases/ -max_total_time=6200 -print_final_stats=1 /mnt/scratch0/clusterfuzz/bot/inputs/fuzzer-testcases-disk/temp-426/new /mnt/scratch0/clusterfuzz/bot/inputs/data-bundles/oak_failing
+Time ran: 0.6719419956207275
+
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2307533791
+INFO: Loaded 1 modules   (8033 inline 8-bit counters): 8033 [0x56338edfc240, 0x56338edfe1a1),
+INFO: Loaded 1 PC tables (8033 PCs): 8033 [0x56338edfe1a8,0x56338ee1d7b8),
+INFO: -fork=2: fuzzing in separate process(s)
+INFO: -fork=2: 94 seed inputs, starting to fuzz in /tmp/libFuzzerTemp.FuzzWithFork13976.dir
+#301: cov: 993 ft: 993 corp: 94 exec/s 0 oom/timeout/crash: 0/0/0 time: 0s job: 2 dft_time: 0
+  NEW_FUNC: 0x56338eb85210  (/mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing+0x12a210) (BuildId: b215a0d8a3fe8527bae42e0fa1e5d8e4d72c5053)
+  NEW_FUNC: 0x56338eb85cc0  (/mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing+0x12acc0) (BuildId: b215a0d8a3fe8527bae42e0fa1e5d8e4d72c5053)
+  NEW_FUNC: 0x56338eab5920  (/mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing+0x5a920) (BuildId: b215a0d8a3fe8527bae42e0fa1e5d8e4d72c5053)
+  NEW_FUNC: 0x56338eb8a730  (/mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing+0x12f730) (BuildId: b215a0d8a3fe8527bae42e0fa1e5d8e4d72c5053)
+  NEW_FUNC: 0x56338eb8ade0  (/mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing+0x12fde0) (BuildId: b215a0d8a3fe8527bae42e0fa1e5d8e4d72c5053)
+  NEW_FUNC: 0x56338eb954e0  (/mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing+0x13a4e0) (BuildId: b215a0d8a3fe8527bae42e0fa1e5d8e4d72c5053)
+  NEW_FUNC: 0x56338eb95640  (/mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing+0x13a640) (BuildId: b215a0d8a3fe8527bae42e0fa1e5d8e4d72c5053)
+  NEW_FUNC: 0x56338eb95c30  (/mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing+0x13ac30) (BuildId: b215a0d8a3fe8527bae42e0fa1e5d8e4d72c5053)
+  NEW_FUNC: 0x56338ebac1f0  (/mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing+0x1511f0) (BuildId: b215a0d8a3fe8527bae42e0fa1e5d8e4d72c5053)
+  NEW_FUNC: 0x56338ebae8d0  (/mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing+0x1538d0) (BuildId: b215a0d8a3fe8527bae42e0fa1e5d8e4d72c5053)
+  NEW_FUNC: 0x56338ebb2210  (/mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing+0x157210) (BuildId: b215a0d8a3fe8527bae42e0fa1e5d8e4d72c5053)
+  NEW_FUNC: 0x56338ebb4b80  (/mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing+0x159b80) (BuildId: b215a0d8a3fe8527bae42e0fa1e5d8e4d72c5053)
+  NEW_FUNC: 0x56338ebb4d80  (/mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing+0x159d80) (BuildId: b215a0d8a3fe8527bae42e0fa1e5d8e4d72c5053)
+  NEW_FUNC: 0x56338ebc8b50  (/mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing+0x16db50) (BuildId: b215a0d8a3fe8527bae42e0fa1e5d8e4d72c5053)
+  NEW_FUNC: 0x56338ebce110  (/mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing+0x173110) (BuildId: b215a0d8a3fe8527bae42e0fa1e5d8e4d72c5053)
+  NEW_FUNC: 0x56338ebcef90  (/mnt/scratch0/clusterfuzz/bot/builds/clusterfuzz-builds_oak_78cbea6c51792ad909dce08a9d2210af64adcbf2/revisions/failing+0x173f90) (BuildId: b215a0d8a3fe8527bae42e0fa1e5d8e4d72c5053)
+INFO: log from the inner process:
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 2307894778
+INFO: Loaded 1 modules   (8033 inline 8-bit counters): 8033 [0x55977cd9a240, 0x55977cd9c1a1),
+INFO: Loaded 1 PC tables (8033 PCs): 8033 [0x55977cd9c1a8,0x55977cdbb7b8),
+INFO:        0 files found in /tmp/libFuzzerTemp.FuzzWithFork13976.dir/C2
+INFO: -max_len is not provided; libFuzzer will not generate inputs larger than 8128 bytes
+INFO: seed corpus: files: 9 min: 1b max: 8128b total: 9543b rss: 30Mb
+#10	INITED cov: 112 ft: 729 corp: 9/9543b exec/s: 0 rss: 31Mb
+#11	NEW    cov: 112 ft: 733 corp: 10/9992b lim: 8128 exec/s: 0 rss: 32Mb L: 449/8128 MS: 1 InsertByte-
+#12	NEW    cov: 112 ft: 736 corp: 11/10110b lim: 8128 exec/s: 0 rss: 32Mb L: 118/8128 MS: 1 InsertRepeatedBytes-
+#15	NEW    cov: 112 ft: 738 corp: 12/10194b lim: 8128 exec/s: 0 rss: 32Mb L: 84/8128 MS: 3 InsertRepeatedBytes-EraseBytes-InsertByte-
+#16	NEW    cov: 112 ft: 741 corp: 13/10243b lim: 8128 exec/s: 0 rss: 32Mb L: 49/8128 MS: 1 InsertByte-
+#17	NEW    cov: 112 ft: 746 corp: 14/10691b lim: 8128 exec/s: 0 rss: 32Mb L: 448/8128 MS: 1 ChangeBit-
+#18	NEW    cov: 112 ft: 750 corp: 15/10739b lim: 8128 exec/s: 0 rss: 32Mb L: 48/8128 MS: 1 ChangeBinInt-
+#19	NEW    cov: 112 ft: 753 corp: 16/10778b lim: 8128 exec/s: 0 rss: 32Mb L: 39/8128 MS: 1 CopyPart-
+#20	NEW    cov: 112 ft: 755 corp: 17/10779b lim: 8128 exec/s: 0 rss: 32Mb L: 1/8128 MS: 1 ChangeByte-
+#21	NEW    cov: 112 ft: 758 corp: 18/10826b lim: 8128 exec/s: 0 rss: 32Mb L: 47/8128 MS: 1 CMP- DE: "\377\377\377\377\377\377\377?"-
+#23	NEW    cov: 112 ft: 799 corp: 19/10959b lim: 8128 exec/s: 0 rss: 32Mb L: 133/8128 MS: 2 InsertByte-InsertRepeatedBytes-
+#24	NEW    cov: 112 ft: 800 corp: 20/11023b lim: 8128 exec/s: 0 rss: 32Mb L: 64/8128 MS: 1 CopyPart-
+#25	NEW    cov: 112 ft: 801 corp: 21/11083b lim: 8128 exec/s: 0 rss: 32Mb L: 60/8128 MS: 1 InsertRepeatedBytes-
+#26	NEW    cov: 112 ft: 803 corp: 22/11738b lim: 8128 exec/s: 0 rss: 32Mb L: 655/8128 MS: 1 CopyPart-
+#27	NEW    cov: 112 ft: 806 corp: 23/11798b lim: 8128 exec/s: 0 rss: 32Mb L: 60/8128 MS: 1 ChangeBinInt-
+#30	NEW    cov: 112 ft: 809 corp: 24/11883b lim: 8128 exec/s: 0 rss: 32Mb L: 85/8128 MS: 3 ShuffleBytes-CopyPart-InsertByte-
+#35	NEW    cov: 112 ft: 811 corp: 25/12455b lim: 8128 exec/s: 0 rss: 32Mb L: 572/8128 MS: 5 CrossOver-ChangeBinInt-ShuffleBytes-PersAutoDict-InsertRepeatedBytes- DE: "\377\377\377\377\377\377\377?"-
+#41	REDUCE cov: 112 ft: 811 corp: 25/12370b lim: 8128 exec/s: 0 rss: 32Mb L: 364/8128 MS: 1 EraseBytes-
+#47	NEW    cov: 113 ft: 816 corp: 26/12433b lim: 8128 exec/s: 0 rss: 33Mb L: 63/8128 MS: 1 CMP- DE: "784"-
+#48	NEW    cov: 113 ft: 857 corp: 27/16Kb lim: 8128 exec/s: 0 rss: 33Mb L: 4331/8128 MS: 1 EraseBytes-
+#51	NEW    cov: 113 ft: 859 corp: 28/20Kb lim: 8128 exec/s: 0 rss: 33Mb L: 4051/8128 MS: 3 ShuffleBytes-CMP-EraseBytes- DE: "\201\000\000\000"-
+#66	NEW    cov: 113 ft: 862 corp: 29/20Kb lim: 8128 exec/s: 0 rss: 33Mb L: 160/8128 MS: 5 InsertByte-CMP-ChangeBinInt-ChangeASCIIInt-InsertRepeatedBytes- DE: "\377\177"-
+#67	NEW    cov: 113 ft: 864 corp: 30/20Kb lim: 8128 exec/s: 0 rss: 33Mb L: 72/8128 MS: 1 CMP- DE: ">\000\000\000\000\000\000\000"-
+#76	NEW    cov: 113 ft: 865 corp: 31/20Kb lim: 8128 exec/s: 0 rss: 33Mb L: 227/8128 MS: 4 EraseBytes-InsertRepeatedBytes-ChangeASCIIInt-InsertRepeatedBytes-
+#83	NEW    cov: 113 ft: 867 corp: 32/21Kb lim: 8128 exec/s: 0 rss: 33Mb L: 445/8128 MS: 2 EraseBytes-InsertRepeatedBytes-
+#87	REDUCE cov: 113 ft: 867 corp: 32/20Kb lim: 8128 exec/s: 0 rss: 33Mb L: 3365/8128 MS: 4 CMP-ChangeByte-ChangeByte-EraseBytes- DE: "\000\000\000\000"-
+#95	NEW    cov: 113 ft: 869 corp: 33/20Kb lim: 8128 exec/s: 0 rss: 33Mb L: 575/8128 MS: 3 InsertRepeatedBytes-ChangeBinInt-ChangeByte-
+#106	NEW    cov: 113 ft: 871 corp: 34/21Kb lim: 8128 exec/s: 0 rss: 33Mb L: 269/8128 MS: 1 CrossOver-
+#123	NEW    cov: 113 ft: 873 corp: 35/21Kb lim: 8128 exec/s: 0 rss: 33Mb L: 161/8128 MS: 2 InsertByte-ChangeASCIIInt-
+#130	NEW    cov: 113 ft: 874 corp: 36/21Kb lim: 8128 exec/s: 0 rss: 34Mb L: 55/8128 MS: 2 InsertRepeatedBytes-InsertByte-
+#137	NEW    cov: 113 ft: 875 corp: 37/21Kb lim: 8128 exec/s: 0 rss: 34Mb L: 60/8128 MS: 2 ChangeBinInt-CMP- DE: "9ee"-
+#140	NEW    cov: 113 ft: 916 corp: 38/22Kb lim: 8128 exec/s: 0 rss: 34Mb L: 1042/8128 MS: 3 InsertByte-InsertByte-CopyPart-
+#151	NEW    cov: 113 ft: 917 corp: 39/22Kb lim: 8128 exec/s: 0 rss: 34Mb L: 445/8128 MS: 1 ChangeByte-
+#177	NEW    cov: 113 ft: 919 corp: 40/23Kb lim: 8128 exec/s: 0 rss: 34Mb L: 253/8128 MS: 1 CrossOver-
+#178	NEW    cov: 113 ft: 922 corp: 41/23Kb lim: 8128 exec/s: 0 rss: 34Mb L: 1/8128 MS: 1 ChangeBit-
+#185	NEW    cov: 113 ft: 923 corp: 42/23Kb lim: 8128 exec/s: 0 rss: 34Mb L: 207/8128 MS: 2 CrossOver-ChangeBinInt-
+#213	NEW    cov: 113 ft: 924 corp: 43/24Kb lim: 8128 exec/s: 0 rss: 34Mb L: 1413/8128 MS: 3 CopyPart-ChangeBit-CrossOver-
+#215	NEW    cov: 113 ft: 925 corp: 44/25Kb lim: 8128 exec/s: 0 rss: 34Mb L: 453/8128 MS: 2 PersAutoDict-ChangeBinInt- DE: ">\000\000\000\000\000\000\000"-
+#218	REDUCE cov: 113 ft: 925 corp: 44/24Kb lim: 8128 exec/s: 0 rss: 34Mb L: 2697/8128 MS: 3 ChangeBit-CopyPart-EraseBytes-
+#222	NEW    cov: 113 ft: 926 corp: 45/24Kb lim: 8128 exec/s: 0 rss: 34Mb L: 212/8128 MS: 4 CopyPart-CrossOver-CopyPart-EraseBytes-
+#250	REDUCE cov: 113 ft: 926 corp: 45/24Kb lim: 8128 exec/s: 0 rss: 34Mb L: 382/8128 MS: 3 EraseBytes-ChangeByte-PersAutoDict- DE: ">\000\000\000\000\000\000\000"-
+#281	NEW    cov: 113 ft: 927 corp: 46/24Kb lim: 8128 exec/s: 0 rss: 35Mb L: 51/8128 MS: 1 PersAutoDict- DE: "9ee"-
+thread '<unnamed>' panicked at 'assertion failed: !digest_hex.starts_with(\"000\")', fuzz_targets/failing.rs:32:5
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==13989==ERROR: AddressSanitizer: ABRT on unknown address 0x0539000036a5 (pc 0x7f1cd376b18b bp 0x7ffd444902d0 sp 0x7ffd44490040 T0)
+SCARINESS: 10 (signal)
+    #0 0x7f1cd376b18b in raise /build/glibc-eX1tMB/glibc-2.31/sysdeps/unix/sysv/linux/raise.c:51:1
+    #1 0x7f1cd374a858 in abort /build/glibc-eX1tMB/glibc-2.31/stdlib/abort.c:79:7
+    #2 0x55977cc47ed6 in std::sys::unix::abort_internal::ha60b6276da66f97a /rustc/de1bc0008be096cf7ed67b93402250d3b3e480d0/library/std/src/sys/unix/mod.rs:258:14
+    #3 0x55977ca55506 in std::process::abort::hace9ffa794702e23 /rustc/de1bc0008be096cf7ed67b93402250d3b3e480d0/library/std/src/process.rs:2059:5
+    #4 0x55977cb6ce65 in libfuzzer_sys::initialize::_$u7b$$u7b$closure$u7d$$u7d$::h79de0f0f6a903cd5 /rust/registry/src/github.com-1ecc6299db9ec823/libfuzzer-sys-0.4.2/src/lib.rs:57:9
+    #5 0x55977cc3d8c5 in std::panicking::rust_panic_with_hook::ha183336e877ce3b2 /rustc/de1bc0008be096cf7ed67b93402250d3b3e480d0/library/std/src/panicking.rs:702:17
+    #6 0x55977cc3d688 in std::panicking::begin_panic_handler::_$u7b$$u7b$closure$u7d$$u7d$::hafe0d516af4adf1f /rustc/de1bc0008be096cf7ed67b93402250d3b3e480d0/library/std/src/panicking.rs:586:13
+    #7 0x55977cc3a893 in std::sys_common::backtrace::__rust_end_short_backtrace::hc05b81b70f3698f0 /rustc/de1bc0008be096cf7ed67b93402250d3b3e480d0/library/std/src/sys_common/backtrace.rs:138:18
+    #8 0x55977cc3d3f8 in rust_begin_unwind /rustc/de1bc0008be096cf7ed67b93402250d3b3e480d0/library/std/src/panicking.rs:584:5
+    #9 0x55977ca56742 in core::panicking::panic_fmt::he66dfdd33e445ed5 /rustc/de1bc0008be096cf7ed67b93402250d3b3e480d0/library/core/src/panicking.rs:142:14
+    #10 0x55977ca5660c in core::panicking::panic::h34745a59bf426deb /rustc/de1bc0008be096cf7ed67b93402250d3b3e480d0/library/core/src/panicking.rs:48:5
+    #11 0x55977cb29f2f in rust_fuzzer_test_input /src/oak/fuzz/fuzz_targets/failing.rs:32:5
+    #12 0x55977cb6cfb8 in __rust_try libfuzzer_sys.3089c80d-cgu.0:0
+    #13 0x55977cb6c2f8 in std::panicking::try::h202ac00387e3c719 /rustc/de1bc0008be096cf7ed67b93402250d3b3e480d0/library/std/src/panicking.rs:456:19
+    #14 0x55977cb6c2f8 in std::panic::catch_unwind::h1c0f3af788119fff /rustc/de1bc0008be096cf7ed67b93402250d3b3e480d0/library/std/src/panic.rs:137:14
+    #15 0x55977cb6c2f8 in LLVMFuzzerTestOneInput /rust/registry/src/github.com-1ecc6299db9ec823/libfuzzer-sys-0.4.2/src/lib.rs:28:22
+    #16 0x55977cb8b603 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:611:15
+    #17 0x55977cb8adea in fuzzer::Fuzzer::RunOne(unsigned char const*, unsigned long, bool, fuzzer::InputInfo*, bool, bool*) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:514:3
+    #18 0x55977cb8c4b9 in fuzzer::Fuzzer::MutateAndTestOne() /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:757:19
+    #19 0x55977cb8d185 in fuzzer::Fuzzer::Loop(std::__Fuzzer::vector<fuzzer::SizedFile, std::__Fuzzer::allocator<fuzzer::SizedFile> >&) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerLoop.cpp:895:5
+    #20 0x55977cb7c4ef in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerDriver.cpp:912:6
+    #21 0x55977cba5b42 in main /src/llvm-project/compiler-rt/lib/fuzzer/FuzzerMain.cpp:20:10
+    #22 0x7f1cd374c0b2 in __libc_start_main /build/glibc-eX1tMB/glibc-2.31/csu/libc-start.c:308:16
+    #23 0x55977ca5770d in _start
+
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: ABRT (/lib/x86_64-linux-gnu/libc.so.6+0x4618b) (BuildId: 099b9225bcb0d019d9d60884be583eb31bb5f44e)
+==13989==ABORTING
+MS: 5 CrossOver-InsertByte-CopyPart-CMP-CrossOver- DE: "\371\372\314\377"-; base unit: e44cb385369d320b8d51fd325e52cfcc5e7854f1
+artifact_prefix='/mnt/scratch0/clusterfuzz/bot/inputs/fuzzer-testcases/'; Test unit written to /mnt/scratch0/clusterfuzz/bot/inputs/fuzzer-testcases/crash-c02bd6b9fb02092ebdd7476679f788687667d10b
+stat::number_of_executed_units: 301
+stat::average_exec_per_sec:     0
+stat::new_units_added:          41
+stat::slowest_unit_time_sec:    0
+stat::peak_rss_mb:              36
+INFO: exiting: 77 time: 0s
+cf::fuzzing_strategies: fork:2,value_profile:1

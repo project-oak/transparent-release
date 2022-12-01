@@ -98,9 +98,8 @@ func getBlob(bucket *storage.BucketHandle, blobName string) (*storage.Reader, er
 
 // getRevisionFromFile gets the revision hash of the source code for which OSS-Fuzz coverage
 // reports were generated on a given day, given the file where the revision hash is saved.
-func getRevisionFromFile(reader *storage.Reader, projectName string) (string, error) {
+func getRevisionFromFile(content []byte, projectName string) (string, error) {
 	var payload map[string](map[string]string)
-	content, _ := io.ReadAll(reader)
 	err := json.Unmarshal(content, &payload)
 	if err != nil {
 		return "", fmt.Errorf("unmarshal: %v", err)
@@ -111,9 +110,8 @@ func getRevisionFromFile(reader *storage.Reader, projectName string) (string, er
 }
 
 // parseCoverageSummary gets the branch coverage and line coverage from a coverage report summary.
-func parseCoverageSummary(reader *storage.Reader) (map[string]float64, map[string]float64, error) {
+func parseCoverageSummary(content []byte) (map[string]float64, map[string]float64, error) {
 	var summary CoverageSummary
-	content, _ := io.ReadAll(reader)
 	err := json.Unmarshal(content, &summary)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unmarshal: %v", err)
@@ -141,7 +139,7 @@ func getLogs(date string, projectName string, fuzzTarget string, fuzzEngine stri
 }
 
 // getFuzzEffortFromFile gets the fuzzingEffort from a single log file.
-func getFuzzEffortFromFile(reader *storage.Reader, revisionHash string, projectName string) (int, float64) {
+func getFuzzEffortFromFile(reader io.Reader, revisionHash string, projectName string) (int, float64) {
 	var revisionHashInLog string
 	var err error
 	var timeFuzz float64
@@ -184,7 +182,7 @@ func getFuzzEffortFromFile(reader *storage.Reader, revisionHash string, projectN
 
 // crashDetected detects crashes in log files that are related to a given revisionHash
 // and a given day.
-func crashDetected(reader *storage.Reader, revisionHash string, projectName string) bool {
+func crashDetected(reader io.Reader, revisionHash string, projectName string) bool {
 	var revisionHashInLog string
 	scanner := bufio.NewScanner(reader)
 	caser := cases.Title(language.English)
@@ -218,7 +216,11 @@ func GetCoverageRevision(date string, projectName string) string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	revisionHash, err := getRevisionFromFile(reader, projectName)
+	content, err := io.ReadAll(reader)
+	if err != nil {
+		log.Fatal(err)
+	}
+	revisionHash, err := getRevisionFromFile(content, projectName)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -243,7 +245,11 @@ func GetCoverage(date string, projectName string, level string, fuzzTarget strin
 	if err != nil {
 		log.Fatal(err)
 	}
-	branchCoverage, lineCoverage, err := parseCoverageSummary(reader)
+	content, err := io.ReadAll(reader)
+	if err != nil {
+		log.Fatal(err)
+	}
+	branchCoverage, lineCoverage, err := parseCoverageSummary(content)
 	if err != nil {
 		log.Fatal(err)
 	}
