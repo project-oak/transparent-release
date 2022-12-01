@@ -38,7 +38,7 @@ func main() {
 	}
 
 	provenanceVerifier := verifier.ReproducibleProvenanceVerifier{
-		provenance: *provenance,
+		Provenance: provenance,
 		GitRootDir: *gitRootDirPtr,
 	}
 

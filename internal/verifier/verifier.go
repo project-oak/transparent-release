@@ -36,7 +36,7 @@ type ProvenanceVerifier interface {
 // specified in the provenance and checking that the hash of the binary is the
 // same as the digest in the subject of the provenance file.
 type ReproducibleProvenanceVerifier struct {
-	provenance *amber.ValidatedProvenance
+	Provenance *amber.ValidatedProvenance
 	GitRootDir string
 }
 
@@ -54,7 +54,7 @@ func (verifier *ReproducibleProvenanceVerifier) Verify() error {
 	}
 	defer chdir(currentDir)
 
-	buildConfig, err := common.LoadBuildConfigFromProvenance(verifier.provenance)
+	buildConfig, err := common.LoadBuildConfigFromProvenance(verifier.Provenance)
 	if err != nil {
 		return fmt.Errorf("couldn't load BuildConfig from provenance: %v", err)
 	}
@@ -74,7 +74,7 @@ func (verifier *ReproducibleProvenanceVerifier) Verify() error {
 	}
 
 	// The provenance is valid, therefore `expectedBinaryHash` is guaranteed to be non-empty.
-	expectedBinaryDigest := verifier.provenance.GetBinarySHA256Digest()
+	expectedBinaryDigest := verifier.Provenance.GetBinarySHA256Digest()
 
 	if err := buildConfig.VerifyBinarySHA256Digest(expectedBinaryDigest); err != nil {
 		return fmt.Errorf("failed to verify the digest of the built binary: %v", err)
