@@ -37,7 +37,7 @@ func TestReproducibleProvenanceVerifier_validProvenance(t *testing.T) {
 	}
 
 	verifier := ReproducibleProvenanceVerifier{
-		provenance: provenance,
+		Provenance: provenance,
 	}
 
 	if err := verifier.Verify(); err != nil {
@@ -54,7 +54,7 @@ func TestReproducibleProvenanceVerifier_invalidHash(t *testing.T) {
 	}
 
 	verifier := ReproducibleProvenanceVerifier{
-		provenance: provenance,
+		Provenance: provenance,
 	}
 
 	want := "failed to verify the digest of the built binary"
@@ -73,7 +73,7 @@ func TestReproducibleProvenanceVerifier_badCommand(t *testing.T) {
 	}
 
 	verifier := ReproducibleProvenanceVerifier{
-		provenance: provenance,
+		Provenance: provenance,
 	}
 
 	want := "couldn't build the binary"
@@ -91,7 +91,7 @@ func TestAmberProvenanceMetadataVerifier(t *testing.T) {
 	}
 
 	verifier := ReproducibleProvenanceVerifier{
-		provenance: provenance,
+		Provenance: provenance,
 	}
 
 	if err := verifier.Verify(); err != nil {
