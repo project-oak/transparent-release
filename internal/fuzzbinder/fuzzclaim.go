@@ -135,12 +135,12 @@ func ParseFuzzClaimFile(path string) (*intoto.Statement, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not read the fuzzing claim file: %v", err)
 	}
-	return ParseFuzzClaimBytes(statementBytes)
+	return parseFuzzClaimBytes(statementBytes)
 }
 
 // ParseFuzzClaimBytes parses a statementBytes into an instance of intoto.Statement,
 // with AmberClaimV1 as the PredicateType and FuzzClaimV1 as the ClaimType.
-func ParseFuzzClaimBytes(statementBytes []byte) (*intoto.Statement, error) {
+func parseFuzzClaimBytes(statementBytes []byte) (*intoto.Statement, error) {
 	var statement intoto.Statement
 	if err := json.Unmarshal(statementBytes, &statement); err != nil {
 		return nil, fmt.Errorf("could not unmarshal the fuzzing claim file: %v", err)

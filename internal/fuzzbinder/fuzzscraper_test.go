@@ -12,18 +12,3 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 package fuzzbinder
-
-import (
-	"fmt"
-	"testing"
-
-	"github.com/project-oak/transparent-release/internal/testutil"
-)
-
-func TestGetBucket(t *testing.T) {
-	got, err := getBucket(CoverageBucket)
-	if err != nil {
-		t.Fatalf("couldn't get public GCS bucket: %v", err)
-	}
-	testutil.AssertEq(t, "type GCS bucket", fmt.Sprintf("%T", got), "*storage.BucketHandle")
-}
