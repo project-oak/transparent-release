@@ -120,48 +120,65 @@ func (verifier *AmberProvenanceMetadataVerifier) Verify() error {
 	return nil
 }
 
-// Internal intermediate representation of Provenances for verification.
+// ProvenanceIR is an internal intermediate representation of data from provenances for verification.
 // We use the ProvenanceIR to
 // (1) map different provenance formats, and
 // (2) hold reference values.
 // To be usable with different provenance formats, we allow fields to be empty ([]) and to hold several reference values.
 type ProvenanceIR struct {
-	BinarySHA256Digest []string
+	BinarySHA256Digests []string
 }
 
-func (p *ProvenanceIR) FromSLSAv0(provenance *slsa.ValidatedProvenance) {
-	// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
-	p.BinarySHA256Digest = []string{provenance.GetBinarySHA256Digest()}
+// FromSLSAv0 maps data from a validated SLSAv0 provenance to ProvenanceIR.
+func FromSLSAv0(provenance *slsa.ValidatedProvenance) ProvenanceIR {
+	return ProvenanceIR{
+		// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
+		BinarySHA256Digests: []string{provenance.GetBinarySHA256Digest()}}
 }
 
-func (p *ProvenanceIR) FromAmber(provenance *amber.ValidatedProvenance) {
-	// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
-	p.BinarySHA256Digest = []string{provenance.GetBinarySHA256Digest()}
+// FromSLSAv0 maps data from a validated Amber provenance to ProvenanceIR.
+func FromAmber(provenance *amber.ValidatedProvenance) ProvenanceIR {
+	return ProvenanceIR{
+		// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
+		BinarySHA256Digests: []string{provenance.GetBinarySHA256Digest()}}
 }
 
-// VerifyWithReference verifies a provenance against a given reference.
-// We assume that we want to verify all fields the actual ProvenanceIR contains against the expected.
+// ProvenanceIRVerifier verifies a provenance against a given reference, by verifying
+// all non-empty fields in got using fields in want. Empty fields will not be verified.
+type ProvenanceIRVerifier struct {
+	Got  ProvenanceIR
+	Want ProvenanceIR
+}
+
 // TODO(b/222440937): In future, also verify the details of the given provenance and the signature.
-func VerifyWithReference(actual ProvenanceIR, expected ProvenanceIR) error {
-	if actual.BinarySHA256Digest != nil {
-		return actual.verifyBinarySHA256Digest(expected)
+// We only verify fields which are not empty in Got, all empty fields are ignored.
+// If a field in Got contains more than one value, we return an error.
+func (verifier *ProvenanceIRVerifier) Verify() error {
+	if len(verifier.Got.BinarySHA256Digests) == 1 {
+		return verifier.Got.verifyBinarySHA256Digest(verifier.Want)
+	} else {
+		return fmt.Errorf("got not exactly one actual binary SHA256 digest (%v)", verifier.Got.BinarySHA256Digests)
 	}
-	return nil
 }
 
-func (actual *ProvenanceIR) verifyBinarySHA256Digest(expected ProvenanceIR) error {
-	if expected.BinarySHA256Digest == nil {
-		return fmt.Errorf("no reference binary SHA256 digest given")
+// verifyBinarySHA256Digest verifies that a single binary SHA256 is contained in the reference binary SHA256 digests.
+func (got *ProvenanceIR) verifyBinarySHA256Digest(want ProvenanceIR) error {
+	if len(got.BinarySHA256Digests) != 1 {
+		return fmt.Errorf("got not exactly one actual binary SHA256 digest (%v)", got.BinarySHA256Digests)
 	}
 
-	for _, expected := range expected.BinarySHA256Digest {
-		if expected == actual.BinarySHA256Digest[0] {
-			// We found the expected SHA256 digest.
+	if want.BinarySHA256Digests == nil {
+		return fmt.Errorf("no reference binary SHA256 digests given")
+	}
+
+	for _, want := range want.BinarySHA256Digests {
+		if want == got.BinarySHA256Digests[0] {
+			// We found the reference SHA256 digest.
 			return nil
 		}
 	}
 
-	return fmt.Errorf("the expected binary SHA256 digests (%v) do not contain the actual binary SHA256 digest (%v)",
-		expected.BinarySHA256Digest,
-		actual.BinarySHA256Digest)
+	return fmt.Errorf("the reference binary SHA256 digests (%v) do not contain the actual binary SHA256 digest (%v)",
+		want.BinarySHA256Digests,
+		got.BinarySHA256Digests)
 }

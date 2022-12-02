@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/project-oak/transparent-release/internal/testutil"
+	"github.com/project-oak/transparent-release/internal/verifier"
 	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
@@ -44,7 +45,10 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 	}
 	tempURI := "file://" + tempPath
 	provenances := []string{tempURI}
-	statement, err := GenerateEndorsement(binaryHash, validity, provenances)
+	reference := verifier.ProvenanceIR{
+		BinarySHA256Digests: []string{binaryHash},
+	}
+	statement, err := GenerateEndorsement(reference, validity, provenances)
 	if err != nil {
 		t.Fatalf("Could not generate endorsement from %q: %v", provenances[0], err)
 	}
@@ -75,7 +79,10 @@ func TestGenerateEndorsement_MultipleValidEndorsement(t *testing.T) {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
 	provenances := []string{"file://" + tempPath1, "file://" + tempPath2}
-	statement, err := GenerateEndorsement(binaryHash, validity, provenances)
+	reference := verifier.ProvenanceIR{
+		BinarySHA256Digests: []string{binaryHash},
+	}
+	statement, err := GenerateEndorsement(reference, validity, provenances)
 	if err != nil {
 		t.Fatalf("Could not generate endorsement from %q: %v", provenances[0], err)
 	}
@@ -92,7 +99,10 @@ func TestGenerateEndorsement_FailingSingleRemoteProvenanceEndorsement(t *testing
 	}
 
 	provenances := []string{"https://github.com/project-oak/transparent-release/blob/main/testdata/provenance.json"}
-	_, err := GenerateEndorsement(binaryHash, validity, provenances)
+	reference := verifier.ProvenanceIR{
+		BinarySHA256Digests: []string{binaryHash},
+	}
+	_, err := GenerateEndorsement(reference, validity, provenances)
 	want := "could not load provenances"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
