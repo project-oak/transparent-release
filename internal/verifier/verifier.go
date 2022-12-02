@@ -136,7 +136,7 @@ func FromSLSAv0(provenance *slsa.ValidatedProvenance) ProvenanceIR {
 		BinarySHA256Digests: []string{provenance.GetBinarySHA256Digest()}}
 }
 
-// FromSLSAv0 maps data from a validated Amber provenance to ProvenanceIR.
+// FromAmber maps data from a validated Amber provenance to ProvenanceIR.
 func FromAmber(provenance *amber.ValidatedProvenance) ProvenanceIR {
 	return ProvenanceIR{
 		// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
@@ -151,16 +151,16 @@ type ProvenanceIRVerifier struct {
 }
 
 // TODO(b/222440937): In future, also verify the details of the given provenance and the signature.
-// We only verify fields which are not empty in Got, all empty fields are ignored.
-// If a field in Got contains more than one value, we return an error.
+// Verify verifies an instance of ProvenanceIRVerifier by comparing its Got and Want fields.
+// All empty fields are ignored. If a field in Got contains more than one value, we return an error.
 func (verifier *ProvenanceIRVerifier) Verify() error {
 	if len(verifier.Got.BinarySHA256Digests) != 1 {
-		return fmt.Errorf("got not exactly one actual binary SHA256 digest (%v)", verifier.Got.BinarySHA256Digests)
+		return fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
 	}
 	return verifier.Got.verifyBinarySHA256Digest(verifier.Want)
 }
 
-// verifyBinarySHA256Digest verifies that a single binary SHA256 is contained in the reference binary SHA256 digests.
+// verifyBinarySHA256Digest verifies that the binary SHA256 in this provenance is contained in the given reference binary SHA256 digests (in want).
 func (got *ProvenanceIR) verifyBinarySHA256Digest(want ProvenanceIR) error {
 	if len(got.BinarySHA256Digests) != 1 {
 		return fmt.Errorf("got not exactly one actual binary SHA256 digest (%v)", got.BinarySHA256Digests)
