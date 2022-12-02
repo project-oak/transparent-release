@@ -154,11 +154,10 @@ type ProvenanceIRVerifier struct {
 // We only verify fields which are not empty in Got, all empty fields are ignored.
 // If a field in Got contains more than one value, we return an error.
 func (verifier *ProvenanceIRVerifier) Verify() error {
-	if len(verifier.Got.BinarySHA256Digests) == 1 {
-		return verifier.Got.verifyBinarySHA256Digest(verifier.Want)
-	} else {
+	if len(verifier.Got.BinarySHA256Digests) != 1 {
 		return fmt.Errorf("got not exactly one actual binary SHA256 digest (%v)", verifier.Got.BinarySHA256Digests)
 	}
+	return verifier.Got.verifyBinarySHA256Digest(verifier.Want)
 }
 
 // verifyBinarySHA256Digest verifies that a single binary SHA256 is contained in the reference binary SHA256 digests.
