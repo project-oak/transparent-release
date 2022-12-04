@@ -65,7 +65,7 @@ func getBucket(bucketName string) (*storage.BucketHandle, error) {
 	return bucket, nil
 }
 
-// listBlobs gets all the objects in a Google Cloud Storage bucket
+// listBlobs returns all the objects in a Google Cloud Storage bucket
 // under a given relative path.
 func listBlobs(bucket *storage.BucketHandle, relativePath string) ([]string, error) {
 	var blobs []string
