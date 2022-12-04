@@ -42,13 +42,13 @@ const CoverageBucket = "oss-fuzz-coverage"
 // CoverageSummary contains the coverage report summary.
 type CoverageSummary struct {
 	Data    []CoverageSummaryData `json:"data"`
-	Type    interface{}           `json:"type"`
-	Version interface{}           `json:"version"`
+	Type    any                   `json:"type"`
+	Version any                   `json:"version"`
 }
 
 // CoverageSummaryData contains the data of the coverage report summary.
 type CoverageSummaryData struct {
-	Files  interface{}                     `json:"files"`
+	Files  any                             `json:"files"`
 	Totals map[string](map[string]float64) `json:"totals"`
 }
 
