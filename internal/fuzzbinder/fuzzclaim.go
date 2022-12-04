@@ -100,9 +100,9 @@ func validateFuzzClaimSpec(predicate amber.ClaimPredicate) (*amber.ClaimPredicat
 	projectNumberTests := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.NumberFuzzTests
 	sumTargetsTimeSeconds := 0
 	sumTargetsNumberTests := 0
-	for i := 0; i < len(predicate.ClaimSpec.(FuzzClaimSpec).PerTarget); i++ {
-		sumTargetsTimeSeconds += predicate.ClaimSpec.(FuzzClaimSpec).PerTarget[i].FuzzStats.FuzzTimeSeconds
-		sumTargetsNumberTests += predicate.ClaimSpec.(FuzzClaimSpec).PerTarget[i].FuzzStats.NumberFuzzTests
+	for _, spec := range predicate.ClaimSpec.(FuzzClaimSpec).PerTarget {
+		sumTargetsTimeSeconds += spec.FuzzStats.FuzzTimeSeconds
+		sumTargetsNumberTests += spec.FuzzStats.NumberFuzzTests
 	}
 	if projectTimeSeconds != sumTargetsTimeSeconds {
 		return nil, fmt.Errorf("perProject.fuzzTimeSeconds (%v) is not equal to fuzzTimeSeconds for all fuzz-targets (%v)",
@@ -116,8 +116,8 @@ func validateFuzzClaimSpec(predicate amber.ClaimPredicate) (*amber.ClaimPredicat
 	// validate that the detectedCrashes perProject are consistent with
 	// the detectedCrashes for all fuzz-targets.
 	targetsDetectedCrashes := false
-	for i := 0; i < len(predicate.ClaimSpec.(FuzzClaimSpec).PerTarget); i++ {
-		targetsDetectedCrashes = targetsDetectedCrashes || predicate.ClaimSpec.(FuzzClaimSpec).PerTarget[i].FuzzStats.DetectedCrashes
+	for _, spec := range predicate.ClaimSpec.(FuzzClaimSpec).PerTarget {
+		targetsDetectedCrashes = targetsDetectedCrashes || spec.FuzzStats.DetectedCrashes
 	}
 	if predicate.ClaimSpec.(FuzzClaimSpec).PerProject.DetectedCrashes != targetsDetectedCrashes {
 		return nil, fmt.Errorf("perProject.DetectedCrashes (%v) is not consistent with the detectedCrashes for all fuzz-targets (%v)",
