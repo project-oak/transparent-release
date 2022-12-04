@@ -78,7 +78,7 @@ func listBlobs(bucket *storage.BucketHandle, relativePath string) ([]string, err
 			break
 		}
 		if err != nil {
-			return nil, fmt.Errorf("Bucket.Objects: %v", err)
+			return nil, fmt.Errorf("could not fetch object from bucket: %v", err)
 		}
 		blobs = append(blobs, attrs.Name)
 	}
