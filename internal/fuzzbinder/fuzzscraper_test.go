@@ -83,7 +83,7 @@ func TestCrashDetected(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err := crashDetected(reader, revisionHash, projectName)
+	got, err := crashDetected(reader, revisionHash)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
@@ -95,7 +95,7 @@ func TestCrashDetected(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err = crashDetected(reader, revisionHash, projectName)
+	got, err = crashDetected(reader, revisionHash)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}

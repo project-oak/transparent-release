@@ -184,7 +184,7 @@ func getFuzzEffortFromFile(reader io.Reader, revisionHash string, projectName st
 
 // crashDetected detects crashes in log files that are related to a given revisionHash
 // and a given day.
-func crashDetected(reader io.Reader, revisionHash string, projectName string) (bool, error) {
+func crashDetected(reader io.Reader, revisionHash string) (bool, error) {
 	content, err := io.ReadAll(reader)
 	if err != nil {
 		return false, err
@@ -338,7 +338,7 @@ func GetCrashes(revisionHash string, date string, projectName string, fuzzTarget
 			if err != nil {
 				return false, fmt.Errorf("couldn't get %s: %v", blob, err)
 			}
-			isDetected, err := crashDetected(reader, revisionHash, projectName)
+			isDetected, err := crashDetected(reader, revisionHash)
 			if err != nil {
 				return false, err
 			}
