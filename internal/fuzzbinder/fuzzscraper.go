@@ -37,7 +37,7 @@ import (
 // the coverage reports.
 const CoverageBucket = "oss-fuzz-coverage"
 
-// OSS-Fuzz uses Clang to generate coverage summary reports.The coverage
+// OSS-Fuzz uses Clang to generate coverage summary reports. The coverage
 // summary contains fine-grained data related to coverage metrics.
 // CoverageSummary contains the coverage report summary.
 type CoverageSummary struct {
