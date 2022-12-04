@@ -102,7 +102,7 @@ func getRevisionFromFile(content []byte, projectName string) (string, error) {
 	var payload map[string](map[string]string)
 	err := json.Unmarshal(content, &payload)
 	if err != nil {
-		return "", fmt.Errorf("couldn't unmarshal srcmap JSON file: %v", err)
+		return "", fmt.Errorf("could not unmarshal srcmap file content: %v", err)
 	}
 	// Get the revisionHash using the file structure defined by OSS-Fuzz.
 	revisionHash := payload[fmt.Sprintf("/src/%s", projectName)]["rev"]
@@ -114,7 +114,7 @@ func parseCoverageSummary(content []byte) (map[string]float64, map[string]float6
 	var summary CoverageSummary
 	err := json.Unmarshal(content, &summary)
 	if err != nil {
-		return nil, nil, fmt.Errorf("couldn't unmarshal coverage summary JSON file: %v", err)
+		return nil, nil, fmt.Errorf("couldn't unmarshal coverage summary file content: %v", err)
 	}
 	// Return branch coverage and line coverage using the coverage summary structure.
 	return summary.Data[0].Totals["branches"], summary.Data[0].Totals["lines"], nil
