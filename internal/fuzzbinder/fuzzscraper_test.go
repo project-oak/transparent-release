@@ -65,7 +65,10 @@ func TestGetFuzzEffortFromFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	gotNumTests, gotTimeFuzz := getFuzzEffortFromFile(reader, revisionHash, projectName)
+	gotNumTests, gotTimeFuzz, err := getFuzzEffortFromFile(reader, revisionHash, projectName)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 	if !(gotNumTests > 0) {
 		t.Errorf("Unexpected numFuzzTests: got %v, want non-zero value", gotNumTests)
 	}
@@ -80,7 +83,10 @@ func TestCrashDetected(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got := crashDetected(reader, revisionHash, projectName)
+	got, err := crashDetected(reader, revisionHash, projectName)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 	if got {
 		t.Errorf("Unexpected crash detection: got %v, want false", got)
 	}
@@ -89,7 +95,10 @@ func TestCrashDetected(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got = crashDetected(reader, revisionHash, projectName)
+	got, err = crashDetected(reader, revisionHash, projectName)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
 	if !got {
 		t.Errorf("Unexpected crash detection: got %v, want true", got)
 	}
