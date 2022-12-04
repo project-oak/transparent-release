@@ -94,8 +94,8 @@ func ValidateFuzzClaim(predicate amber.ClaimPredicate) (*amber.ClaimPredicate, e
 
 // validateFuzzClaimSpec validates details about the FuzzClaimSpec.
 func validateFuzzClaimSpec(predicate amber.ClaimPredicate) (*amber.ClaimPredicate, error) {
-	// validate that perProject.fuzzTimeSeconds/perProject.numberFuzzTests is the sum
-	// of fuzzTimeSeconds/numberFuzzTests for all fuzz-targets.
+	// validate that perProject.fuzzTimeSeconds is the sum of fuzzTimeSeconds for all fuzz-targets
+	// and perProject.numberFuzzTests is the sum of numberFuzzTests for all fuzz-targets.
 	projectTimeSeconds := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.FuzzTimeSeconds
 	projectNumberTests := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.NumberFuzzTests
 	sumTargetsTimeSeconds := 0

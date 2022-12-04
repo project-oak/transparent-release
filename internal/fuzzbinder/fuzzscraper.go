@@ -97,14 +97,15 @@ func getBlob(bucket *storage.BucketHandle, blobName string) (*storage.Reader, er
 }
 
 // getRevisionFromFile extracts and returns the revision of the source code from an OSS-Fuzz coverage
-// report, given the coverage report file content and the name of the project.
+// report, given the content of the source-map file (a file in the OSS-Fuzz coverage bucket that
+// links coverage build dates to the revisions of the source code used for the builds) and the project name.
 func getRevisionFromFile(content []byte, projectName string) (string, error) {
 	var payload map[string](map[string]string)
 	err := json.Unmarshal(content, &payload)
 	if err != nil {
 		return "", fmt.Errorf("could not unmarshal srcmap file content: %v", err)
 	}
-	// Get the revisionHash using the file structure defined by OSS-Fuzz.
+	// Get the revisionHash using the source-map file structure defined by OSS-Fuzz.
 	revisionHash := payload[fmt.Sprintf("/src/%s", projectName)]["rev"]
 	return revisionHash, nil
 }
@@ -122,7 +123,7 @@ func parseCoverageSummary(content []byte) (map[string]float64, map[string]float6
 
 // getLogs gets the log-files list of a fuzz-target on a given day.
 func getLogs(date string, projectName string, fuzzTarget string, fuzzEngine string, sanitizer string) (*storage.BucketHandle, []string, error) {
-	// logsBucket is the ClusterFuzz Google Cloud Storage containing the fuzzers logs for a given project.
+	// logsBucket is the ClusterFuzz Google Cloud Storage bucket name containing the fuzzers logs for a given project.
 	logsBucket := fmt.Sprintf("%s-logs.clusterfuzz-external.appspot.com", projectName)
 	bucket, err := getBucket(logsBucket)
 	if err != nil {
@@ -138,7 +139,7 @@ func getLogs(date string, projectName string, fuzzTarget string, fuzzEngine stri
 	return bucket, blobs, nil
 }
 
-// getFuzzEffortFromFile gets the fuzzingEffort from a single log file.
+// getFuzzEffortFromFile gets the fuzzingEffort from a single fuzzer log file.
 func getFuzzEffortFromFile(reader io.Reader, revisionHash string, projectName string) (int, float64, error) {
 	var revisionHashInLog string
 	var err error
@@ -172,7 +173,7 @@ func getFuzzEffortFromFile(reader io.Reader, revisionHash string, projectName st
 		return 0, 0.0, err
 	}
 	// return the fuzzing efforts if the revisionHash in the logfile
-	// is the same as the revisionHash we are considering (it is
+	// is the same as the revisionHash we are considering (since it is
 	// possible to have logs for multiple revisions a given day)
 	if revisionHashInLog == revisionHash {
 		return numTests, timeFuzz, nil
@@ -200,7 +201,7 @@ func crashDetected(reader io.Reader, revisionHash string) (bool, error) {
 	return isDetected && isGoodHash, nil
 }
 
-// FormatCoverage transforms a coverage map into a string in the expected format.
+// FormatCoverage transforms a coverage map into a string in the expected coverage format.
 func FormatCoverage(coverage map[string]float64) string {
 	return fmt.Sprintf("%.2f%% (%v/%v)", coverage["percent"], coverage["covered"], coverage["count"])
 }
@@ -259,7 +260,8 @@ func GetCoverage(date string, projectName string, level string, fuzzTarget strin
 	return branchCoverage, lineCoverage, nil
 }
 
-// GetFuzzTargets gets the list of the fuzz-targets for which fuzzing reports were generated.
+// GetFuzzTargets gets the list of the fuzz-targets for which fuzzing reports were generated
+// for a gicen project on a given day.
 func GetFuzzTargets(projectName string, date string) ([]string, error) {
 	bucket, err := getBucket(CoverageBucket)
 	if err != nil {
@@ -292,7 +294,7 @@ func GetEvidences(projectName string, date string, fuzztargets []string, fuzzEng
 	for _, fuzztarget := range fuzztargets {
 		// The role of the coverage evidence using the fuzztarget.
 		role := fmt.Sprintf("%s_%s_%v coverage", fuzzEngine, projectName, fuzztarget)
-		// Get the GCS absolute path of the file containing the coverage summary for a fuzz-target on a given day.
+		// The GCS absolute path of the file containing the coverage summary for a fuzz-target on a given day.
 		uri := fmt.Sprintf("gs://%s/%s/fuzzer_stats/%s/%v.json", CoverageBucket, projectName, date, fuzztarget)
 		evidences[role] = uri
 	}

@@ -40,6 +40,7 @@ func TestGetRevisionFromFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
+	// Check that the length of the extracted commitHash is correct.
 	testutil.AssertEq(t, "commitHash length", len(got), wantSHA1HexDigitLength)
 }
 
