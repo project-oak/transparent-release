@@ -109,7 +109,7 @@ func validateFuzzClaimSpec(predicate amber.ClaimPredicate) (*amber.ClaimPredicat
 			projectTimeSeconds, sumTargetsTimeSeconds)
 	}
 	if projectNumberTests != sumTargetsNumberTests {
-		return nil, fmt.Errorf("perProject.numberFuzzTests (%v) is not equal to numberFuzzTests for all fuzz-targets (%v)",
+		return nil, fmt.Errorf("perProject.numberFuzzTests (%v) is not equal to the sum of per-target numberFuzzTests (%v)",
 			projectNumberTests, sumTargetsNumberTests)
 	}
 
