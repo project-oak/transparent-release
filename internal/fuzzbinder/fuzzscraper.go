@@ -90,7 +90,7 @@ func getBlob(bucket *storage.BucketHandle, blobName string) (*storage.Reader, er
 	ctx := context.Background()
 	reader, err := bucket.Object(blobName).NewReader(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("Object(%q).NewReader: %v", blobName, err)
+		return nil, fmt.Errorf("could not create a new reader for blob %q: %v", blobName, err)
 	}
 	defer reader.Close()
 	return reader, nil
