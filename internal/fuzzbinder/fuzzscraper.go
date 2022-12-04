@@ -57,7 +57,7 @@ func getBucket(bucketName string) (*storage.BucketHandle, error) {
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("storage.NewClient: %v", err)
+		return nil, fmt.Errorf("could not create a new Google Cloud Storage client: %v", err)
 	}
 	defer client.Close()
 
