@@ -205,7 +205,7 @@ func FormatCoverage(coverage map[string]float64) string {
 	return fmt.Sprintf("%.2f%% (%v/%v)", coverage["percent"], coverage["covered"], coverage["count"])
 }
 
-// GetCoverageRevision gets the revision hash of the source code for which a coverage report
+// GetCoverageRevision gets the revision of the source code for which a coverage report
 // was generated on a given day, given that day.
 func GetCoverageRevision(date string, projectName string) (string, error) {
 	bucket, err := getBucket(CoverageBucket)
