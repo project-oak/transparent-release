@@ -52,7 +52,7 @@ type CoverageSummaryData struct {
 	Totals map[string](map[string]float64) `json:"totals"`
 }
 
-// getBucket gets a Google Cloud Storage bucket given its name.
+// getBucket gets a Google Cloud Storage bucket given its name, and returns a handle to it.
 func getBucket(bucketName string) (*storage.BucketHandle, error) {
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
