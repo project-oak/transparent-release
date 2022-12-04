@@ -96,7 +96,7 @@ func getBlob(bucket *storage.BucketHandle, blobName string) (*storage.Reader, er
 	return reader, nil
 }
 
-// getRevisionFromFile gets the revision hash of the source code for which OSS-Fuzz coverage
+// getRevisionFromFile extracts and returns the revision of the source code from an OSS-Fuzz coverage
 // report, given the coverage report file content and the name of the project.
 func getRevisionFromFile(content []byte, projectName string) (string, error) {
 	var payload map[string](map[string]string)
