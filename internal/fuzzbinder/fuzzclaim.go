@@ -105,11 +105,11 @@ func validateFuzzClaimSpec(predicate amber.ClaimPredicate) (*amber.ClaimPredicat
 		sumTargetsNumberTests += spec.FuzzStats.NumberFuzzTests
 	}
 	if projectTimeSeconds != sumTargetsTimeSeconds {
-		return nil, fmt.Errorf("perProject.fuzzTimeSeconds (%v) is not equal to the sum of per-target fuzzTimeSeconds (%v)",
+		return nil, fmt.Errorf("perProject.fuzzTimeSeconds (%d) is not equal to the sum of per-target fuzzTimeSeconds (%d)",
 			projectTimeSeconds, sumTargetsTimeSeconds)
 	}
 	if projectNumberTests != sumTargetsNumberTests {
-		return nil, fmt.Errorf("perProject.numberFuzzTests (%v) is not equal to the sum of per-target numberFuzzTests (%v)",
+		return nil, fmt.Errorf("perProject.numberFuzzTests (%d) is not equal to the sum of per-target numberFuzzTests (%d)",
 			projectNumberTests, sumTargetsNumberTests)
 	}
 
@@ -120,7 +120,7 @@ func validateFuzzClaimSpec(predicate amber.ClaimPredicate) (*amber.ClaimPredicat
 		targetsDetectedCrashes = targetsDetectedCrashes || spec.FuzzStats.DetectedCrashes
 	}
 	if predicate.ClaimSpec.(FuzzClaimSpec).PerProject.DetectedCrashes != targetsDetectedCrashes {
-		return nil, fmt.Errorf("perProject.DetectedCrashes (%v) is not consistent with the detectedCrashes for all fuzz-targets (%v)",
+		return nil, fmt.Errorf("perProject.DetectedCrashes (%t) is not consistent with the detectedCrashes for all fuzz-targets (%t)",
 			predicate.ClaimSpec.(FuzzClaimSpec).PerProject.DetectedCrashes, targetsDetectedCrashes)
 	}
 
