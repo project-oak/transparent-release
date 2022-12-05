@@ -198,10 +198,6 @@ func getFuzzEffortFromFile(reader io.Reader, revisionHash string) (int, float64,
 					return 0, 0.0, fmt.Errorf("couldn't convert %s to int: %v", numTestsStr, err)
 				}
 			}
-			if (numTests > 0) && (timeFuzzSeconds > 0) {
-				break
-			}
-
 		}
 		// Return the fuzzing efforts if the revisionHash in the logfile
 		// is the same as the revisionHash we are considering (since it is
