@@ -166,7 +166,9 @@ func getLogs(date string, projectName string, fuzzTarget string, fuzzEngine stri
 // getFuzzEffortFromFile gets the fuzzingEffort from a single fuzzer log file.
 func getFuzzEffortFromFile(reader io.Reader, revisionHash string) (int, float64, error) {
 	var timeFuzzSeconds float64
+	var timeFuzzStr string
 	var numTests int
+	var numTestsStr string
 	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
 		return 0, 0.0, err
@@ -186,17 +188,17 @@ func getFuzzEffortFromFile(reader io.Reader, revisionHash string) (int, float64,
 			if strings.Contains(lineScanner.Text(), "Time ran:") {
 				timeFuzzStr := strings.Split(lineScanner.Text(), " ")[2]
 				timeFuzzSeconds, err = strconv.ParseFloat(timeFuzzStr, 32)
-				if err != nil {
-					return 0, 0.0, fmt.Errorf("couldn't convert %s to float: %v", timeFuzzStr, err)
-				}
+			}
+			if err != nil {
+				return 0, 0.0, fmt.Errorf("couldn't convert %s to float: %v", timeFuzzStr, err)
 			}
 			// Get the number of fuzzing tests.
 			if strings.Contains(lineScanner.Text(), "stat::number_of_executed_units") {
 				numTestsStr := strings.Split(lineScanner.Text(), " ")[1]
 				numTests, err = strconv.Atoi(numTestsStr)
-				if err != nil {
-					return 0, 0.0, fmt.Errorf("couldn't convert %s to int: %v", numTestsStr, err)
-				}
+			}
+			if err != nil {
+				return 0, 0.0, fmt.Errorf("couldn't convert %s to int: %v", numTestsStr, err)
 			}
 		}
 		// Return the fuzzing efforts if the revisionHash in the logfile
