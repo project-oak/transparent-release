@@ -66,7 +66,7 @@ func TestGetFuzzEffortFromFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	gotNumTests, gotTimeFuzz, err := getFuzzEffortFromFile(reader, revisionHash, projectName)
+	gotNumTests, gotTimeFuzz, err := getFuzzEffortFromFile(reader, revisionHash)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
