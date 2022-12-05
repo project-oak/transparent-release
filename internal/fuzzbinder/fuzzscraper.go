@@ -146,15 +146,18 @@ func parseCoverageSummary(fileBytes []byte) (map[string]float64, map[string]floa
 }
 
 // getLogs gets the log-files list of a fuzz-target on a given day.
+// The expected date format is "YYYY-MM-DD".
 func getLogs(date string, projectName string, fuzzTarget string, fuzzEngine string, sanitizer string) (*storage.BucketHandle, []string, error) {
-	// logsBucket is the ClusterFuzz Google Cloud Storage bucket name containing the fuzzers logs for a given project.
+	// logsBucket is the ClusterFuzz Google Cloud Storage bucket name
+	// containing the fuzzers logs for a given project.
 	logsBucket := fmt.Sprintf("%s-logs.clusterfuzz-external.appspot.com", projectName)
 	bucket, err := getBucket(logsBucket)
 	if err != nil {
 		return nil, nil, fmt.Errorf("couldn't get %s bucket: %v", logsBucket, err)
 	}
 	fuzzengine := strings.ToLower(fuzzEngine)
-	// relativePath is the relative path in the logsBucket where the logs of a given fuzz-target on a given day are saved.
+	// relativePath is the relative path in the logsBucket where the logs of
+	// a given fuzz-target on a given day are saved.
 	relativePath := fmt.Sprintf("%s_%s_%s/%s_%s_%s/%s", fuzzEngine, projectName, fuzzTarget, fuzzengine, sanitizer, projectName, date)
 	blobs, err := listBlobs(bucket, relativePath)
 	if err != nil {
@@ -163,7 +166,7 @@ func getLogs(date string, projectName string, fuzzTarget string, fuzzEngine stri
 	return bucket, blobs, nil
 }
 
-// getFuzzEffortStatsFromFile gets numFuzzTests and timeFuzzSeconds from a log file.
+// getFuzzStatsFromFile gets numFuzzTests and timeFuzzSeconds from a log file.
 func getFuzzStatsFromFile(lineScanner *bufio.Scanner) (int, float64, error) {
 	var timeFuzzSeconds float64
 	var numTests int
@@ -222,8 +225,8 @@ func getFuzzEffortFromFile(reader io.Reader, revisionHash string) (int, float64,
 	return 0, 0.0, nil
 }
 
-// crashDetected detects crashes in log files that are related to a given revisionHash
-// and a given day.
+// crashDetected detects crashes in log files that are related to a
+// given revisionHash and a given day.
 func crashDetected(reader io.Reader, revisionHash string) (bool, error) {
 	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
@@ -271,6 +274,7 @@ func GetCoverageRevision(date string, projectName string) (string, error) {
 }
 
 // GetCoverage gets the branch coverage and line coverage per project or per fuzz-target.
+// The expected date format is "YYYYMMDD".
 func GetCoverage(date string, projectName string, level string, fuzzTarget string) (map[string]float64, map[string]float64, error) {
 	var fileName string
 	bucket, err := getBucket(CoverageBucket)
@@ -301,13 +305,14 @@ func GetCoverage(date string, projectName string, level string, fuzzTarget strin
 
 // GetFuzzTargets gets the list of the fuzz-targets for which fuzzing reports were generated
 // for a gicen project on a given day.
+// The expected date format is "YYYYMMDD".
 func GetFuzzTargets(projectName string, date string) ([]string, error) {
 	bucket, err := getBucket(CoverageBucket)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't get %s bucket: %v", CoverageBucket, err)
 	}
-	// Relative path in the OSS-Fuzz CoverageBucket where the names of the fuzz-targets are
-	// mentioned.
+	// Relative path in the OSS-Fuzz CoverageBucket where the names
+	// of the fuzz-targets are mentioned.
 	relativePath := fmt.Sprintf("%s/fuzzer_stats/%s", projectName, date)
 	blobs, err := listBlobs(bucket, relativePath)
 	if err != nil {
@@ -315,14 +320,15 @@ func GetFuzzTargets(projectName string, date string) ([]string, error) {
 	}
 	fuzzTargets := make([]string, 0, len(blobs))
 	for _, blob := range blobs {
-		// Get the used fuzz-targets from filenames in the relativePath in the OSS-Fuzz
-		// CoverageBucket.
+		// Get the used fuzz-targets from filenames in the relativePath
+		// in the OSS-Fuzz CoverageBucket.
 		fuzzTargets = append(fuzzTargets, strings.Split(strings.Split(blob, "/")[3], ".")[0])
 	}
 	return fuzzTargets, nil
 }
 
 // GetEvidences gets the list of the evidence files used by the fuzzscraper.
+// The expected date format is "YYYYMMDD".
 func GetEvidences(projectName string, date string, fuzztargets []string, fuzzEngine string) map[string]string {
 	evidences := make(map[string]string)
 	// Get the GCS absolute path of the file containing the revision hash of the source code used
@@ -340,8 +346,9 @@ func GetEvidences(projectName string, date string, fuzztargets []string, fuzzEng
 	return evidences
 }
 
-// GetFuzzEffort gets the the fuzzing efforts for a given revision of a source
-// code on a given day.
+// GetFuzzEffort gets the the fuzzing efforts for a given revision
+// of a source code on a given day.
+// The expected date format is "YYYY-MM-DD"
 func GetFuzzEffort(revisionHash string, date string, projectName string, fuzzTarget string, fuzzEngine string, sanitizer string) (int, int, error) {
 	totalNumTests := 0
 	totalTimeSeconds := 0.0
@@ -366,8 +373,9 @@ func GetFuzzEffort(revisionHash string, date string, projectName string, fuzzTar
 	return totalNumTests, int(totalTimeSeconds), nil
 }
 
-// GetCrashes checks whether there are any detected crashes for a revision
-// of a source code on a given day.
+// GetCrashes checks whether there are any detected crashes for
+// a revision of a source code on a given day.
+// The expected date format is "YYYY-MM-DD".
 func GetCrashes(revisionHash string, date string, projectName string, fuzzTarget string, fuzzEngine string, sanitizer string) (bool, error) {
 	bucket, blobs, err := getLogs(date, projectName, fuzzTarget, fuzzEngine, sanitizer)
 	if err != nil {
