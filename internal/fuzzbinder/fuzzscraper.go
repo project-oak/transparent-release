@@ -17,7 +17,7 @@ package fuzzbinder
 // statistics from the ClusterFuzz and OSS-Fuzz reports.
 // Two buckets from ClusterFuzz and OSS-Fuzz are used.
 //
-// The first is gs://oss-fuzz-coverage which a coverage bucket.
+// The first is gs://oss-fuzz-coverage which is a coverage bucket.
 // Its structure is expected to include the following files:
 //
 //   {projectName}/fuzzer_stats/{date}/{fuzz-target}.json
