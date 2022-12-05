@@ -207,12 +207,10 @@ func getFuzzEffortFromFile(reader io.Reader, revisionHash string) (int, float64,
 		// is the same as the revisionHash we are considering (since it is
 		// possible to have logs for multiple revisions a given day).
 		return numTests, timeFuzzSeconds, nil
-	} else {
-		// Fuzzing effort does not count if the revisionHash in the
-		// logfile is different from the revisionHash we are considering.
-		return 0, 0.0, nil
 	}
-
+	// Fuzzing effort does not count if the revisionHash in the
+	// logfile is different from the revisionHash we are considering.
+	return 0, 0.0, nil
 }
 
 // crashDetected detects crashes in log files that are related to a given revisionHash
