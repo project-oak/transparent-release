@@ -135,14 +135,14 @@ func getRevisionFromFile(fileBytes []byte, projectName string) (string, error) {
 }
 
 // parseCoverageSummary gets the branch coverage and line coverage from a coverage report summary.
-func parseCoverageSummary(fileBytes []byte) (map[string]float64, map[string]float64, error) {
+func parseCoverageSummary(fileBytes []byte) (string, string, error) {
 	var summary CoverageSummary
 	err := json.Unmarshal(fileBytes, &summary)
 	if err != nil {
-		return nil, nil, fmt.Errorf("couldn't unmarshal fileBytes into a CoverageSummary: %v", err)
+		return "", "", fmt.Errorf("couldn't unmarshal fileBytes into a CoverageSummary: %v", err)
 	}
 	// Return branch coverage and line coverage using the coverage summary structure.
-	return summary.Data[0].Totals["branches"], summary.Data[0].Totals["lines"], nil
+	return formatCoverage(summary.Data[0].Totals["branches"]), formatCoverage(summary.Data[0].Totals["lines"]), nil
 }
 
 // getLogs gets the log-files list of a fuzz-target on a given day.
@@ -244,7 +244,7 @@ func crashDetected(reader io.Reader, revisionHash string) (bool, error) {
 }
 
 // FormatCoverage transforms a coverage map into a string in the expected coverage format.
-func FormatCoverage(coverage map[string]float64) string {
+func formatCoverage(coverage map[string]float64) string {
 	return fmt.Sprintf("%.2f%% (%v/%v)", coverage["percent"], coverage["covered"], coverage["count"])
 }
 
@@ -275,11 +275,11 @@ func GetCoverageRevision(date string, projectName string) (string, error) {
 
 // GetCoverage gets the branch coverage and line coverage per project or per fuzz-target.
 // The expected date format is "YYYYMMDD".
-func GetCoverage(date string, projectName string, level string, fuzzTarget string) (map[string]float64, map[string]float64, error) {
+func GetCoverage(date string, projectName string, level string, fuzzTarget string) (string, string, error) {
 	var fileName string
 	bucket, err := getBucket(CoverageBucket)
 	if err != nil {
-		return nil, nil, fmt.Errorf("couldn't get %s bucket: %v", CoverageBucket, err)
+		return "", "", fmt.Errorf("couldn't get %s bucket: %v", CoverageBucket, err)
 	}
 	if level == "perProject" {
 		// Coverage summary filename for the whole project in the OSS-Fuzz CoverageBucket.
@@ -290,15 +290,15 @@ func GetCoverage(date string, projectName string, level string, fuzzTarget strin
 	}
 	reader, err := getBlob(bucket, fileName)
 	if err != nil {
-		return nil, nil, fmt.Errorf("couldn't get %s in %s bucket: %v", fileName, CoverageBucket, err)
+		return "", "", fmt.Errorf("couldn't get %s in %s bucket: %v", fileName, CoverageBucket, err)
 	}
 	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
-		return nil, nil, err
+		return "", "", err
 	}
 	branchCoverage, lineCoverage, err := parseCoverageSummary(fileBytes)
 	if err != nil {
-		return nil, nil, err
+		return "", "", err
 	}
 	return branchCoverage, lineCoverage, nil
 }

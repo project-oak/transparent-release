@@ -54,10 +54,8 @@ func TestParseCoverageSummary(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	gotBranchCoverageStr := FormatCoverage(gotBranchCoverage)
-	gotLineCoverageStr := FormatCoverage(gotLineCoverage)
-	testutil.AssertNonEmpty(t, "parsed branch coverage", gotBranchCoverageStr)
-	testutil.AssertNonEmpty(t, "parsed line coverage", gotLineCoverageStr)
+	testutil.AssertNonEmpty(t, "parsed branch coverage", gotBranchCoverage)
+	testutil.AssertNonEmpty(t, "parsed line coverage", gotLineCoverage)
 }
 
 func TestGetFuzzEffortFromFile(t *testing.T) {
