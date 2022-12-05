@@ -123,11 +123,11 @@ func getBlob(bucket *storage.BucketHandle, blobName string) (*storage.Reader, er
 // getRevisionFromFile extracts and returns the revision of the source code from an OSS-Fuzz coverage
 // report, given the content of the source-map file (a file in the OSS-Fuzz coverage bucket that
 // links coverage build dates to the revisions of the source code used for the builds) and the project name.
-func getRevisionFromFile(content []byte, projectName string) (string, error) {
+func getRevisionFromFile(fileBytes []byte, projectName string) (string, error) {
 	var payload map[string](map[string]string)
-	err := json.Unmarshal(content, &payload)
+	err := json.Unmarshal(fileBytes, &payload)
 	if err != nil {
-		return "", fmt.Errorf("could not unmarshal srcmap file content: %v", err)
+		return "", fmt.Errorf("could not unmarshal srcmap fileBytes into a map[string](map[string]string): %v", err)
 	}
 	// Get the revisionHash using the source-map file structure defined by OSS-Fuzz.
 	revisionHash := payload[fmt.Sprintf("/src/%s", projectName)]["rev"]
@@ -135,11 +135,11 @@ func getRevisionFromFile(content []byte, projectName string) (string, error) {
 }
 
 // parseCoverageSummary gets the branch coverage and line coverage from a coverage report summary.
-func parseCoverageSummary(content []byte) (map[string]float64, map[string]float64, error) {
+func parseCoverageSummary(fileBytes []byte) (map[string]float64, map[string]float64, error) {
 	var summary CoverageSummary
-	err := json.Unmarshal(content, &summary)
+	err := json.Unmarshal(fileBytes, &summary)
 	if err != nil {
-		return nil, nil, fmt.Errorf("couldn't unmarshal coverage summary file content: %v", err)
+		return nil, nil, fmt.Errorf("couldn't unmarshal fileBytes into a CoverageSummary: %v", err)
 	}
 	// Return branch coverage and line coverage using the coverage summary structure.
 	return summary.Data[0].Totals["branches"], summary.Data[0].Totals["lines"], nil
@@ -167,16 +167,16 @@ func getLogs(date string, projectName string, fuzzTarget string, fuzzEngine stri
 func getFuzzEffortFromFile(reader io.Reader, revisionHash string) (int, float64, error) {
 	var timeFuzzSeconds float64
 	var numTests int
-	content, err := io.ReadAll(reader)
+	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
 		return 0, 0.0, err
 	}
-	isGoodHash, err := regexp.Match(revisionHash, content)
+	isGoodHash, err := regexp.Match(revisionHash, fileBytes)
 	if err != nil {
 		return 0, 0.0, err
 	}
 	if isGoodHash {
-		reader := bytes.NewReader(content)
+		reader := bytes.NewReader(fileBytes)
 		lineScanner := bufio.NewScanner(reader)
 		if err := lineScanner.Err(); err != nil {
 			return 0, 0.0, err
@@ -218,15 +218,15 @@ func getFuzzEffortFromFile(reader io.Reader, revisionHash string) (int, float64,
 // crashDetected detects crashes in log files that are related to a given revisionHash
 // and a given day.
 func crashDetected(reader io.Reader, revisionHash string) (bool, error) {
-	content, err := io.ReadAll(reader)
+	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
 		return false, err
 	}
-	isGoodHash, err := regexp.Match(revisionHash, content)
+	isGoodHash, err := regexp.Match(revisionHash, fileBytes)
 	if err != nil {
 		return false, err
 	}
-	isDetected, err := regexp.Match("fuzzer-testcases/crash-", content)
+	isDetected, err := regexp.Match("fuzzer-testcases/crash-", fileBytes)
 	if err != nil {
 		return false, err
 	}
@@ -252,11 +252,11 @@ func GetCoverageRevision(date string, projectName string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("couldn't get %s blob: %v", fileName, err)
 	}
-	content, err := io.ReadAll(reader)
+	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
 		return "", fmt.Errorf("couldn't read %s: %v", fileName, err)
 	}
-	revisionHash, err := getRevisionFromFile(content, projectName)
+	revisionHash, err := getRevisionFromFile(fileBytes, projectName)
 	if err != nil {
 		return "", fmt.Errorf("couldn't get revisionHash: %v", err)
 	}
@@ -281,11 +281,11 @@ func GetCoverage(date string, projectName string, level string, fuzzTarget strin
 	if err != nil {
 		return nil, nil, fmt.Errorf("couldn't get %s in %s bucket: %v", fileName, CoverageBucket, err)
 	}
-	content, err := io.ReadAll(reader)
+	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, nil, err
 	}
-	branchCoverage, lineCoverage, err := parseCoverageSummary(content)
+	branchCoverage, lineCoverage, err := parseCoverageSummary(fileBytes)
 	if err != nil {
 		return nil, nil, err
 	}
