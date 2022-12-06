@@ -125,7 +125,7 @@ func verifyConsistency(provenances []slsa.ValidatedProvenance) error {
 		if provenances[ind].GetBinarySHA256Digest() != binaryDigest {
 			return fmt.Errorf("unexpected binary SHA256 digest in provenance #%d; got %q, want %q",
 				ind,
-				provenances[ind].GetBinaryName(), binaryDigest)
+				provenances[ind].GetBinarySHA256Digest(), binaryDigest)
 		}
 	}
 	return nil
