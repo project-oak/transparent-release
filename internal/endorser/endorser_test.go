@@ -166,7 +166,6 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
 	}
-
 }
 
 // copyToTemp creates a copy of the given file in `/tmp`.
