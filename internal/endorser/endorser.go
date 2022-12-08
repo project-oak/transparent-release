@@ -77,7 +77,7 @@ func loadAndVerifyProvenances(provenanceURIs []string, referenceValues verifier.
 		})
 	}
 
-	report := verifier.NewVerificationReport()
+	report := verifier.NewVerificationResult()
 	report.Combine(verifyConsistency(provenances))
 
 	verifyReport, err := verifyProvenances(provenances, referenceValues)
@@ -101,8 +101,8 @@ func loadAndVerifyProvenances(provenanceURIs []string, referenceValues verifier.
 
 // verifyProvenances verifies the given list of provenances. An error is returned if not.
 // TODO(b/222440937): Document any additional checks.
-func verifyProvenances(provenances []slsa.ValidatedProvenance, referenceValues verifier.ProvenanceIR) (verifier.VerificationReport, error) {
-	combinedReport := verifier.NewVerificationReport()
+func verifyProvenances(provenances []slsa.ValidatedProvenance, referenceValues verifier.ProvenanceIR) (verifier.VerificationResult, error) {
+	combinedReport := verifier.NewVerificationResult()
 	for index := range provenances {
 		provenanceVerifier := verifier.ProvenanceIRVerifier{
 			Got:  verifier.FromSLSAv0(&provenances[index]),
@@ -126,8 +126,8 @@ func verifyProvenances(provenances []slsa.ValidatedProvenance, referenceValues v
 // verifyConsistency verifies that all provenances have the same binary name and
 // binary digest.
 // TODO(b/222440937): Perform any additional verification among provenances to ensure their consistency.
-func verifyConsistency(provenances []slsa.ValidatedProvenance) verifier.VerificationReport {
-	report := verifier.NewVerificationReport()
+func verifyConsistency(provenances []slsa.ValidatedProvenance) verifier.VerificationResult {
+	report := verifier.NewVerificationResult()
 	report.IsVerified = true
 	// verify that all provenances have the same binary digest and name.
 	binaryDigest := provenances[0].GetBinarySHA256Digest()

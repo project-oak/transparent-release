@@ -25,29 +25,29 @@ import (
 	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 )
 
-// VerificationReport reports the result of Verify.
-type VerificationReport struct {
+// VerificationResult holds the result of Verify.
+type VerificationResult struct {
 	// IsVerified is true until we can prove the opposite.
 	IsVerified bool
 	// Collected justifications for IsVerified.
 	Justifications []string
 }
 
-// NewVerifcationReport creates a new verification report. We assume everything is verified until we can prove the opposite.
-func NewVerificationReport() VerificationReport {
-	return VerificationReport{
+// NewVerificationResult creates a new verification result. Here, IsVerifed is true until we can prove the opposite.
+func NewVerificationResult() VerificationResult {
+	return VerificationResult{
 		IsVerified: true,
 	}
 }
 
-// Combine given verification report by
-func (report *VerificationReport) Combine(otherReport VerificationReport) {
+// Combine given verification results by `and` and appending the justifications.
+func (report *VerificationResult) Combine(otherReport VerificationResult) {
 	report.IsVerified = report.IsVerified && otherReport.IsVerified
 	report.Justifications = append(report.Justifications, otherReport.Justifications...)
 }
 
 // SetFailed sets the report to a failed verification and adds the justification.
-func (report *VerificationReport) SetFailed(justification string) {
+func (report *VerificationResult) SetFailed(justification string) {
 	report.IsVerified = false
 	report.Justifications = append(report.Justifications, justification)
 }
@@ -56,7 +56,7 @@ func (report *VerificationReport) SetFailed(justification string) {
 // verifying provenances.
 type ProvenanceVerifier interface {
 	// Verifies a provenance.
-	Verify() (VerificationReport, error)
+	Verify() (VerificationResult, error)
 }
 
 // ReproducibleProvenanceVerifier is a verifier for verifying provenances that
@@ -72,8 +72,8 @@ type ReproducibleProvenanceVerifier struct {
 // it and verifying that the resulting binary has a hash equal to the one
 // specified in the subject of the given provenance file.
 // TODO(#126): Refactor and separate verification logic from the logic for reading the file.
-func (verifier *ReproducibleProvenanceVerifier) Verify() (VerificationReport, error) {
-	report := NewVerificationReport()
+func (verifier *ReproducibleProvenanceVerifier) Verify() (VerificationResult, error) {
+	report := NewVerificationResult()
 	// Below we change directory to the root of the Git repo. We have to change directory back to
 	// the current directory when we are done.
 	currentDir, err := os.Getwd()
@@ -138,8 +138,8 @@ type AmberProvenanceMetadataVerifier struct {
 // values is not as expected. Otherwise returns nil, indicating success.
 // TODO(#69): Check metadata against the expected values.
 // TODO(#126): Refactor and separate verification logic from the logic for reading the file.
-func (verifier *AmberProvenanceMetadataVerifier) Verify() (VerificationReport, error) {
-	report := NewVerificationReport()
+func (verifier *AmberProvenanceMetadataVerifier) Verify() (VerificationResult, error) {
+	report := NewVerificationResult()
 
 	provenance, err := amber.ParseProvenanceFile(verifier.provenanceFilePath)
 	if err != nil {
@@ -190,8 +190,8 @@ type ProvenanceIRVerifier struct {
 // TODO(b/222440937): In future, also verify the details of the given provenance and the signature.
 // Verify verifies an instance of ProvenanceIRVerifier by comparing its Got and Want fields.
 // All empty fields are ignored. If a field in Got contains more than one value, we return an error.
-func (verifier *ProvenanceIRVerifier) Verify() (VerificationReport, error) {
-	report := NewVerificationReport()
+func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
+	report := NewVerificationResult()
 	if len(verifier.Got.BinarySHA256Digests) != 1 {
 		return report, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
 	}
@@ -206,8 +206,8 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationReport, error) {
 }
 
 // verifyBinarySHA256Digest verifies that the binary SHA256 in this provenance is contained in the given reference binary SHA256 digests (in want).
-func (got *ProvenanceIR) verifyBinarySHA256Digest(want ProvenanceIR) (VerificationReport, error) {
-	report := NewVerificationReport()
+func (got *ProvenanceIR) verifyBinarySHA256Digest(want ProvenanceIR) (VerificationResult, error) {
+	report := NewVerificationResult()
 
 	if len(got.BinarySHA256Digests) != 1 {
 		return report, fmt.Errorf("got not exactly one actual binary SHA256 digest (%v)", got.BinarySHA256Digests)
