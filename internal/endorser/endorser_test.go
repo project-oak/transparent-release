@@ -166,9 +166,9 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
 	}
 
-	want = "provenances are not consistent"
-	if err == nil || !strings.Contains(err.Error(), want) {
-		t.Fatalf("got %q, want error message containing %q,", err, want)
+	want2 := "provenances are not consistent"
+	if err == nil || !strings.Contains(err.Error(), want2) {
+		t.Fatalf("got %q, want error message containing %q,", err, want2)
 
 	}
 }

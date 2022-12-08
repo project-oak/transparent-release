@@ -87,7 +87,7 @@ func loadAndVerifyProvenances(provenanceURIs []string, referenceValues verifier.
 	report.Combine(verifyReport)
 
 	if !report.IsVerified {
-		return nil, fmt.Errorf("verification of provenances failed: %v", verifyReport.Justifications)
+		return nil, fmt.Errorf("verification of provenances failed: %v", report.Justifications)
 	}
 
 	verifiedProvenances := amber.VerifiedProvenanceSet{

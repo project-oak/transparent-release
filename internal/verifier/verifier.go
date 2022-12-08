@@ -40,7 +40,7 @@ func NewVerificationReport() VerificationReport {
 	}
 }
 
-// Combine given verification report by making
+// Combine given verification report by
 func (report *VerificationReport) Combine(otherReport VerificationReport) {
 	report.IsVerified = report.IsVerified && otherReport.IsVerified
 	report.Justifications = append(report.Justifications, otherReport.Justifications...)
