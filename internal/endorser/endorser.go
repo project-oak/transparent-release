@@ -77,16 +77,17 @@ func loadAndVerifyProvenances(provenanceURIs []string, referenceValues verifier.
 		})
 	}
 
-	verify_report, err := verifyProvenances(provenances, referenceValues)
+	report := verifier.NewVerificationReport()
+	report.Combine(verifyConsistency(provenances))
+
+	verifyReport, err := verifyProvenances(provenances, referenceValues)
 	if err != nil {
-		return nil, fmt.Errorf("verification of provenances failed: %v", err)
+		return nil, fmt.Errorf("failed while verifying provenances: %v", err)
 	}
+	report.Combine(verifyReport)
 
-	consistency_report := verifyConsistency(provenances)
-	verify_report.Combine(consistency_report)
-
-	if !verify_report.IsVerified {
-		return nil, fmt.Errorf("verification of provenances failed: %v", verify_report.Justifications)
+	if !report.IsVerified {
+		return nil, fmt.Errorf("verification of provenances failed: %v", verifyReport.Justifications)
 	}
 
 	verifiedProvenances := amber.VerifiedProvenanceSet{

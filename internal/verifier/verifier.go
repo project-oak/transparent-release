@@ -196,11 +196,11 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationReport, error) {
 		return report, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
 	}
 
-	next_report, err := verifier.Got.verifyBinarySHA256Digest(verifier.Want)
+	nextReport, err := verifier.Got.verifyBinarySHA256Digest(verifier.Want)
 	if err != nil {
 		return report, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
 	}
-	report.Combine(next_report)
+	report.Combine(nextReport)
 
 	return report, nil
 }
