@@ -77,12 +77,16 @@ func loadAndVerifyProvenances(provenanceURIs []string, referenceValues verifier.
 		})
 	}
 
-	if err := verifyProvenances(provenances, referenceValues); err != nil {
-		return nil, fmt.Errorf("verification of provenances failed: %v", err)
-	}
+	result := verifyConsistency(provenances)
 
-	if err := verifyConsistency(provenances); err != nil {
-		return nil, fmt.Errorf("provenances are not consistent: %v", err)
+	verifyResult, err := verifyProvenances(provenances, referenceValues)
+	if err != nil {
+		return nil, fmt.Errorf("failed while verifying provenances: %v", err)
+	}
+	result.Combine(verifyResult)
+
+	if !result.IsVerified {
+		return nil, fmt.Errorf("verification of provenances failed: %v", result.Justifications)
 	}
 
 	verifiedProvenances := amber.VerifiedProvenanceSet{
@@ -96,39 +100,50 @@ func loadAndVerifyProvenances(provenanceURIs []string, referenceValues verifier.
 
 // verifyProvenances verifies the given list of provenances. An error is returned if not.
 // TODO(b/222440937): Document any additional checks.
-func verifyProvenances(provenances []slsa.ValidatedProvenance, referenceValues verifier.ProvenanceIR) error {
+func verifyProvenances(provenances []slsa.ValidatedProvenance, referenceValues verifier.ProvenanceIR) (verifier.VerificationResult, error) {
+	combinedResult := verifier.NewVerificationResult()
 	for index := range provenances {
 		provenanceVerifier := verifier.ProvenanceIRVerifier{
 			Got:  verifier.FromSLSAv0(&provenances[index]),
 			Want: referenceValues,
 		}
-		if err := provenanceVerifier.Verify(); err != nil {
-			return fmt.Errorf("verification of the provenance at index %d failed: %v", index, err)
+		result, err := provenanceVerifier.Verify()
+		if err != nil {
+			return combinedResult, fmt.Errorf("verification of the provenance at index %d failed: %v;", index, err)
 		}
+
+		// result already holds a justification, but we also want to add the index where it failed.
+		if !result.IsVerified {
+			result.Justifications = append([]string{fmt.Sprintf("verification of the provenance at index %d failed;", index)}, result.Justifications...)
+		}
+
+		combinedResult.Combine(result)
 	}
-	return nil
+	return combinedResult, nil
 }
 
 // verifyConsistency verifies that all provenances have the same binary name and
 // binary digest.
 // TODO(b/222440937): Perform any additional verification among provenances to ensure their consistency.
-func verifyConsistency(provenances []slsa.ValidatedProvenance) error {
+func verifyConsistency(provenances []slsa.ValidatedProvenance) verifier.VerificationResult {
+	result := verifier.NewVerificationResult()
 	// verify that all provenances have the same binary digest and name.
 	binaryDigest := provenances[0].GetBinarySHA256Digest()
 	binaryName := provenances[0].GetBinaryName()
 	for ind := 1; ind < len(provenances); ind++ {
 		if provenances[ind].GetBinaryName() != binaryName {
-			return fmt.Errorf("unexpected subject name in provenance #%d; got %q, want %q",
-				ind,
-				provenances[ind].GetBinaryName(), binaryName)
+			result.SetFailed(
+				fmt.Sprintf("provenances are not consistent: unexpected subject name in provenance #%d; got %q, want %q",
+					ind,
+					provenances[ind].GetBinaryName(), binaryName))
 		}
 		if provenances[ind].GetBinarySHA256Digest() != binaryDigest {
-			return fmt.Errorf("unexpected binary SHA256 digest in provenance #%d; got %q, want %q",
+			result.SetFailed(fmt.Sprintf("provenances are not consistent: unexpected binary SHA256 digest in provenance #%d; got %q, want %q",
 				ind,
-				provenances[ind].GetBinarySHA256Digest(), binaryDigest)
+				provenances[ind].GetBinarySHA256Digest(), binaryDigest))
 		}
 	}
-	return nil
+	return result
 }
 
 func getProvenanceBytes(provenanceURI string) ([]byte, error) {

@@ -15,10 +15,12 @@
 package verifier
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
@@ -40,7 +42,7 @@ func TestReproducibleProvenanceVerifier_validProvenance(t *testing.T) {
 		Provenance: provenance,
 	}
 
-	if err := verifier.Verify(); err != nil {
+	if _, err := verifier.Verify(); err != nil {
 		t.Fatalf("couldn't verify the provenance file: %v", err)
 	}
 }
@@ -57,10 +59,18 @@ func TestReproducibleProvenanceVerifier_invalidHash(t *testing.T) {
 		Provenance: provenance,
 	}
 
-	want := "failed to verify the digest of the built binary"
+	result, err := verifier.Verify()
 
-	if got := verifier.Verify(); !strings.Contains(got.Error(), want) {
-		t.Fatalf("got %v, want error message containing %q,", got, want)
+	if err != nil {
+		t.Fatalf("verify failed: %v", err)
+	}
+
+	testutil.AssertEq(t, "invalid hash", result.IsVerified, false)
+
+	got := fmt.Sprintf("%v", result.Justifications)
+	want := "failed to verify the digest of the built binary"
+	if !strings.Contains(got, want) {
+		t.Fatalf("got %v, want justification containing %q,", got, want)
 	}
 }
 
@@ -78,7 +88,7 @@ func TestReproducibleProvenanceVerifier_badCommand(t *testing.T) {
 
 	want := "couldn't build the binary"
 
-	if got := verifier.Verify(); !strings.Contains(got.Error(), want) {
+	if _, got := verifier.Verify(); !strings.Contains(got.Error(), want) {
 		t.Fatalf("got %v, want error message containing %q,", got, want)
 	}
 }
@@ -94,7 +104,7 @@ func TestAmberProvenanceMetadataVerifier(t *testing.T) {
 		Provenance: provenance,
 	}
 
-	if err := verifier.Verify(); err != nil {
+	if _, err := verifier.Verify(); err != nil {
 		t.Fatalf("couldn't verify the provenance file: %v", err)
 	}
 }

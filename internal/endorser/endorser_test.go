@@ -162,9 +162,13 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 
 	_, err = loadAndVerifyProvenances([]string{"file://" + tempPath1, "file://" + tempPath2}, reference)
 	want := "do not contain the actual binary SHA256 digest"
-	// Because we currently abort when Verify fails, we do not get to the error: "provenances are not consistent"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
+	}
+
+	want2 := "provenances are not consistent"
+	if err == nil || !strings.Contains(err.Error(), want2) {
+		t.Fatalf("got %q, want error message containing %q,", err, want2)
 	}
 }
 
