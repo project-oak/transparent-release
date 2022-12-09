@@ -37,7 +37,7 @@ import (
 // must be provided. The endorsement statement is generated only if the provenance statements are
 // valid. Each provenanceURI must either specify a local file (using the `file` scheme), or a
 // remote file (using the `http/https` scheme).
-func GenerateEndorsement(referenceValues verifier.ProvenanceIR, validityDuration amber.ClaimValidity, provenanceURIs []string) (*intoto.Statement, error) {
+func GenerateEndorsement(referenceValues verifier.ValidatedReferenceValues, validityDuration amber.ClaimValidity, provenanceURIs []string) (*intoto.Statement, error) {
 	verifiedProvenances, err := loadAndVerifyProvenances(provenanceURIs, referenceValues)
 	if err != nil {
 		return nil, fmt.Errorf("could not load provenances: %v", err)
