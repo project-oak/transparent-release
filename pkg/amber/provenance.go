@@ -85,6 +85,15 @@ func (p *ValidatedProvenance) GetBinaryName() string {
 	return p.provenance.Subject[0].Name
 }
 
+// GetBuildCmd returns the build command.
+func (p *ValidatedProvenance) GetBuildCmd() ([]string, error) {
+	buildConfig, err := parseBuildConfig(p.provenance.Predicate.(slsa.ProvenancePredicate))
+	if err != nil {
+		return nil, fmt.Errorf("could not parse BuildConfig")
+	}
+	return buildConfig.Command, nil
+}
+
 func validateSLSAProvenanceJSON(provenanceFile []byte) error {
 	schemaLoader := gojsonschema.NewStringLoader(string(schema))
 	provenanceLoader := gojsonschema.NewStringLoader(string(provenanceFile))
@@ -148,15 +157,9 @@ func ParseProvenanceData(statementBytes []byte) (*ValidatedProvenance, error) {
 		return nil, fmt.Errorf("could not unmarshal JSON bytes into a slsa.ProvenancePredicate: %v", err)
 	}
 
-	// Now predicate.BuildConfig is just a map, we have to parse it into an instance of BuildConfig
-	buildConfigBytes, err := json.Marshal(predicate.BuildConfig)
+	buildConfig, err := parseBuildConfig(predicate)
 	if err != nil {
-		return nil, fmt.Errorf("could not marshal BuildConfig map into JSON bytes: %v", err)
-	}
-
-	var buildConfig BuildConfig
-	if err = json.Unmarshal(buildConfigBytes, &buildConfig); err != nil {
-		return nil, fmt.Errorf("could not unmarshal JSON bytes into a BuildConfig: %v", err)
+		return nil, fmt.Errorf("could not parse BuildConfig")
 	}
 
 	// Replace maps with objects
@@ -164,4 +167,17 @@ func ParseProvenanceData(statementBytes []byte) (*ValidatedProvenance, error) {
 	statement.Predicate = predicate
 
 	return &ValidatedProvenance{provenance: statement}, nil
+}
+
+// parseBuildConfig parses the map in predicate.BuildConfig into an instance of BuildConfig.
+func parseBuildConfig(predicate slsa.ProvenancePredicate) (BuildConfig, error) {
+	var buildConfig BuildConfig
+	buildConfigBytes, err := json.Marshal(predicate.BuildConfig)
+	if err != nil {
+		return buildConfig, fmt.Errorf("could not marshal BuildConfig map into JSON bytes: %v", err)
+	}
+	if err = json.Unmarshal(buildConfigBytes, &buildConfig); err != nil {
+		return buildConfig, fmt.Errorf("could not unmarshal JSON bytes into a BuildConfig: %v", err)
+	}
+	return buildConfig, nil
 }

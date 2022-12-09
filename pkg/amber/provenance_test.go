@@ -37,7 +37,6 @@ func TestExampleProvenance(t *testing.T) {
 	provenance := validatedProvenance.GetProvenance()
 
 	predicate := provenance.Predicate.(slsa.ProvenancePredicate)
-	buildConfig := predicate.BuildConfig.(BuildConfig)
 
 	// Check that the provenance parses correctly
 	testutil.AssertEq(t, "repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")
@@ -45,7 +44,12 @@ func TestExampleProvenance(t *testing.T) {
 	testutil.AssertEq(t, "builderImageID length", len(predicate.Materials[0].Digest["sha256"]), wantSHA256HexDigitLength)
 	testutil.AssertEq(t, "builderImageURI", predicate.Materials[0].URI, fmt.Sprintf("gcr.io/oak-ci/oak@sha256:%s", predicate.Materials[0].Digest["sha256"]))
 	testutil.AssertEq(t, "subjectName", validatedProvenance.GetBinaryName(), "oak_functions_loader")
-	testutil.AssertNonEmpty(t, "command[0]", buildConfig.Command[0])
-	testutil.AssertNonEmpty(t, "command[1]", buildConfig.Command[1])
 	testutil.AssertNonEmpty(t, "builderId", predicate.Builder.ID)
+
+	buildCmd, err := validatedProvenance.GetBuildCmd()
+	if err != nil {
+		t.Fatalf("Failed to parse buildConfig: %v", err)
+	}
+	testutil.AssertNonEmpty(t, "command[0]", buildCmd[0])
+	testutil.AssertNonEmpty(t, "command[1]", buildCmd[1])
 }
