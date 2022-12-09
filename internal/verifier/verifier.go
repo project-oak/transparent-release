@@ -41,15 +41,15 @@ func NewVerificationResult() VerificationResult {
 }
 
 // Combine given verification results by `and` and appending the justifications.
-func (report *VerificationResult) Combine(otherReport VerificationResult) {
-	report.IsVerified = report.IsVerified && otherReport.IsVerified
-	report.Justifications = append(report.Justifications, otherReport.Justifications...)
+func (result *VerificationResult) Combine(otherresult VerificationResult) {
+	result.IsVerified = result.IsVerified && otherresult.IsVerified
+	result.Justifications = append(result.Justifications, otherresult.Justifications...)
 }
 
-// SetFailed sets the report to a failed verification and adds the justification.
-func (report *VerificationResult) SetFailed(justification string) {
-	report.IsVerified = false
-	report.Justifications = append(report.Justifications, justification)
+// SetFailed sets the result to a failed verification and adds the justification.
+func (result *VerificationResult) SetFailed(justification string) {
+	result.IsVerified = false
+	result.Justifications = append(result.Justifications, justification)
 }
 
 // ProvenanceVerifier defines an interface with a single method `Verify` for
@@ -73,24 +73,24 @@ type ReproducibleProvenanceVerifier struct {
 // specified in the subject of the given provenance file.
 // TODO(#126): Refactor and separate verification logic from the logic for reading the file.
 func (verifier *ReproducibleProvenanceVerifier) Verify() (VerificationResult, error) {
-	report := NewVerificationResult()
+	result := NewVerificationResult()
 	// Below we change directory to the root of the Git repo. We have to change directory back to
 	// the current directory when we are done.
 	currentDir, err := os.Getwd()
 	if err != nil {
-		return report, fmt.Errorf("couldn't get current directory: %v", err)
+		return result, fmt.Errorf("couldn't get current directory: %v", err)
 	}
 	defer chdir(currentDir)
 
 	buildConfig, err := common.LoadBuildConfigFromProvenance(verifier.Provenance)
 	if err != nil {
-		return report, fmt.Errorf("couldn't load BuildConfig from provenance: %v", err)
+		return result, fmt.Errorf("couldn't load BuildConfig from provenance: %v", err)
 	}
 
 	// Change to verifier.GitRootDir if it is provided, otherwise, clone the repo.
 	repoInfo, err := buildConfig.ChangeDirToGitRoot(verifier.GitRootDir)
 	if err != nil {
-		return report, fmt.Errorf("couldn't change to a valid Git repo root: %v", err)
+		return result, fmt.Errorf("couldn't change to a valid Git repo root: %v", err)
 	}
 	if repoInfo != nil {
 		// If the repo was cloned, remove all the temp files at the end.
@@ -98,7 +98,7 @@ func (verifier *ReproducibleProvenanceVerifier) Verify() (VerificationResult, er
 	}
 
 	if err := buildConfig.Build(); err != nil {
-		return report, fmt.Errorf("couldn't build the binary: %v", err)
+		return result, fmt.Errorf("couldn't build the binary: %v", err)
 	}
 
 	// The provenance is valid, therefore `expectedBinaryHash` is guaranteed to be non-empty.
@@ -106,17 +106,17 @@ func (verifier *ReproducibleProvenanceVerifier) Verify() (VerificationResult, er
 
 	binarySha256Digest, err := buildConfig.ComputeBinarySHA256Digest()
 	if err != nil {
-		return report, fmt.Errorf("couldn't get the digest of the binary: %v", err)
+		return result, fmt.Errorf("couldn't get the digest of the binary: %v", err)
 	}
 
 	if binarySha256Digest != expectedBinarySha256Digest {
-		report.SetFailed(fmt.Sprintf("failed to verify the digest of the built binary; got %s, want %s",
+		result.SetFailed(fmt.Sprintf("failed to verify the digest of the built binary; got %s, want %s",
 			binarySha256Digest, expectedBinarySha256Digest))
 	} else {
-		report.IsVerified = true
+		result.IsVerified = true
 	}
 
-	return report, nil
+	return result, nil
 }
 
 func chdir(dir string) {
@@ -139,22 +139,22 @@ type AmberProvenanceMetadataVerifier struct {
 // TODO(#69): Check metadata against the expected values.
 // TODO(#126): Refactor and separate verification logic from the logic for reading the file.
 func (verifier *AmberProvenanceMetadataVerifier) Verify() (VerificationResult, error) {
-	report := NewVerificationResult()
+	result := NewVerificationResult()
 
 	provenance, err := amber.ParseProvenanceFile(verifier.provenanceFilePath)
 	if err != nil {
-		return report, fmt.Errorf("couldn't load the provenance file from %s: %v", verifier.provenanceFilePath, err)
+		return result, fmt.Errorf("couldn't load the provenance file from %s: %v", verifier.provenanceFilePath, err)
 	}
 
 	predicate := provenance.GetProvenance().Predicate.(slsa.ProvenancePredicate)
 
 	if predicate.BuildType != amber.AmberBuildTypeV1 {
-		return report, fmt.Errorf("incorrect BuildType: got %s, want %v", predicate.BuildType, amber.AmberBuildTypeV1)
+		return result, fmt.Errorf("incorrect BuildType: got %s, want %v", predicate.BuildType, amber.AmberBuildTypeV1)
 	}
 
 	// TODO(#69): Check metadata against the expected values.
 
-	return report, nil
+	return result, nil
 }
 
 // ProvenanceIR is an internal intermediate representation of data from provenances for verification.
@@ -191,30 +191,30 @@ type ProvenanceIRVerifier struct {
 // Verify verifies an instance of ProvenanceIRVerifier by comparing its Got and Want fields.
 // All empty fields are ignored. If a field in Got contains more than one value, we return an error.
 func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
-	report := NewVerificationResult()
+	result := NewVerificationResult()
 	if len(verifier.Got.BinarySHA256Digests) != 1 {
-		return report, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
+		return result, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
 	}
 
-	nextReport, err := verifier.Got.verifyBinarySHA256Digest(verifier.Want)
+	nextresult, err := verifier.Got.verifyBinarySHA256Digest(verifier.Want)
 	if err != nil {
-		return report, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
+		return result, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
 	}
-	report.Combine(nextReport)
+	result.Combine(nextresult)
 
-	return report, nil
+	return result, nil
 }
 
 // verifyBinarySHA256Digest verifies that the binary SHA256 in this provenance is contained in the given reference binary SHA256 digests (in want).
 func (got *ProvenanceIR) verifyBinarySHA256Digest(want ProvenanceIR) (VerificationResult, error) {
-	report := NewVerificationResult()
+	result := NewVerificationResult()
 
 	if len(got.BinarySHA256Digests) != 1 {
-		return report, fmt.Errorf("got not exactly one actual binary SHA256 digest (%v)", got.BinarySHA256Digests)
+		return result, fmt.Errorf("got not exactly one actual binary SHA256 digest (%v)", got.BinarySHA256Digests)
 	}
 
 	if want.BinarySHA256Digests == nil {
-		return report, fmt.Errorf("no reference binary SHA256 digests given")
+		return result, fmt.Errorf("no reference binary SHA256 digests given")
 	}
 
 	foundDigestInReferences := false
@@ -226,10 +226,10 @@ func (got *ProvenanceIR) verifyBinarySHA256Digest(want ProvenanceIR) (Verificati
 	}
 
 	if !foundDigestInReferences {
-		report.SetFailed(fmt.Sprintf("the reference binary SHA256 digests (%v) do not contain the actual binary SHA256 digest (%v)",
+		result.SetFailed(fmt.Sprintf("the reference binary SHA256 digests (%v) do not contain the actual binary SHA256 digest (%v)",
 			want.BinarySHA256Digests,
 			got.BinarySHA256Digests))
 	}
 
-	return report, nil
+	return result, nil
 }

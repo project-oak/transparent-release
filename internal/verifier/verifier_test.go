@@ -59,15 +59,15 @@ func TestReproducibleProvenanceVerifier_invalidHash(t *testing.T) {
 		Provenance: provenance,
 	}
 
-	report, err := verifier.Verify()
+	result, err := verifier.Verify()
 
 	if err != nil {
 		t.Fatalf("verify failed: %v", err)
 	}
 
-	testutil.AssertEq(t, "invalid hash", report.IsVerified, false)
+	testutil.AssertEq(t, "invalid hash", result.IsVerified, false)
 
-	got := fmt.Sprintf("%v", report.Justifications)
+	got := fmt.Sprintf("%v", result.Justifications)
 	want := "failed to verify the digest of the built binary"
 	if !strings.Contains(got, want) {
 		t.Fatalf("got %v, want justification containing %q,", got, want)
