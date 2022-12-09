@@ -29,7 +29,7 @@ import (
 type VerificationResult struct {
 	// IsVerified is true until we can prove the opposite.
 	IsVerified bool
-	// Collected justifications for IsVerified.
+	// Collected justifications why IsVerified is not true.
 	Justifications []string
 }
 
@@ -40,10 +40,10 @@ func NewVerificationResult() VerificationResult {
 	}
 }
 
-// Combine given verification results by `and` and appending the justifications.
-func (result *VerificationResult) Combine(otherresult VerificationResult) {
-	result.IsVerified = result.IsVerified && otherresult.IsVerified
-	result.Justifications = append(result.Justifications, otherresult.Justifications...)
+// Combine merges the other result into this result by `anding` the `IsVerifeid` values and appending the justifications.
+func (result *VerificationResult) Combine(otherResult VerificationResult) {
+	result.IsVerified = result.IsVerified && otherResult.IsVerified
+	result.Justifications = append(result.Justifications, otherResult.Justifications...)
 }
 
 // SetFailed sets the result to a failed verification and adds the justification.
@@ -71,6 +71,7 @@ type ReproducibleProvenanceVerifier struct {
 // Verify verifies a given SLSA provenance file by running the build script in
 // it and verifying that the resulting binary has a hash equal to the one
 // specified in the subject of the given provenance file.
+// If the hashes are different, then `IsVerifed` is set to false.
 // TODO(#126): Refactor and separate verification logic from the logic for reading the file.
 func (verifier *ReproducibleProvenanceVerifier) Verify() (VerificationResult, error) {
 	result := NewVerificationResult()
@@ -112,8 +113,6 @@ func (verifier *ReproducibleProvenanceVerifier) Verify() (VerificationResult, er
 	if binarySha256Digest != expectedBinarySha256Digest {
 		result.SetFailed(fmt.Sprintf("failed to verify the digest of the built binary; got %s, want %s",
 			binarySha256Digest, expectedBinarySha256Digest))
-	} else {
-		result.IsVerified = true
 	}
 
 	return result, nil
