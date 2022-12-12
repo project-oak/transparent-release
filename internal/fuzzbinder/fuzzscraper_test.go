@@ -27,21 +27,24 @@ const (
 	logFilePath          = "23:58:20:476141.log"
 	logFileWithCrashPath = "23:58:55:115260.log"
 	projectName          = "oak"
-	revisionHash         = "1586496a1cbb76e044cc17dcc98203417957c793"
+	hash                 = "1586496a1cbb76e044cc17dcc98203417957c793"
 )
 
 func TestGetRevisionFromFile(t *testing.T) {
+	fuzzParameter := FuzzParameters{
+		ProjectName: projectName,
+	}
 	path := filepath.Join(testdataPath, revisionFilePath)
 	content, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err := getRevisionFromFile(content, projectName)
+	got, err := getRevisionFromFile(content, &fuzzParameter)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
 	// Check that the length of the extracted commitHash is correct.
-	testutil.AssertEq(t, "commitHash length", len(got), wantSHA1HexDigitLength)
+	testutil.AssertEq(t, "commitHash length", len(got.Hash), wantSHA1HexDigitLength)
 }
 
 func TestParseCoverageSummary(t *testing.T) {
@@ -50,43 +53,49 @@ func TestParseCoverageSummary(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	gotBranchCoverage, gotLineCoverage, err := parseCoverageSummary(content)
+	coverage, err := parseCoverageSummary(content)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	testutil.AssertNonEmpty(t, "parsed branch coverage", gotBranchCoverage)
-	testutil.AssertNonEmpty(t, "parsed line coverage", gotLineCoverage)
+	testutil.AssertNonEmpty(t, "parsed branch coverage", coverage.BranchCoverage)
+	testutil.AssertNonEmpty(t, "parsed line coverage", coverage.LineCoverage)
 }
 
 func TestGetFuzzEffortFromFile(t *testing.T) {
+	revision := Revision{
+		Hash: hash,
+	}
 	path := filepath.Join(testdataPath, logFilePath)
 	reader, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	gotNumTests, gotTimeFuzz, err := getFuzzEffortFromFile(reader, revisionHash)
+	fuzzEffort, err := getFuzzEffortFromFile(reader, &revision)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	if !(gotNumTests > 0) {
-		t.Errorf("Unexpected numFuzzTests: got %v, want non-zero value", gotNumTests)
+	if !(fuzzEffort.NumberFuzzTests > 0) {
+		t.Errorf("Unexpected numFuzzTests: got %v, want non-zero value", fuzzEffort.NumberFuzzTests)
 	}
-	if !(gotTimeFuzz > 0.0) {
-		t.Errorf("Unexpected fuzzTimeSeconds: got %v, want non-zero value", gotTimeFuzz)
+	if !(fuzzEffort.FuzzTimeSeconds > 0.0) {
+		t.Errorf("Unexpected fuzzTimeSeconds: got %v, want non-zero value", fuzzEffort.FuzzTimeSeconds)
 	}
 }
 
 func TestCrashDetected(t *testing.T) {
+	revision := Revision{
+		Hash: hash,
+	}
 	path := filepath.Join(testdataPath, logFilePath)
 	reader, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err := crashDetected(reader, revisionHash)
+	got, err := crashDetected(reader, &revision)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	if got {
+	if got.Detected {
 		t.Errorf("Unexpected crash detection: got %v, want false", got)
 	}
 	path = filepath.Join(testdataPath, logFileWithCrashPath)
@@ -94,11 +103,11 @@ func TestCrashDetected(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err = crashDetected(reader, revisionHash)
+	got, err = crashDetected(reader, &revision)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	if !got {
+	if !got.Detected {
 		t.Errorf("Unexpected crash detection: got %v, want true", got)
 	}
 }

@@ -66,7 +66,7 @@ type FuzzStats struct {
 	// a given fuzz-target or all fuzz-targets.
 	DetectedCrashes bool `json:"detectedCrashes"`
 	// FuzzTimeSeconds specifies the fuzzing time in seconds.
-	FuzzTimeSeconds int `json:"fuzzTimeSeconds,omitempty"`
+	FuzzTimeSeconds float64 `json:"fuzzTimeSeconds,omitempty"`
 	// NumberFuzzTests specifies the number of executed fuzzing tests.
 	NumberFuzzTests int `json:"numberFuzzTests,omitempty"`
 }
@@ -98,14 +98,14 @@ func validateFuzzClaimSpec(predicate amber.ClaimPredicate) (*amber.ClaimPredicat
 	// and perProject.numberFuzzTests is the sum of numberFuzzTests for all fuzz-targets.
 	projectTimeSeconds := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.FuzzTimeSeconds
 	projectNumberTests := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.NumberFuzzTests
-	sumTargetsTimeSeconds := 0
+	sumTargetsTimeSeconds := 0.0
 	sumTargetsNumberTests := 0
 	for _, spec := range predicate.ClaimSpec.(FuzzClaimSpec).PerTarget {
 		sumTargetsTimeSeconds += spec.FuzzStats.FuzzTimeSeconds
 		sumTargetsNumberTests += spec.FuzzStats.NumberFuzzTests
 	}
 	if projectTimeSeconds != sumTargetsTimeSeconds {
-		return nil, fmt.Errorf("perProject.fuzzTimeSeconds (%d) is not equal to the sum of per-target fuzzTimeSeconds (%d)",
+		return nil, fmt.Errorf("perProject.fuzzTimeSeconds (%f) is not equal to the sum of per-target fuzzTimeSeconds (%f)",
 			projectTimeSeconds, sumTargetsTimeSeconds)
 	}
 	if projectNumberTests != sumTargetsNumberTests {
