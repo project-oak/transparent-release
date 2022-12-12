@@ -150,6 +150,10 @@ func (verifier *AmberProvenanceMetadataVerifier) Verify() (VerificationResult, e
 		return result, fmt.Errorf("Couldn't convert from Amber provenance: %v", err)
 	}
 
+	// To trigger the check for a non-empty build cmd in Verify, we add an (unimportant) reference value to BuildCmds in Want.
+	someValue := []string{"_"}
+	verifier.Want.BuildCmds = append(verifier.Want.BuildCmds, someValue)
+
 	provenanceVerifier := ProvenanceIRVerifier{
 		Got:  provenanceIR,
 		Want: verifier.Want,
@@ -203,22 +207,25 @@ type ProvenanceIRVerifier struct {
 // Verify verifies an instance of ProvenanceIRVerifier by comparing its Got and Want fields.
 // All empty fields are ignored. If a field in Got contains more than one value, we return an error.
 func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
-	result := NewVerificationResult()
-	if len(verifier.Got.BinarySHA256Digests) != 1 {
-		return result, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
-	}
+	combinedResult := NewVerificationResult()
 
+	// Verify BinarySHA256 Digest.
+	if len(verifier.Got.BinarySHA256Digests) != 1 {
+		return combinedResult, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
+	}
 	nextResult, err := verifier.Got.verifyBinarySHA256Digest(verifier.Want)
 	if err != nil {
-		return result, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
+		return combinedResult, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
 	}
-	result.Combine(nextResult)
+	combinedResult.Combine(nextResult)
 
-	// TODO(mschett): We currently hardcode the check for the build command, but we don't want that.
-	nextResult, err = verifier.Got.verifyHasBuildCmd()
-	result.Combine(nextResult)
+	// Verify HasBuildCmd.
+	if len(verifier.Want.BuildCmds) >= 1 {
+		nextResult, err = verifier.Got.verifyHasBuildCmd()
+	}
+	combinedResult.Combine(nextResult)
 
-	return result, nil
+	return combinedResult, nil
 }
 
 // verifyBinarySHA256Digest verifies that the binary SHA256 in this provenance is contained in the given reference binary SHA256 digests (in want).
