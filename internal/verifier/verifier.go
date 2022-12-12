@@ -127,7 +127,8 @@ func chdir(dir string) {
 // AmberProvenanceMetadataVerifier verifies Amber provenances by comparing the
 // content of the provenance predicate against a given set of expected values.
 type AmberProvenanceMetadataVerifier struct {
-	provenanceFilePath string
+	Got  *amber.ValidatedProvenance
+	Want ProvenanceIR
 	// TODO(#69): Add metadata fields.
 }
 
@@ -136,24 +137,26 @@ type AmberProvenanceMetadataVerifier struct {
 // AmberProvenanceMetadataVerifier instance. Returns an error if any of the
 // values is not as expected. Otherwise returns nil, indicating success.
 // TODO(#69): Check metadata against the expected values.
-// TODO(#126): Refactor and separate verification logic from the logic for reading the file.
 func (verifier *AmberProvenanceMetadataVerifier) Verify() (VerificationResult, error) {
 	result := NewVerificationResult()
 
-	provenance, err := amber.ParseProvenanceFile(verifier.provenanceFilePath)
-	if err != nil {
-		return result, fmt.Errorf("couldn't load the provenance file from %s: %v", verifier.provenanceFilePath, err)
-	}
-
-	predicate := provenance.GetProvenance().Predicate.(slsa.ProvenancePredicate)
-
+	predicate := verifier.Got.GetProvenance().Predicate.(slsa.ProvenancePredicate)
 	if predicate.BuildType != amber.AmberBuildTypeV1 {
 		return result, fmt.Errorf("incorrect BuildType: got %s, want %v", predicate.BuildType, amber.AmberBuildTypeV1)
 	}
 
-	// TODO(#69): Check metadata against the expected values.
+	provenanceIR, err := FromAmber(verifier.Got)
+	if err != nil {
+		return result, fmt.Errorf("Couldn't convert from Amber provenance: %v", err)
+	}
 
-	return result, nil
+	provenanceVerifier := ProvenanceIRVerifier{
+		Got:  provenanceIR,
+		Want: verifier.Want,
+	}
+
+	// TODO(#69): Check metadata against the expected values.
+	return provenanceVerifier.Verify()
 }
 
 // ProvenanceIR is an internal intermediate representation of data from provenances for verification.

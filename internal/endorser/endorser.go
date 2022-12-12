@@ -102,15 +102,8 @@ func loadAndVerifyProvenances(provenanceURIs []string, referenceValues verifier.
 func verifyProvenances(provenances []amber.ValidatedProvenance, referenceValues verifier.ProvenanceIR) (verifier.VerificationResult, error) {
 	combinedResult := verifier.NewVerificationResult()
 	for index := range provenances {
-
-		provenance, err := verifier.FromAmber(&provenances[index])
-		if err != nil {
-			return combinedResult, fmt.Errorf("verification of the provenance at index %d failed: %v;", index, err)
-		}
-
-		// TOOD(mschett): Implement and use AmberProvenanceMetadataVerifier
-		provenanceVerifier := verifier.ProvenanceIRVerifier{
-			Got:  provenance,
+		provenanceVerifier := verifier.AmberProvenanceMetadataVerifier{
+			Got:  &provenances[index],
 			Want: referenceValues,
 		}
 		result, err := provenanceVerifier.Verify()
