@@ -1,0 +1,83 @@
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+  "subject": [
+    {
+      "name": "https://github.com/project-oak/oak",
+      "digest": {
+        "sha1": "1586496a1cbb76e044cc17dcc98203417957c793"
+      }
+    }
+  ],
+  "predicateType": "https://github.com/project-oak/transparent-release/claim/v1",
+  "predicate": {
+    "claimType": "https://github.com/project-oak/transparent-release/fuzz_claim/v1",
+    "issuedOn": "2022-11-28T10:20:50.32Z",
+    "validity": {
+      "notBefore": "2022-11-28T10:20:50.32Z",
+      "notAfter": "2023-11-28T10:20:50.32Z"
+    },
+    "claimSpec": {
+      "perTarget": [
+        {
+          "name": "libFuzzer_oak_apply_policy",
+          "path": "oak/fuzz/fuzz_targets/apply_policy.rs",
+          "fuzzStats": {
+            "lineCoverage": "3.89% (215/5524)",
+            "branchCoverage": "0.00% (0/0)",
+            "detectedCrashes": false,
+            "fuzzTimeSeconds": 2121466,
+            "numberFuzzTests": 861621487
+          }
+        },
+        {
+          "name": "libFuzzer_oak_failing",
+          "path": "oak/fuzz/fuzz_targets/failing.rs",
+          "fuzzStats": {
+            "lineCoverage": "24.88% (511/2054)",
+            "branchCoverage": "0.00% (0/0)",
+            "detectedCrashes": true,
+            "fuzzTimeSeconds": 495,
+            "numberFuzzTests": 1130659
+          }
+        }
+      ],
+      "perProject": {
+        "lineCoverage": "9.54% (668/7000)",
+        "branchCoverage": "0.00% (0/0)",
+        "detectedCrashes": true,
+        "fuzzTimeSeconds": 2121961,
+        "numberFuzzTests": 862752146
+      }
+    },
+    "evidence": [
+      {
+        "role": "revision",
+        "uri": "gs://oss-fuzz-coverage/oak/srcmap/20221127.json",
+        "digest": {
+          "sha256": "9e1b3b92f84ed95524228e294833675968580e561d7b122da1be4ad20002c064"
+        }
+      },
+      {
+        "role": "project coverage",
+        "uri": "gs://oss-fuzz-coverage/oak/reports/20221127/linux/summary.json",
+        "digest": {
+          "sha256": "d14122d646f3a497fa36bb3f7639e407826d412145161e4368c0a1fa820afc9d"
+        }
+      },
+      {
+        "role": "libFuzzer_oak_apply_policy coverage",
+        "uri": "gs://oss-fuzz-coverage/oak/fuzzer_stats/20221127/apply_policy.json",
+        "digest": {
+          "sha256": "bbc1f04cd460a705574d9064b0c361658bd67ff49d706815799dff1091af9758"
+        }
+      },
+      {
+        "role": "libFuzzer_oak_failing coverage",
+        "uri": "gs://oss-fuzz-coverage/oak/fuzzer_stats/20221127/failing.json",
+        "digest": {
+          "sha256": "c8968bdafefa858d9bb60580fa8fa8bc3402362d4f16e301bb3b8417f7577c10"
+        }
+      }
+    ]
+  }
+}

@@ -23,10 +23,12 @@ package fuzzbinder
 // code based on fuzzing.
 
 import (
+	"encoding/json"
 	"fmt"
-	"log"
+	"os"
 
 	"github.com/project-oak/transparent-release/pkg/amber"
+	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
 // FuzzClaimV1 is the URI that should be used as the ClaimType in V1 Amber
@@ -56,58 +58,125 @@ type FuzzSpecPerTarget struct {
 // FuzzStats contains the fuzzing statistics of the revision
 // of the source code for all fuzz-targets or a fuzz-target.
 type FuzzStats struct {
-	// Coverage specifies the code coverage by all fuzz-targets or a fuzz-target.
-	Coverage *FuzzCoverage `json:"coverage"`
-	// Bugs specifies the  number of detected bugs using all fuzz-targets
-	// or a fuzz-target.
-	DetectedBugs int `json:"detectedBugs"`
-	// Crashes specifies the total number of crashes that happened when running
-	// the fuzz-targets or the number of fuzzer runs that crashed for a fuzz-target.
-	Crashes int `json:"crashes"`
-	// FuzzEffort specifies the fuzzing efforts spent while using all fuzz-targets
-	// or on running a fuzz-target.
-	FuzzEffort *FuzzEffortSpec `json:"fuzzEffort,omitempty"`
-}
-
-// FuzzCoverage contains the code coverage by fuzz testing.
-type FuzzCoverage struct {
-	// Line specifies line coverage.
+	// LineCoverage specifies line coverage.
 	LineCoverage string `json:"lineCoverage"`
-	// Branch specifies branch coverage.
+	// BranchCoverage specifies branch coverage.
 	BranchCoverage string `json:"branchCoverage"`
-}
-
-// FuzzEffortSpec contains the fuzzing efforts.
-type FuzzEffortSpec struct {
+	// DetectedCrashes specifies if any bugs/crashes were detected by
+	// a given fuzz-target or all fuzz-targets.
+	DetectedCrashes bool `json:"detectedCrashes"`
 	// FuzzTimeSeconds specifies the fuzzing time in seconds.
-	FuzzTimeSeconds int `json:"fuzzTimeSeconds,omitempty"`
-	// NumberTests specifies the number of executed fuzzing tests.
-	NumberTests int `json:"numberTests,omitempty"`
+	FuzzTimeSeconds float64 `json:"fuzzTimeSeconds,omitempty"`
+	// NumberFuzzTests specifies the number of executed fuzzing tests.
+	NumberFuzzTests int `json:"numberFuzzTests,omitempty"`
 }
 
 // ValidateFuzzClaim validates that an Amber Claim is a Fuzz Claim with a valid ClaimType.
 // If valid, the ClaimPredicate object is returned. Otherwise an error is returned.
-func ValidateFuzzClaim(claimPredicate amber.ClaimPredicate) (*amber.ClaimPredicate, error) {
-	if claimPredicate.ClaimType != FuzzClaimV1 {
+func ValidateFuzzClaim(predicate amber.ClaimPredicate) (*amber.ClaimPredicate, error) {
+	if predicate.ClaimType != FuzzClaimV1 {
 		return nil, fmt.Errorf(
 			"the claimPredicate does not have the expected claim type; got: %s, want: %s",
-			claimPredicate.ClaimType,
+			predicate.ClaimType,
 			FuzzClaimV1)
 	}
 
 	// Verify the type of the ClaimSpec, and return it if it is of type ClaimPredicate.
-	switch claimPredicate.ClaimSpec.(type) {
+	switch predicate.ClaimSpec.(type) {
 	case FuzzClaimSpec:
-		return validateFuzzClaimSpec(claimPredicate)
+		return validateFuzzClaimSpec(predicate)
 	default:
 		return nil, fmt.Errorf(
 			"the claimSpec does not have the expected type; got: %T, want: FuzzClaimSpec",
-			claimPredicate.ClaimSpec)
+			predicate.ClaimSpec)
 	}
 }
 
 // validateFuzzClaimSpec validates details about the FuzzClaimSpec.
-func validateFuzzClaimSpec(claimPredicate amber.ClaimPredicate) (*amber.ClaimPredicate, error) {
-	log.Println("Not yet implemented!")
-	return &claimPredicate, nil
+func validateFuzzClaimSpec(predicate amber.ClaimPredicate) (*amber.ClaimPredicate, error) {
+	// validate that perProject.fuzzTimeSeconds is the sum of fuzzTimeSeconds for all fuzz-targets
+	// and perProject.numberFuzzTests is the sum of numberFuzzTests for all fuzz-targets.
+	projectTimeSeconds := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.FuzzTimeSeconds
+	projectNumberTests := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.NumberFuzzTests
+	sumTargetsTimeSeconds := 0.0
+	sumTargetsNumberTests := 0
+	for _, spec := range predicate.ClaimSpec.(FuzzClaimSpec).PerTarget {
+		sumTargetsTimeSeconds += spec.FuzzStats.FuzzTimeSeconds
+		sumTargetsNumberTests += spec.FuzzStats.NumberFuzzTests
+	}
+	if projectTimeSeconds != sumTargetsTimeSeconds {
+		return nil, fmt.Errorf("perProject.fuzzTimeSeconds (%f) is not equal to the sum of per-target fuzzTimeSeconds (%f)",
+			projectTimeSeconds, sumTargetsTimeSeconds)
+	}
+	if projectNumberTests != sumTargetsNumberTests {
+		return nil, fmt.Errorf("perProject.numberFuzzTests (%d) is not equal to the sum of per-target numberFuzzTests (%d)",
+			projectNumberTests, sumTargetsNumberTests)
+	}
+
+	// validate that the detectedCrashes perProject are consistent with
+	// the detectedCrashes for all fuzz-targets.
+	targetsDetectedCrashes := false
+	for _, spec := range predicate.ClaimSpec.(FuzzClaimSpec).PerTarget {
+		targetsDetectedCrashes = targetsDetectedCrashes || spec.FuzzStats.DetectedCrashes
+	}
+	if predicate.ClaimSpec.(FuzzClaimSpec).PerProject.DetectedCrashes != targetsDetectedCrashes {
+		return nil, fmt.Errorf("perProject.DetectedCrashes (%t) is not consistent with the detectedCrashes for all fuzz-targets (%t)",
+			predicate.ClaimSpec.(FuzzClaimSpec).PerProject.DetectedCrashes, targetsDetectedCrashes)
+	}
+
+	return &predicate, nil
+}
+
+// ParseFuzzClaimFile reads a JSON file from a path, and parses it into an
+// instance of intoto.Statement, with AmberClaimV1 as the PredicateType
+// and FuzzClaimV1 as the ClaimType.
+func ParseFuzzClaimFile(path string) (*intoto.Statement, error) {
+	statementBytes, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("could not read the fuzzing claim file: %v", err)
+	}
+	return parseFuzzClaimBytes(statementBytes)
+}
+
+// ParseFuzzClaimBytes parses a statementBytes into an instance of intoto.Statement,
+// with AmberClaimV1 as the PredicateType and FuzzClaimV1 as the ClaimType.
+func parseFuzzClaimBytes(statementBytes []byte) (*intoto.Statement, error) {
+	var statement intoto.Statement
+	if err := json.Unmarshal(statementBytes, &statement); err != nil {
+		return nil, fmt.Errorf("could not unmarshal the fuzzing claim file: %v", err)
+	}
+
+	predicateBytes, err := json.Marshal(statement.Predicate)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal Predicate map into JSON bytes: %v", err)
+	}
+
+	var predicate amber.ClaimPredicate
+	if err = json.Unmarshal(predicateBytes, &predicate); err != nil {
+		return nil, fmt.Errorf("could not unmarshal JSON bytes into a ClaimPredicate: %v", err)
+	}
+
+	statement.Predicate = predicate
+	statement.Predicate, err = amber.ValidateAmberClaim(statement)
+	if err != nil {
+		return nil, err
+	}
+
+	claimSpecBytes, err := json.Marshal(predicate.ClaimSpec)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal ClaimSpec map into JSON bytes: %v", err)
+	}
+
+	var claimSpec FuzzClaimSpec
+	if err = json.Unmarshal(claimSpecBytes, &claimSpec); err != nil {
+		return nil, fmt.Errorf("could not unmarshal JSON bytes into a FuzzClaimSpec: %v", err)
+	}
+
+	predicate.ClaimSpec = claimSpec
+	statement.Predicate, err = ValidateFuzzClaim(predicate)
+	if err != nil {
+		return nil, err
+	}
+
+	return &statement, nil
 }
