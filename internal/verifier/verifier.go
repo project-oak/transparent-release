@@ -124,20 +124,18 @@ func chdir(dir string) {
 	}
 }
 
-// AmberProvenanceMetadataVerifier verifies Amber provenances by comparing the
+// ProvenanceMetadataVerifier verifies provenances by comparing the
 // content of the provenance predicate against a given set of expected values.
-type AmberProvenanceMetadataVerifier struct {
-	Got  *amber.ValidatedProvenance
+type ProvenanceMetadataVerifier struct {
+	Got  *slsa.ValidatedProvenance
 	Want ProvenanceIR
 	// TODO(#69): Add metadata fields.
 }
 
-// Verify verifies a given Amber provenance file by checking its content
-// against the expected values specified in this
-// AmberProvenanceMetadataVerifier instance. Returns an error if any of the
-// values is not as expected. Otherwise returns nil, indicating success.
+// Verify verifies a given provenance file by checking its content against the expected values
+// ProvenanceMetadataVerifier instance.
 // TODO(#69): Check metadata against the expected values.
-func (verifier *AmberProvenanceMetadataVerifier) Verify() (VerificationResult, error) {
+func (verifier *ProvenanceMetadataVerifier) Verify() (VerificationResult, error) {
 	result := NewVerificationResult()
 
 	predicate := verifier.Got.GetProvenance().Predicate.(slsa.ProvenancePredicate)
@@ -145,21 +143,13 @@ func (verifier *AmberProvenanceMetadataVerifier) Verify() (VerificationResult, e
 		return result, fmt.Errorf("incorrect BuildType: got %s, want %v", predicate.BuildType, amber.AmberBuildTypeV1)
 	}
 
-	provenanceIR, err := FromAmber(verifier.Got)
-	if err != nil {
-		return result, fmt.Errorf("couldn't convert from Amber provenance: %v", err)
-	}
-
-	// To trigger the check for a non-empty build cmd in Verify, we add an (unimportant) reference value to BuildCmds in Want.
-	someValue := []string{"_"}
-	verifier.Want.BuildCmds = append(verifier.Want.BuildCmds, someValue)
+	provenanceIR := FromSLSAv02(verifier.Got)
 
 	provenanceVerifier := ProvenanceIRVerifier{
 		Got:  provenanceIR,
 		Want: verifier.Want,
 	}
 
-	// TODO(#69): Check metadata against the expected values.
 	return provenanceVerifier.Verify()
 }
 
@@ -173,8 +163,8 @@ type ProvenanceIR struct {
 	BuildCmds           [][]string
 }
 
-// FromSLSAv0 maps data from a validated SLSAv0 provenance to ProvenanceIR.
-func FromSLSAv0(provenance *slsa.ValidatedProvenance) ProvenanceIR {
+// FromSLSAv02 maps data from a validated SLSA v0.2 provenance to ProvenanceIR.
+func FromSLSAv02(provenance *slsa.ValidatedProvenance) ProvenanceIR {
 	return ProvenanceIR{
 		// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
 		BinarySHA256Digests: []string{provenance.GetBinarySHA256Digest()}}
@@ -229,7 +219,6 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 			return combinedResult, fmt.Errorf("verify build cmds failed: %v", err)
 		}
 		combinedResult.Combine(nextResult)
-
 	}
 
 	return combinedResult, nil
