@@ -147,7 +147,7 @@ func (verifier *AmberProvenanceMetadataVerifier) Verify() (VerificationResult, e
 
 	provenanceIR, err := FromAmber(verifier.Got)
 	if err != nil {
-		return result, fmt.Errorf("Couldn't convert from Amber provenance: %v", err)
+		return result, fmt.Errorf("couldn't convert from Amber provenance: %v", err)
 	}
 
 	// To trigger the check for a non-empty build cmd in Verify, we add an (unimportant) reference value to BuildCmds in Want.
@@ -210,20 +210,27 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 	combinedResult := NewVerificationResult()
 
 	// Verify BinarySHA256 Digest.
-	if len(verifier.Got.BinarySHA256Digests) != 1 {
-		return combinedResult, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
+	if verifier.Want.BinarySHA256Digests != nil {
+		if len(verifier.Got.BinarySHA256Digests) != 1 {
+			return combinedResult, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
+		}
+		nextResult, err := verifier.Got.verifyBinarySHA256Digest(verifier.Want)
+		if err != nil {
+			return combinedResult, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
+		}
+		combinedResult.Combine(nextResult)
 	}
-	nextResult, err := verifier.Got.verifyBinarySHA256Digest(verifier.Want)
-	if err != nil {
-		return combinedResult, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
-	}
-	combinedResult.Combine(nextResult)
 
 	// Verify HasBuildCmd.
-	if len(verifier.Want.BuildCmds) >= 1 {
-		nextResult, err = verifier.Got.verifyHasBuildCmd()
+	if verifier.Want.BuildCmds != nil {
+		nextResult, err := verifier.Got.verifyHasBuildCmd()
+
+		if err != nil {
+			return combinedResult, fmt.Errorf("verify build cmds failed: %v", err)
+		}
+		combinedResult.Combine(nextResult)
+
 	}
-	combinedResult.Combine(nextResult)
 
 	return combinedResult, nil
 }
