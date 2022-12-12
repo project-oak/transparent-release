@@ -136,13 +136,6 @@ type ProvenanceMetadataVerifier struct {
 // ProvenanceMetadataVerifier instance.
 // TODO(#69): Check metadata against the expected values.
 func (verifier *ProvenanceMetadataVerifier) Verify() (VerificationResult, error) {
-	result := NewVerificationResult()
-
-	predicate := verifier.Got.GetProvenance().Predicate.(slsa.ProvenancePredicate)
-	if predicate.BuildType != amber.AmberBuildTypeV1 {
-		return result, fmt.Errorf("incorrect BuildType: got %s, want %v", predicate.BuildType, amber.AmberBuildTypeV1)
-	}
-
 	provenanceIR := FromSLSAv02(verifier.Got)
 
 	provenanceVerifier := ProvenanceIRVerifier{
