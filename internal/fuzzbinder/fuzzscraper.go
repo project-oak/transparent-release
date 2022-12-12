@@ -153,7 +153,7 @@ func getBlob(bucket *storage.BucketHandle, blobName string) (*storage.Reader, er
 
 // getRevisionFromFile extracts and returns the revision of the source code from an OSS-Fuzz coverage
 // report, given the content of the source-map file (a file in the OSS-Fuzz coverage bucket that
-// links coverage build dates to the revisions of the source code used for the builds) and the project name.
+// links coverage build dates to the revisions of the source code used for the builds) and the fuzzing parameters.
 func getRevisionFromFile(fileBytes []byte, fuzzParameters *FuzzParameters) (*Revision, error) {
 	var payload map[string](map[string]string)
 	var revision Revision
@@ -166,7 +166,7 @@ func getRevisionFromFile(fileBytes []byte, fuzzParameters *FuzzParameters) (*Rev
 	return &revision, nil
 }
 
-// parseCoverageSummary gets the coverage statistics from a coverage report summary.
+// parseCoverageSummary gets the coverage statistics from a coverage report summary file.
 func parseCoverageSummary(fileBytes []byte) (*Coverage, error) {
 	var summary CoverageSummary
 	var coverage Coverage
@@ -202,7 +202,8 @@ func getLogs(date string, fuzzParameters *FuzzParameters, fuzzTarget string) (*s
 	return bucket, blobs, nil
 }
 
-// getFuzzStatsFromFile gets numFuzzTests and timeFuzzSeconds from a log file.
+// getFuzzStatsFromFile gets the fuzzing effort from a fuzzer log file of
+// the correct revision of the source code.
 func getFuzzStatsFromFile(lineScanner *bufio.Scanner) (*FuzzEffort, error) {
 	var fuzzEffort FuzzEffort
 	for lineScanner.Scan() {
@@ -259,7 +260,7 @@ func getFuzzEffortFromFile(reader io.Reader, revision *Revision) (*FuzzEffort, e
 }
 
 // crashDetected detects crashes in log files that are related to a
-// given revisionHash and a given day.
+// given revision.
 func crashDetected(reader io.Reader, revision *Revision) (*Crash, error) {
 	var crash Crash
 	fileBytes, err := io.ReadAll(reader)
@@ -278,7 +279,8 @@ func crashDetected(reader io.Reader, revision *Revision) (*Crash, error) {
 	return &crash, nil
 }
 
-// FormatCoverage transforms a coverage map into a string in the expected coverage format.
+// FormatCoverage transforms a coverage map into a string in the expected
+// coverage statistics format.
 func formatCoverage(coverage map[string]float64) string {
 	return fmt.Sprintf("%.2f%% (%v/%v)", coverage["percent"], coverage["covered"], coverage["count"])
 }
@@ -308,7 +310,7 @@ func GetCoverageRevision(date string, fuzzParameters *FuzzParameters) (*Revision
 	return revision, nil
 }
 
-// GetCoverage gets the branch coverage and line coverage per project or per fuzz-target.
+// GetCoverage gets the coverage statistics per project or per fuzz-target.
 // The expected date format is "YYYYMMDD".
 func GetCoverage(date string, fuzzParameters *FuzzParameters, level string, fuzzTarget string) (*Coverage, error) {
 	var fileName string
@@ -339,7 +341,7 @@ func GetCoverage(date string, fuzzParameters *FuzzParameters, level string, fuzz
 }
 
 // GetFuzzTargets gets the list of the fuzz-targets for which fuzzing reports were generated
-// for a gicen project on a given day.
+// for a given fuzzing parameters and a given day.
 // The expected date format is "YYYYMMDD".
 func GetFuzzTargets(fuzzParameters *FuzzParameters, date string) ([]string, error) {
 	bucket, err := getBucket(CoverageBucket)
