@@ -76,9 +76,9 @@ type CoverageSummaryData struct {
 // Coverage contains coverage statistics.
 type Coverage struct {
 	// LineCoverage specifies line coverage.
-	LineCoverage string `json:"lineCoverage"`
+	LineCoverage string
 	// BranchCoverage specifies branch coverage.
-	BranchCoverage string `json:"branchCoverage"`
+	BranchCoverage string
 }
 
 // Revision contains a commit hash of a revision of a source code.
@@ -89,9 +89,9 @@ type Revision struct {
 // FuzzEffort contains the fuzzing effort statistics.
 type FuzzEffort struct {
 	// FuzzTimeSeconds specifies the fuzzing time in seconds.
-	FuzzTimeSeconds float64 `json:"fuzzTimeSeconds"`
+	FuzzTimeSeconds float64
 	// NumberFuzzTests specifies the number of executed fuzzing tests.
-	NumberFuzzTests int `json:"numberFuzzTests"`
+	NumberFuzzTests int
 }
 
 // Crash indicates if a crash has been detected.
@@ -100,7 +100,7 @@ type Crash struct {
 }
 
 // FuzzParameters contains the fuzzing parameters
-// used in OSS-Fuzz config.
+// used in OSS-Fuzz project config.
 type FuzzParameters struct {
 	ProjectName string
 	FuzzEngine  string
@@ -204,10 +204,7 @@ func getLogs(date string, fuzzParameters *FuzzParameters, fuzzTarget string) (*s
 
 // getFuzzStatsFromFile gets numFuzzTests and timeFuzzSeconds from a log file.
 func getFuzzStatsFromFile(lineScanner *bufio.Scanner) (*FuzzEffort, error) {
-	fuzzEffort := FuzzEffort{
-		FuzzTimeSeconds: 0.0,
-		NumberFuzzTests: 0,
-	}
+	var fuzzEffort FuzzEffort
 	for lineScanner.Scan() {
 		// Get the fuzzing time in seconds.
 		if strings.Contains(lineScanner.Text(), "Time ran:") {
@@ -236,10 +233,7 @@ func getFuzzStatsFromFile(lineScanner *bufio.Scanner) (*FuzzEffort, error) {
 
 // getFuzzEffortFromFile gets the fuzzingEffort from a single fuzzer log file.
 func getFuzzEffortFromFile(reader io.Reader, revision *Revision) (*FuzzEffort, error) {
-	fuzzEffort := FuzzEffort{
-		FuzzTimeSeconds: 0.0,
-		NumberFuzzTests: 0,
-	}
+	var fuzzEffort FuzzEffort
 	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err
@@ -417,9 +411,7 @@ func GetFuzzEffort(revision *Revision, date string, fuzzTarget string, fuzzParam
 // a revision of a source code on a given day.
 // The expected date format is "YYYY-MM-DD".
 func GetCrashes(revision *Revision, date string, fuzzTarget string, fuzzParameters *FuzzParameters) (*Crash, error) {
-	crash := Crash{
-		Detected: false,
-	}
+	var crash Crash
 	bucket, blobs, err := getLogs(date, fuzzParameters, fuzzTarget)
 	if err != nil {
 		return nil, err

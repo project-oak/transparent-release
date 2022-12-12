@@ -96,7 +96,7 @@ func TestCrashDetected(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 	if got.Detected {
-		t.Errorf("Unexpected crash detection: got %v, want false", got)
+		t.Errorf("Unexpected crash detection: got %v, want false", got.Detected)
 	}
 	path = filepath.Join(testdataPath, logFileWithCrashPath)
 	reader, err = os.Open(path)
@@ -108,6 +108,6 @@ func TestCrashDetected(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 	if !got.Detected {
-		t.Errorf("Unexpected crash detection: got %v, want true", got)
+		t.Errorf("Unexpected crash detection: got %v, want true", got.Detected)
 	}
 }
