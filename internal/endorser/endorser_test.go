@@ -172,6 +172,41 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 	}
 }
 
+func TestLoadAndVerifyProvenances_HasBuildCmd(t *testing.T) {
+	tempPath1, err := copyToTemp("../../testdata/provenance.json")
+	if err != nil {
+		t.Fatalf("Could not load provenance: %v", err)
+	}
+
+	reference := verifier.ProvenanceIR{
+		BinarySHA256Digests: []string{binaryHash},
+	}
+
+	_, err = loadAndVerifyProvenances([]string{"file://" + tempPath1}, reference)
+
+	if err != nil {
+		t.Fatalf("Could not verify that there is a build cmd: %v", err)
+	}
+}
+
+func TestLoadAndVerifyProvenances_HasNoBuildCmd(t *testing.T) {
+	tempPath1, err := copyToTemp("../../testdata/no_build_cmd_provenance.json")
+	if err != nil {
+		t.Fatalf("Could not load provenance: %v", err)
+	}
+
+	reference := verifier.ProvenanceIR{
+		BinarySHA256Digests: []string{binaryHash},
+	}
+
+	_, err = loadAndVerifyProvenances([]string{"file://" + tempPath1}, reference)
+
+	want := "no build cmd found"
+	if err == nil || !strings.Contains(err.Error(), want) {
+		t.Fatalf("got %q, want error message containing %q,", err, want)
+	}
+}
+
 // copyToTemp creates a copy of the given file in `/tmp`.
 // This is used for creating URLs with `file` as the scheme.
 func copyToTemp(path string) (string, error) {

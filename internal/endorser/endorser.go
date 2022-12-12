@@ -29,7 +29,6 @@ import (
 	"github.com/project-oak/transparent-release/internal/verifier"
 	"github.com/project-oak/transparent-release/pkg/amber"
 	"github.com/project-oak/transparent-release/pkg/intoto"
-	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 )
 
 // GenerateEndorsement generates an endorsement statement for the given validity duration, using
@@ -58,14 +57,14 @@ func loadAndVerifyProvenances(provenanceURIs []string, referenceValues verifier.
 	}
 
 	// load provenances from URIs
-	provenances := make([]slsa.ValidatedProvenance, 0, len(provenanceURIs))
+	provenances := make([]amber.ValidatedProvenance, 0, len(provenanceURIs))
 	provenancesData := make([]amber.ProvenanceData, 0, len(provenanceURIs))
 	for _, uri := range provenanceURIs {
 		provenanceBytes, err := getProvenanceBytes(uri)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't load the provenance file from %s: %v", uri, err)
 		}
-		provenance, err := slsa.ParseProvenanceData(provenanceBytes)
+		provenance, err := amber.ParseProvenanceData(provenanceBytes)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't parse bytes from %s into a provenance statement: %v", uri, err)
 		}
@@ -100,11 +99,18 @@ func loadAndVerifyProvenances(provenanceURIs []string, referenceValues verifier.
 
 // verifyProvenances verifies the given list of provenances. An error is returned if not.
 // TODO(b/222440937): Document any additional checks.
-func verifyProvenances(provenances []slsa.ValidatedProvenance, referenceValues verifier.ProvenanceIR) (verifier.VerificationResult, error) {
+func verifyProvenances(provenances []amber.ValidatedProvenance, referenceValues verifier.ProvenanceIR) (verifier.VerificationResult, error) {
 	combinedResult := verifier.NewVerificationResult()
 	for index := range provenances {
+
+		provenance, err := verifier.FromAmber(&provenances[index])
+		if err != nil {
+			return combinedResult, fmt.Errorf("verification of the provenance at index %d failed: %v;", index, err)
+		}
+
+		// TOOD(mschett): Implement and use AmberProvenanceMetadataVerifier
 		provenanceVerifier := verifier.ProvenanceIRVerifier{
-			Got:  verifier.FromSLSAv0(&provenances[index]),
+			Got:  provenance,
 			Want: referenceValues,
 		}
 		result, err := provenanceVerifier.Verify()
@@ -125,7 +131,7 @@ func verifyProvenances(provenances []slsa.ValidatedProvenance, referenceValues v
 // verifyConsistency verifies that all provenances have the same binary name and
 // binary digest.
 // TODO(b/222440937): Perform any additional verification among provenances to ensure their consistency.
-func verifyConsistency(provenances []slsa.ValidatedProvenance) verifier.VerificationResult {
+func verifyConsistency(provenances []amber.ValidatedProvenance) verifier.VerificationResult {
 	result := verifier.NewVerificationResult()
 	// verify that all provenances have the same binary digest and name.
 	binaryDigest := provenances[0].GetBinarySHA256Digest()
