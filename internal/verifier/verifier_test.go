@@ -93,7 +93,7 @@ func TestReproducibleProvenanceVerifier_badCommand(t *testing.T) {
 	}
 }
 
-func TestLoadAndVerifyProvenances_HasBuildCmd(t *testing.T) {
+func TestVerifyHasBuildCmd_HasBuildCmd(t *testing.T) {
 	got := ProvenanceIR{
 		BuildCmds: [][]string{{"build cmd"}},
 	}
@@ -106,7 +106,7 @@ func TestLoadAndVerifyProvenances_HasBuildCmd(t *testing.T) {
 	testutil.AssertEq(t, "has build cmd", result.IsVerified, true)
 }
 
-func TestLoadAndVerifyProvenances_HasNoBuildCmd(t *testing.T) {
+func TestVerifyHasBuildCmd_HasNoBuildCmd(t *testing.T) {
 	got := ProvenanceIR{}
 	result, err := got.verifyHasBuildCmd()
 
@@ -123,7 +123,7 @@ func TestLoadAndVerifyProvenances_HasNoBuildCmd(t *testing.T) {
 	}
 }
 
-func TestLoadAndVerifyProvenances_HasTooManyBuildCmds(t *testing.T) {
+func TestVerifyHasBuildCmd_HasTooManyBuildCmds(t *testing.T) {
 	got := ProvenanceIR{
 		BuildCmds: [][]string{{"build cmd"}, {"another build cmd"}},
 	}
