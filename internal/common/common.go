@@ -314,23 +314,6 @@ func (b *BuildConfig) ChangeDirToGitRoot(gitRootDir string) (*RepoCheckoutInfo, 
 	return info, nil
 }
 
-// VerifyBinarySHA256Digest computes the SHA256 digest of the binary built by this
-// BuildConfig, and checks that this digest is equal to the given `expectedSha256Digest`.
-// Returns an error if the hashes are not equal.
-func (b *BuildConfig) VerifyBinarySHA256Digest(expectedBinarySha256Digest string) error {
-	binarySha256Digest, err := b.ComputeBinarySHA256Digest()
-	if err != nil {
-		return fmt.Errorf("couldn't get the digest of the binary: %v", err)
-	}
-
-	if binarySha256Digest != expectedBinarySha256Digest {
-		return fmt.Errorf("the digest of the generated binary does not match the expected SHA256 digest; got %s, want %s",
-			binarySha256Digest, expectedBinarySha256Digest)
-	}
-
-	return nil
-}
-
 func parseBuilderImageURI(imageURI string) (string, string, error) {
 	// We expect the URI of the builder image to be of the form NAME@DIGEST
 	URIParts := strings.Split(imageURI, "@")

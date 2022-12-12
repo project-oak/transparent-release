@@ -26,18 +26,19 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/project-oak/transparent-release/internal/verifier"
 	"github.com/project-oak/transparent-release/pkg/amber"
 	"github.com/project-oak/transparent-release/pkg/intoto"
 	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 )
 
-// GenerateEndorsement generates an endorsement statement for the given binary SHA256 digest, for
-// the given validity duration, using the given provenances as evidence. At least one provenance
+// GenerateEndorsement generates an endorsement statement for the given validity duration, using
+// the given provenances as evidence and reference values to verify them. At least one provenance
 // must be provided. The endorsement statement is generated only if the provenance statements are
 // valid. Each provenanceURI must either specify a local file (using the `file` scheme), or a
 // remote file (using the `http/https` scheme).
-func GenerateEndorsement(binaryDigest string, validityDuration amber.ClaimValidity, provenanceURIs []string) (*intoto.Statement, error) {
-	verifiedProvenances, err := loadAndVerifyProvenances(provenanceURIs, binaryDigest)
+func GenerateEndorsement(referenceValues verifier.ProvenanceIR, validityDuration amber.ClaimValidity, provenanceURIs []string) (*intoto.Statement, error) {
+	verifiedProvenances, err := loadAndVerifyProvenances(provenanceURIs, referenceValues)
 	if err != nil {
 		return nil, fmt.Errorf("could not load provenances: %v", err)
 	}
@@ -51,7 +52,7 @@ func GenerateEndorsement(binaryDigest string, validityDuration amber.ClaimValidi
 // (2) Any of the provenances cannot be loaded (e.g., invalid URI),
 // (3) Any of the provenances is invalid (see verifyProvenances for details on validity),
 // (4) Provenances do not match (e.g., have different binary names).
-func loadAndVerifyProvenances(provenanceURIs []string, binaryDigest string) (*amber.VerifiedProvenanceSet, error) {
+func loadAndVerifyProvenances(provenanceURIs []string, referenceValues verifier.ProvenanceIR) (*amber.VerifiedProvenanceSet, error) {
 	if len(provenanceURIs) == 0 {
 		return nil, fmt.Errorf("at least one provenance file must be provided")
 	}
@@ -76,41 +77,73 @@ func loadAndVerifyProvenances(provenanceURIs []string, binaryDigest string) (*am
 		})
 	}
 
-	if err := verifyProvenances(provenances, binaryDigest); err != nil {
-		return nil, fmt.Errorf("verification of provenances failed: %v", err)
+	result := verifyConsistency(provenances)
+
+	verifyResult, err := verifyProvenances(provenances, referenceValues)
+	if err != nil {
+		return nil, fmt.Errorf("failed while verifying provenances: %v", err)
+	}
+	result.Combine(verifyResult)
+
+	if !result.IsVerified {
+		return nil, fmt.Errorf("verification of provenances failed: %v", result.Justifications)
 	}
 
 	verifiedProvenances := amber.VerifiedProvenanceSet{
 		BinaryName:   provenances[0].GetBinaryName(),
-		BinaryDigest: binaryDigest,
+		BinaryDigest: provenances[0].GetBinarySHA256Digest(),
 		Provenances:  provenancesData,
 	}
 
 	return &verifiedProvenances, nil
 }
 
-// verifyProvenances verifies that the given list of provenances are consistent and have the given
-// binaryDigest as the subject. Provenances are consistent if they all have the same binary name and
-// binary digest. An error is returned if any of the conditions above are violated.
+// verifyProvenances verifies the given list of provenances. An error is returned if not.
 // TODO(b/222440937): Document any additional checks.
-func verifyProvenances(provenances []slsa.ValidatedProvenance, binaryDigest string) error {
+func verifyProvenances(provenances []slsa.ValidatedProvenance, referenceValues verifier.ProvenanceIR) (verifier.VerificationResult, error) {
+	combinedResult := verifier.NewVerificationResult()
 	for index := range provenances {
-		if err := verifyProvenance(&provenances[index], binaryDigest); err != nil {
-			return fmt.Errorf("verification of the provenance at index %d failed: %v", index, err)
+		provenanceVerifier := verifier.ProvenanceIRVerifier{
+			Got:  verifier.FromSLSAv0(&provenances[index]),
+			Want: referenceValues,
 		}
-	}
+		result, err := provenanceVerifier.Verify()
+		if err != nil {
+			return combinedResult, fmt.Errorf("verification of the provenance at index %d failed: %v;", index, err)
+		}
 
-	// verify that all provenances have the same binary name.
+		// result already holds a justification, but we also want to add the index where it failed.
+		if !result.IsVerified {
+			result.Justifications = append([]string{fmt.Sprintf("verification of the provenance at index %d failed;", index)}, result.Justifications...)
+		}
+
+		combinedResult.Combine(result)
+	}
+	return combinedResult, nil
+}
+
+// verifyConsistency verifies that all provenances have the same binary name and
+// binary digest.
+// TODO(b/222440937): Perform any additional verification among provenances to ensure their consistency.
+func verifyConsistency(provenances []slsa.ValidatedProvenance) verifier.VerificationResult {
+	result := verifier.NewVerificationResult()
+	// verify that all provenances have the same binary digest and name.
+	binaryDigest := provenances[0].GetBinarySHA256Digest()
 	binaryName := provenances[0].GetBinaryName()
 	for ind := 1; ind < len(provenances); ind++ {
 		if provenances[ind].GetBinaryName() != binaryName {
-			return fmt.Errorf("unexpected subject name in provenance #%d; got %q, want %q",
-				ind,
-				provenances[ind].GetBinaryName(), binaryName)
+			result.SetFailed(
+				fmt.Sprintf("provenances are not consistent: unexpected subject name in provenance #%d; got %q, want %q",
+					ind,
+					provenances[ind].GetBinaryName(), binaryName))
 		}
-		// TODO(b/222440937): Perform any additional verification among provenances to ensure their consistency.
+		if provenances[ind].GetBinarySHA256Digest() != binaryDigest {
+			result.SetFailed(fmt.Sprintf("provenances are not consistent: unexpected binary SHA256 digest in provenance #%d; got %q, want %q",
+				ind,
+				provenances[ind].GetBinarySHA256Digest(), binaryDigest))
+		}
 	}
-	return nil
+	return result
 }
 
 func getProvenanceBytes(provenanceURI string) ([]byte, error) {
@@ -155,16 +188,4 @@ func getLocalJSONFile(uri *url.URL) ([]byte, error) {
 		return nil, fmt.Errorf("%q does not exist", uri.Path)
 	}
 	return os.ReadFile(uri.Path)
-}
-
-// verifyProvenance verifies that the provenance has the expected digest.
-// TODO(b/222440937): In future, also verify the details of the given provenance and the signature.
-func verifyProvenance(provenance *slsa.ValidatedProvenance, binaryDigest string) error {
-	provenanceSubjectDigest := provenance.GetBinarySHA256Digest()
-	if binaryDigest != provenanceSubjectDigest {
-		return fmt.Errorf("the binary digest (%s) is different from the provenance subject digest (%s)",
-			binaryDigest,
-			provenanceSubjectDigest)
-	}
-	return nil
 }

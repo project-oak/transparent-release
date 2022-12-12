@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/project-oak/transparent-release/internal/testutil"
+	"github.com/project-oak/transparent-release/internal/verifier"
 	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
@@ -44,7 +45,10 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 	}
 	tempURI := "file://" + tempPath
 	provenances := []string{tempURI}
-	statement, err := GenerateEndorsement(binaryHash, validity, provenances)
+	reference := verifier.ProvenanceIR{
+		BinarySHA256Digests: []string{binaryHash},
+	}
+	statement, err := GenerateEndorsement(reference, validity, provenances)
 	if err != nil {
 		t.Fatalf("Could not generate endorsement from %q: %v", provenances[0], err)
 	}
@@ -58,14 +62,7 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 	testutil.AssertEq(t, "notAfter date", predicate.Validity.NotAfter, &nextWeek)
 }
 
-func TestGenerateEndorsement_MultipleValidEndorsement(t *testing.T) {
-	tomorrow := time.Now().AddDate(0, 0, 1)
-	nextWeek := time.Now().AddDate(0, 0, 7)
-	validity := amber.ClaimValidity{
-		NotBefore: &tomorrow,
-		NotAfter:  &nextWeek,
-	}
-
+func TestLoadAndVerifyProvenances_MultipleValidEndorsement(t *testing.T) {
 	tempPath1, err := copyToTemp("../../testdata/provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
@@ -75,12 +72,17 @@ func TestGenerateEndorsement_MultipleValidEndorsement(t *testing.T) {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
 	provenances := []string{"file://" + tempPath1, "file://" + tempPath2}
-	statement, err := GenerateEndorsement(binaryHash, validity, provenances)
+	reference := verifier.ProvenanceIR{
+		// Make sure we pick the correct binary hash if there are several reference values.
+		BinarySHA256Digests: []string{binaryHash + "_diff", binaryHash},
+	}
+	provenanceSet, err := loadAndVerifyProvenances(provenances, reference)
 	if err != nil {
 		t.Fatalf("Could not generate endorsement from %q: %v", provenances[0], err)
 	}
 
-	testutil.AssertEq(t, "binary hash", statement.Subject[0].Digest["sha256"], binaryHash)
+	testutil.AssertEq(t, "binary name", provenanceSet.BinaryName, binaryName)
+	testutil.AssertEq(t, "binary hash", provenanceSet.BinaryDigest, binaryHash)
 }
 
 func TestGenerateEndorsement_FailingSingleRemoteProvenanceEndorsement(t *testing.T) {
@@ -92,10 +94,81 @@ func TestGenerateEndorsement_FailingSingleRemoteProvenanceEndorsement(t *testing
 	}
 
 	provenances := []string{"https://github.com/project-oak/transparent-release/blob/main/testdata/provenance.json"}
-	_, err := GenerateEndorsement(binaryHash, validity, provenances)
+	reference := verifier.ProvenanceIR{
+		BinarySHA256Digests: []string{binaryHash},
+	}
+	_, err := GenerateEndorsement(reference, validity, provenances)
 	want := "could not load provenances"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
+	}
+}
+
+func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
+	tempPath1, err := copyToTemp("../../testdata/provenance.json")
+	if err != nil {
+		t.Fatalf("Could not load provenance: %v", err)
+	}
+
+	reference := verifier.ProvenanceIR{
+		BinarySHA256Digests: []string{binaryHash + "_diff"},
+	}
+
+	// Provenances do not contain the given reference binary SHA256 digest value, but are consistent.
+	_, err = loadAndVerifyProvenances([]string{"file://" + tempPath1, "file://" + tempPath1}, reference)
+	want := "do not contain the actual binary SHA256 digest"
+	if err == nil || !strings.Contains(err.Error(), want) {
+		t.Fatalf("got %q, want error message containing %q,", err, want)
+	}
+}
+
+func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
+	tempPath1, err := copyToTemp("../../testdata/provenance.json")
+	if err != nil {
+		t.Fatalf("Could not load provenance: %v", err)
+	}
+
+	tempPath2, err := copyToTemp("../../testdata/different_provenance.json")
+	if err != nil {
+		t.Fatalf("Could not load provenance: %v", err)
+	}
+
+	reference := verifier.ProvenanceIR{
+		BinarySHA256Digests: []string{"e8e05d1d09af8952919bf6ab38e0cc5a6414ee2b5e21f4765b12421c5db0037e", binaryHash},
+	}
+
+	// Provenances each contain a (different) given reference binary SHA256 digest value, but are inconsistent.
+	_, err = loadAndVerifyProvenances([]string{"file://" + tempPath1, "file://" + tempPath2}, reference)
+	want := "provenances are not consistent"
+	if err == nil || !strings.Contains(err.Error(), want) {
+		t.Fatalf("got %q, want error message containing %q,", err, want)
+	}
+}
+
+func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
+	tempPath1, err := copyToTemp("../../testdata/provenance.json")
+	if err != nil {
+		t.Fatalf("Could not load provenance: %v", err)
+	}
+
+	tempPath2, err := copyToTemp("../../testdata/different_provenance.json")
+	if err != nil {
+		t.Fatalf("Could not load provenance: %v", err)
+	}
+
+	reference := verifier.ProvenanceIR{
+		BinarySHA256Digests: []string{binaryHash + "_diff"},
+	}
+
+	_, err = loadAndVerifyProvenances([]string{"file://" + tempPath1, "file://" + tempPath2}, reference)
+	want := "do not contain the actual binary SHA256 digest"
+	if err == nil || !strings.Contains(err.Error(), want) {
+		t.Fatalf("got %q, want error message containing %q,", err, want)
+	}
+
+	want2 := "provenances are not consistent"
+	if err == nil || !strings.Contains(err.Error(), want2) {
+		t.Fatalf("got %q, want error message containing %q,", err, want2)
 	}
 }
 
