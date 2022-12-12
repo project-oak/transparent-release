@@ -167,23 +167,24 @@ func getLogs(date string, projectName string, fuzzTarget string, fuzzEngine stri
 func getFuzzStatsFromFile(lineScanner *bufio.Scanner) (int, float64, error) {
 	var timeFuzzSeconds float64
 	var numTests int
-	var err error
 	for lineScanner.Scan() {
 		// Get the fuzzing time in seconds.
 		if strings.Contains(lineScanner.Text(), "Time ran:") {
 			timeFuzzStr := strings.Split(lineScanner.Text(), " ")[2]
-			timeFuzzSeconds, err = strconv.ParseFloat(timeFuzzStr, 32)
+			timeFuzzSecondsTemp, err := strconv.ParseFloat(timeFuzzStr, 32)
 			if err != nil {
 				return 0, 0.0, fmt.Errorf("couldn't convert %s to float: %v", timeFuzzStr, err)
 			}
+			timeFuzzSeconds = timeFuzzSecondsTemp
 		}
 		// Get the number of fuzzing tests.
 		if strings.Contains(lineScanner.Text(), "stat::number_of_executed_units") {
 			numTestsStr := strings.Split(lineScanner.Text(), " ")[1]
-			numTests, err = strconv.Atoi(numTestsStr)
+			numTestsTemp, err := strconv.Atoi(numTestsStr)
 			if err != nil {
 				return 0, 0.0, fmt.Errorf("couldn't convert %s to int: %v", numTestsStr, err)
 			}
+			numTests = numTestsTemp
 		}
 		if (numTests > 0) && (timeFuzzSeconds > 0) {
 			break
