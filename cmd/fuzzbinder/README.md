@@ -49,9 +49,10 @@ $ go run cmd/fuzzbinder/main.go -project_name <project-name> \
   -fuzzengine <fuzzing-engine> -sanitizer <fuzzing-sanitizer>  \
   -date <fuzzing-date> -fuzzclaim_path <fuzzclaim-path>
 ```
-As you may noticed, you will need `<fuzzing-engine>` and `<fuzzing-sanitizer>` that you used in your OSS-Fuzz project configuration. 
-For instance, if you used `libfuzzer` as a fuzzing engine and an `address sanitizer` for your project, and you want to generate a fuzzing claim 
-using the fuzzing reports of the date `YYYYMMDD` you have to run: 
+
+As you may noticed, you will need `<fuzzing-engine>` and `<fuzzing-sanitizer>` that you used in your OSS-Fuzz project configuration.
+For instance, if you used `libfuzzer` as a fuzzing engine and an `address sanitizer` for your project, and you want to generate a fuzzing claim
+using the fuzzing reports of the date `YYYYMMDD` you have to run:
 
 ```sh
 $ go run cmd/fuzzbinder/main.go -project_name <project-name> \
@@ -59,4 +60,5 @@ $ go run cmd/fuzzbinder/main.go -project_name <project-name> \
   -fuzzengine libFuzzer -sanitizer asan  \
   -date YYYYMMDD -fuzzclaim_path <fuzzclaim-path>
 ```
+
 The generated fuzzing claim will be saved in `<fuzzclaim-path>`.
