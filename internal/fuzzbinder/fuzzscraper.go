@@ -381,8 +381,8 @@ func GetFuzzTargets(date string, fuzzParameters *FuzzParameters) ([]string, erro
 
 // GetEvidences gets the list of the evidence files used by the fuzzscraper.
 // The expected date format is "YYYYMMDD".
-func GetEvidences(date string, fuzztargets []string, fuzzParameters *FuzzParameters) ([]amber.ClaimEvidence, error) {
-	var evidences []amber.ClaimEvidence
+func GetEvidences(date string, fuzzTargets []string, fuzzParameters *FuzzParameters) ([]amber.ClaimEvidence, error) {
+	evidences := make([]amber.ClaimEvidence, len(fuzzTargets)+2)
 	// Get the GCS absolute path of the file containing the revision hash of the source code used
 	// in the coverage build on a given day.
 	role := "revision"
@@ -403,11 +403,11 @@ func GetEvidences(date string, fuzztargets []string, fuzzParameters *FuzzParamet
 		return nil, err
 	}
 	evidences = append(evidences, amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest})
-	for _, fuzztarget := range fuzztargets {
-		// The role of the coverage evidence using the fuzztarget.
-		role := fmt.Sprintf("%s_%s_%v coverage", fuzzParameters.FuzzEngine, fuzzParameters.ProjectName, fuzztarget)
+	for _, fuzzTarget := range fuzzTargets {
+		// The role of the coverage evidence using the fuzzTarget.
+		role := fmt.Sprintf("%s_%s_%v coverage", fuzzParameters.FuzzEngine, fuzzParameters.ProjectName, fuzzTarget)
 		// The GCS absolute path of the file containing the coverage summary for a fuzz-target on a given day.
-		blobName = fmt.Sprintf("%s/fuzzer_stats/%s/%v.json", fuzzParameters.ProjectName, date, fuzztarget)
+		blobName = fmt.Sprintf("%s/fuzzer_stats/%s/%v.json", fuzzParameters.ProjectName, date, fuzzTarget)
 		uri = fmt.Sprintf("gs://%s/%s", CoverageBucket, blobName)
 		digest, err = getGCSFileDigest(CoverageBucket, blobName)
 		if err != nil {
