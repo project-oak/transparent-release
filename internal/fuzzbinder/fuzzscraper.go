@@ -382,7 +382,7 @@ func GetFuzzTargets(date string, fuzzParameters *FuzzParameters) ([]string, erro
 // GetEvidences gets the list of the evidence files used by the fuzzscraper.
 // The expected date format is "YYYYMMDD".
 func GetEvidences(date string, fuzzTargets []string, fuzzParameters *FuzzParameters) ([]amber.ClaimEvidence, error) {
-	var evidences []amber.ClaimEvidence
+	evidences := make([]amber.ClaimEvidence, len(fuzzTargets)+2)
 	// Get the GCS absolute path of the file containing the revision hash of the source code used
 	// in the coverage build on a given day.
 	role := "revision"
@@ -392,7 +392,7 @@ func GetEvidences(date string, fuzzTargets []string, fuzzParameters *FuzzParamet
 	if err != nil {
 		return nil, err
 	}
-	evidences = append(evidences, amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest})
+	evidences[0] = amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest}
 
 	// Get the GCS absolute path of the file containing the coverage summary for the project on a given day.
 	role = "project coverage"
@@ -402,8 +402,8 @@ func GetEvidences(date string, fuzzTargets []string, fuzzParameters *FuzzParamet
 	if err != nil {
 		return nil, err
 	}
-	evidences = append(evidences, amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest})
-	for _, fuzzTarget := range fuzzTargets {
+	evidences[1] = amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest}
+	for idx, fuzzTarget := range fuzzTargets {
 		// The role of the coverage evidence using the fuzzTarget.
 		role := fmt.Sprintf("%s_%s_%v coverage", fuzzParameters.FuzzEngine, fuzzParameters.ProjectName, fuzzTarget)
 		// The GCS absolute path of the file containing the coverage summary for a fuzz-target on a given day.
@@ -413,7 +413,7 @@ func GetEvidences(date string, fuzzTargets []string, fuzzParameters *FuzzParamet
 		if err != nil {
 			return nil, err
 		}
-		evidences = append(evidences, amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest})
+		evidences[2+idx] = amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest}
 	}
 	return evidences, nil
 }
