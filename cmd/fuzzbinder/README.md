@@ -7,7 +7,7 @@ By following the steps described below, you will be able to generate fuzzing cla
 
 ## Generating fuzzing claims using the `cmd/fuzzbinder` tool
 
-If you have not already done so, consult the [`development guidelines`](docs/development-guidelines.md) to find out what you need to
+If you have not already done so, consult the [`development guidelines`](./../../docs/development-guidelines.md) to find out what you need to
 install before following the steps below.
 
 ### 1) Establish access to GCS
