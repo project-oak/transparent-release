@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/project-oak/transparent-release/internal/testutil"
+	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
 const (
@@ -44,7 +45,7 @@ func TestGetRevisionFromFile(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 	// Check that the length of the extracted commitHash is correct.
-	testutil.AssertEq(t, "commitHash length", len(got.Hash), wantSHA1HexDigitLength)
+	testutil.AssertEq(t, "commitHash length", len(got["sha1"]), wantSHA1HexDigitLength)
 }
 
 func TestParseCoverageSummary(t *testing.T) {
@@ -62,15 +63,15 @@ func TestParseCoverageSummary(t *testing.T) {
 }
 
 func TestGetFuzzEffortFromFile(t *testing.T) {
-	revision := Revision{
-		Hash: hash,
+	revisionDigest := intoto.DigestSet{
+		"sha1": hash,
 	}
 	path := filepath.Join(testdataPath, logFilePath)
 	reader, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	fuzzEffort, err := getFuzzEffortFromFile(reader, &revision)
+	fuzzEffort, err := getFuzzEffortFromFile(reader, revisionDigest)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
@@ -83,15 +84,15 @@ func TestGetFuzzEffortFromFile(t *testing.T) {
 }
 
 func TestCrashDetected(t *testing.T) {
-	revision := Revision{
-		Hash: hash,
+	revisionDigest := intoto.DigestSet{
+		"sha1": hash,
 	}
 	path := filepath.Join(testdataPath, logFilePath)
 	reader, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err := crashDetected(reader, &revision)
+	got, err := crashDetected(reader, revisionDigest)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
@@ -103,7 +104,7 @@ func TestCrashDetected(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err = crashDetected(reader, &revision)
+	got, err = crashDetected(reader, revisionDigest)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
