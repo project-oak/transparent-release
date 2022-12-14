@@ -124,36 +124,26 @@ func chdir(dir string) {
 	}
 }
 
-// AmberProvenanceMetadataVerifier verifies Amber provenances by comparing the
+// ProvenanceMetadataVerifier verifies provenances by comparing the
 // content of the provenance predicate against a given set of expected values.
-type AmberProvenanceMetadataVerifier struct {
-	provenanceFilePath string
+type ProvenanceMetadataVerifier struct {
+	Got  *slsa.ValidatedProvenance
+	Want ProvenanceIR
 	// TODO(#69): Add metadata fields.
 }
 
-// Verify verifies a given Amber provenance file by checking its content
-// against the expected values specified in this
-// AmberProvenanceMetadataVerifier instance. Returns an error if any of the
-// values is not as expected. Otherwise returns nil, indicating success.
+// Verify verifies a given provenance file by checking its content against the expected values
+// ProvenanceMetadataVerifier instance.
 // TODO(#69): Check metadata against the expected values.
-// TODO(#126): Refactor and separate verification logic from the logic for reading the file.
-func (verifier *AmberProvenanceMetadataVerifier) Verify() (VerificationResult, error) {
-	result := NewVerificationResult()
+func (verifier *ProvenanceMetadataVerifier) Verify() (VerificationResult, error) {
+	provenanceIR := FromSLSAv02(verifier.Got)
 
-	provenance, err := amber.ParseProvenanceFile(verifier.provenanceFilePath)
-	if err != nil {
-		return result, fmt.Errorf("couldn't load the provenance file from %s: %v", verifier.provenanceFilePath, err)
+	provenanceVerifier := ProvenanceIRVerifier{
+		Got:  provenanceIR,
+		Want: verifier.Want,
 	}
 
-	predicate := provenance.GetProvenance().Predicate.(slsa.ProvenancePredicate)
-
-	if predicate.BuildType != amber.AmberBuildTypeV1 {
-		return result, fmt.Errorf("incorrect BuildType: got %s, want %v", predicate.BuildType, amber.AmberBuildTypeV1)
-	}
-
-	// TODO(#69): Check metadata against the expected values.
-
-	return result, nil
+	return provenanceVerifier.Verify()
 }
 
 // ProvenanceIR is an internal intermediate representation of data from provenances for verification.
@@ -163,20 +153,30 @@ func (verifier *AmberProvenanceMetadataVerifier) Verify() (VerificationResult, e
 // To be usable with different provenance formats, we allow fields to be empty ([]) and to hold several reference values.
 type ProvenanceIR struct {
 	BinarySHA256Digests []string
+	BuildCmds           [][]string
 }
 
-// FromSLSAv0 maps data from a validated SLSAv0 provenance to ProvenanceIR.
-func FromSLSAv0(provenance *slsa.ValidatedProvenance) ProvenanceIR {
+// FromSLSAv02 maps data from a validated SLSA v0.2 provenance to ProvenanceIR.
+func FromSLSAv02(provenance *slsa.ValidatedProvenance) ProvenanceIR {
 	return ProvenanceIR{
 		// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
 		BinarySHA256Digests: []string{provenance.GetBinarySHA256Digest()}}
 }
 
 // FromAmber maps data from a validated Amber provenance to ProvenanceIR.
-func FromAmber(provenance *amber.ValidatedProvenance) ProvenanceIR {
-	return ProvenanceIR{
-		// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
-		BinarySHA256Digests: []string{provenance.GetBinarySHA256Digest()}}
+func FromAmber(provenance *amber.ValidatedProvenance) (ProvenanceIR, error) {
+	var provenanceIR ProvenanceIR
+
+	// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
+	provenanceIR.BinarySHA256Digests = []string{provenance.GetBinarySHA256Digest()}
+
+	buildCmd, err := provenance.GetBuildCmd()
+	if err != nil {
+		return provenanceIR, fmt.Errorf("could not convert from *amber.ValidatedProvenance: %v", err)
+	}
+	provenanceIR.BuildCmds = [][]string{buildCmd}
+
+	return provenanceIR, nil
 }
 
 // ProvenanceIRVerifier verifies a provenance against a given reference, by verifying
@@ -190,18 +190,31 @@ type ProvenanceIRVerifier struct {
 // Verify verifies an instance of ProvenanceIRVerifier by comparing its Got and Want fields.
 // All empty fields are ignored. If a field in Got contains more than one value, we return an error.
 func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
-	result := NewVerificationResult()
-	if len(verifier.Got.BinarySHA256Digests) != 1 {
-		return result, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
+	combinedResult := NewVerificationResult()
+
+	// Verify BinarySHA256 Digest.
+	if verifier.Want.BinarySHA256Digests != nil {
+		if len(verifier.Got.BinarySHA256Digests) != 1 {
+			return combinedResult, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
+		}
+		nextResult, err := verifier.Got.verifyBinarySHA256Digest(verifier.Want)
+		if err != nil {
+			return combinedResult, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
+		}
+		combinedResult.Combine(nextResult)
 	}
 
-	nextresult, err := verifier.Got.verifyBinarySHA256Digest(verifier.Want)
-	if err != nil {
-		return result, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
-	}
-	result.Combine(nextresult)
+	// Verify HasBuildCmd.
+	if verifier.Want.BuildCmds != nil {
+		nextResult, err := verifier.Got.verifyHasBuildCmd()
 
-	return result, nil
+		if err != nil {
+			return combinedResult, fmt.Errorf("verify build cmds failed: %v", err)
+		}
+		combinedResult.Combine(nextResult)
+	}
+
+	return combinedResult, nil
 }
 
 // verifyBinarySHA256Digest verifies that the binary SHA256 in this provenance is contained in the given reference binary SHA256 digests (in want).
@@ -228,6 +241,21 @@ func (got *ProvenanceIR) verifyBinarySHA256Digest(want ProvenanceIR) (Verificati
 		result.SetFailed(fmt.Sprintf("the reference binary SHA256 digests (%v) do not contain the actual binary SHA256 digest (%v)",
 			want.BinarySHA256Digests,
 			got.BinarySHA256Digests))
+	}
+
+	return result, nil
+}
+
+// verifyHasBuildCmd verifies that the build cmd is not empty.
+func (got *ProvenanceIR) verifyHasBuildCmd() (VerificationResult, error) {
+	result := NewVerificationResult()
+
+	if len(got.BuildCmds) > 1 {
+		return result, fmt.Errorf("got multiple build cmds (%s)", got.BuildCmds)
+	}
+
+	if len(got.BuildCmds) == 0 || len(got.BuildCmds[0]) == 0 {
+		result.SetFailed("no build cmd found")
 	}
 
 	return result, nil

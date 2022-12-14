@@ -93,6 +93,70 @@ func TestReproducibleProvenanceVerifier_badCommand(t *testing.T) {
 	}
 }
 
+func TestVerifyHasBuildCmd_HasBuildCmd(t *testing.T) {
+	got := ProvenanceIR{
+		BuildCmds: [][]string{{"build cmd"}},
+	}
+	result, err := got.verifyHasBuildCmd()
+
+	if err != nil {
+		t.Fatalf("Could not verify that there is a build cmd: %v", err)
+	}
+
+	testutil.AssertEq(t, "has build cmd", result.IsVerified, true)
+}
+
+func TestVerifyHasBuildCmd_HasNoBuildCmd(t *testing.T) {
+	got := ProvenanceIR{}
+	result, err := got.verifyHasBuildCmd()
+
+	if err != nil {
+		t.Fatalf("Could not verify that there is a build cmd: %v", err)
+	}
+
+	testutil.AssertEq(t, "has no build cmd", result.IsVerified, false)
+
+	justifications := fmt.Sprintf("%s", result.Justifications)
+	want := "no build cmd found"
+	if !strings.Contains(justifications, want) {
+		t.Fatalf("got %q, want justification containing %q,", justifications, want)
+	}
+}
+
+func TestVerifyHasBuildCmd_HasTooManyBuildCmds(t *testing.T) {
+	got := ProvenanceIR{
+		BuildCmds: [][]string{{"build cmd"}, {"another build cmd"}},
+	}
+	_, err := got.verifyHasBuildCmd()
+
+	want := "got multiple build cmds"
+	if err == nil || !strings.Contains(err.Error(), want) {
+		t.Fatalf("got %q, want error message containing %q,", err, want)
+	}
+}
+
+func TestVerifyHasBuildCmd_EmptyBuildCmds(t *testing.T) {
+	// There is no build cmd.
+	got := ProvenanceIR{}
+	// But the reference values do not ask for a build cmd.
+	want := ProvenanceIR{
+		BuildCmds: nil,
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: want,
+	}
+
+	// We don't expect any verification to happen.
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
+	// Thus the result is the default: true.
+	testutil.AssertEq(t, "no verification happened", result.IsVerified, true)
+}
+
 func TestAmberProvenanceMetadataVerifier(t *testing.T) {
 	path := filepath.Join(testdataPath, validProvenancePath)
 	provenance, err := amber.ParseProvenanceFile(path)
