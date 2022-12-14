@@ -135,6 +135,28 @@ func TestVerifyHasBuildCmd_HasTooManyBuildCmds(t *testing.T) {
 	}
 }
 
+func TestVerifyHasBuildCmd_EmptyBuildCmds(t *testing.T) {
+	// There is no build cmd.
+	got := ProvenanceIR{}
+	// But the reference values do not ask for a build cmd.
+	want := ProvenanceIR{
+		BuildCmds: nil,
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: want,
+	}
+
+	// We don't expect any verification to happen.
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
+	// Thus the result is the default: true.
+	testutil.AssertEq(t, "no verification happend", result.IsVerified, true)
+}
+
 func TestAmberProvenanceMetadataVerifier(t *testing.T) {
 	path := filepath.Join(testdataPath, validProvenancePath)
 	provenance, err := amber.ParseProvenanceFile(path)
