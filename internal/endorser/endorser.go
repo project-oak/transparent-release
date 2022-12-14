@@ -103,8 +103,8 @@ func loadAndVerifyProvenances(provenanceURIs []string, referenceValues verifier.
 func verifyProvenances(provenances []slsa.ValidatedProvenance, referenceValues verifier.ProvenanceIR) (verifier.VerificationResult, error) {
 	combinedResult := verifier.NewVerificationResult()
 	for index := range provenances {
-		provenanceVerifier := verifier.ProvenanceIRVerifier{
-			Got:  verifier.FromSLSAv0(&provenances[index]),
+		provenanceVerifier := verifier.ProvenanceMetadataVerifier{
+			Got:  &provenances[index],
 			Want: referenceValues,
 		}
 		result, err := provenanceVerifier.Verify()
