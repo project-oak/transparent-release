@@ -159,7 +159,7 @@ func (want *ProvenanceIR) ValidateReferenceValues(provenanceFormat string) (*Val
 	// BinarySHA256Digest
 	switch provenanceFormat {
 	default:
-		if len(want.BinarySHA256Digests) <= 1 {
+		if len(want.BinarySHA256Digests) < 1 {
 			return want, fmt.Errorf("no reference binary SHA256 digests given")
 		}
 	}
