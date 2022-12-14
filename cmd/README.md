@@ -8,7 +8,7 @@ This repository provides tooling for building and verifying provenance claims. W
 [SLSA provenances](https://slsa.dev/provenance/v0.2) for making provenance claims. The `buildType`
 in a SLSA provenance predicate describes the meaning of `materials` and `buildConfig`. We define our
 own `buildType` on top of SLSA provenances: the
-[Amber Provenance](/schema/provenance/v1/provenance.json) schema.
+[Amber Provenance](./../pkg/amber/schema/v1/provenance.json) schema.
 
 ## Building binaries using the `cmd/builder` tool
 
@@ -41,7 +41,7 @@ You should see the following output on the console:
 2022/04/14 09:08:17 Storing the provenance in <your-path>/transparent-release/provenance.json
 ```
 
-Check the [`development guidelines`](docs/development-guidelines.md) to see what you need to
+Check the [`development guidelines`](./../docs/development-guidelines.md) to see what you need to
 install.
 
 To build from a local repository you can specify `-git_root_dir`. In this case, the binary will be
@@ -61,7 +61,7 @@ For a guide to get started on a minimal example see our
 
 The [`verifier`](/internal/verifier/) package provides functionality for verifying an input
 provenance file. The provenance file should follow the
-[Amber provenance](/schema/provenance/v1/provenance.json) format and provide a list of materials
+[Amber provenance](./../pkg/amber/schema/v1/provenance.json) format and provide a list of materials
 (including the source code and the build toolchain), and steps for building a binary from the listed
 materials. The verification logic uses the provenance file to build a binary, and checks that the
 binary has a SHA256 hash equal to the expected digest given in the provenance file.
@@ -75,8 +75,8 @@ $ go run cmd/verifier/main.go -provenance_path schema/provenance/v1/example.json
 This fetches the sources from the Git repository specified in the SLSA statement file, re-runs the
 build, and verifies that it yields the expected hash.
 
-Check the [`development guidelines`](docs/development-guidelines.md) for a quick start to
-[`verifying provenances`](docs/development-guidelines.md#verifying-provenances).
+Check the [`development guidelines`](./../docs/development-guidelines.md) for a quick start to
+[`verifying provenances`](./../docs/development-guidelines.md#verifying-provenances).
 
 To use a local repository you can specify `-git_root_dir`. In this case, the binary will be built
 from the repo, only if the latest commit matches the one specified in the config file fail with an
