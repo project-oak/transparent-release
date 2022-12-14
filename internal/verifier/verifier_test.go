@@ -154,7 +154,7 @@ func TestVerifyHasBuildCmd_EmptyBuildCmds(t *testing.T) {
 		t.Fatalf("verify failed, got %v", err)
 	}
 	// Thus the result is the default: true.
-	testutil.AssertEq(t, "no verification happend", result.IsVerified, true)
+	testutil.AssertEq(t, "no verification happened", result.IsVerified, true)
 }
 
 func TestAmberProvenanceMetadataVerifier(t *testing.T) {
