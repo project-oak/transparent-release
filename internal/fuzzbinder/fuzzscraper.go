@@ -248,7 +248,7 @@ func getFuzzStatsFromFile(lineScanner *bufio.Scanner) (*FuzzEffort, error) {
 
 // getFuzzEffortFromFile gets the fuzzingEffort from a single fuzzer log file.
 func getFuzzEffortFromFile(reader io.Reader, revisionDigest intoto.DigestSet) (*FuzzEffort, error) {
-	var fileFuzzEffort *FuzzEffort
+	var fileFuzzEffort FuzzEffort
 	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err
@@ -263,12 +263,13 @@ func getFuzzEffortFromFile(reader io.Reader, revisionDigest intoto.DigestSet) (*
 		if err := lineScanner.Err(); err != nil {
 			return nil, err
 		}
-		fileFuzzEffort, err = getFuzzStatsFromFile(lineScanner)
+		gotFuzzEffort, err := getFuzzStatsFromFile(lineScanner)
 		if err != nil {
 			return nil, err
 		}
+		fileFuzzEffort = *gotFuzzEffort
 	}
-	return fileFuzzEffort, nil
+	return &fileFuzzEffort, nil
 }
 
 // crashDetected detects crashes in log files that are related to a
