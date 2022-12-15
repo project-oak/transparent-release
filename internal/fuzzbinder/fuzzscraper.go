@@ -131,10 +131,10 @@ func getBucket(bucketName string) (*storage.BucketHandle, error) {
 // listBlobs returns all the objects in a Google Cloud Storage bucket
 // under a given relative path.
 func listBlobs(bucket *storage.BucketHandle, relativePath string) ([]string, error) {
-	var blobs []string
 	ctx := context.Background()
 	query := &storage.Query{Prefix: relativePath}
 	objects := bucket.Objects(ctx, query)
+	var blobs []string
 	for {
 		attrs, err := objects.Next()
 		if err == iterator.Done {
@@ -176,11 +176,11 @@ func getRevisionFromFile(fuzzParameters *FuzzParameters, fileBytes []byte) (into
 // parseCoverageSummary gets the coverage statistics from a coverage report summary file.
 func parseCoverageSummary(fileBytes []byte) (*Coverage, error) {
 	var summary CoverageSummary
-	var coverage Coverage
 	err := json.Unmarshal(fileBytes, &summary)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't unmarshal fileBytes into a CoverageSummary: %v", err)
 	}
+	var coverage Coverage
 	// Return branch coverage and line coverage using the coverage summary structure.
 	coverage.BranchCoverage = formatCoverage(summary.Data[0].Totals["branches"])
 	coverage.LineCoverage = formatCoverage(summary.Data[0].Totals["lines"])
@@ -248,7 +248,6 @@ func getFuzzStatsFromFile(lineScanner *bufio.Scanner) (*FuzzEffort, error) {
 
 // getFuzzEffortFromFile gets the fuzzingEffort from a single fuzzer log file.
 func getFuzzEffortFromFile(revisionDigest intoto.DigestSet, reader io.Reader) (*FuzzEffort, error) {
-	var fileFuzzEffort FuzzEffort
 	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err
@@ -257,6 +256,7 @@ func getFuzzEffortFromFile(revisionDigest intoto.DigestSet, reader io.Reader) (*
 	if err != nil {
 		return nil, err
 	}
+	var fileFuzzEffort FuzzEffort
 	if isGoodHash {
 		reader := bytes.NewReader(fileBytes)
 		lineScanner := bufio.NewScanner(reader)
@@ -275,7 +275,6 @@ func getFuzzEffortFromFile(revisionDigest intoto.DigestSet, reader io.Reader) (*
 // crashDetected detects crashes in log files that are related to a
 // given revision.
 func crashDetected(revisionDigest intoto.DigestSet, reader io.Reader) (*Crash, error) {
-	var crash Crash
 	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, err
@@ -288,6 +287,7 @@ func crashDetected(revisionDigest intoto.DigestSet, reader io.Reader) (*Crash, e
 	if err != nil {
 		return nil, err
 	}
+	var crash Crash
 	crash.Detected = isDetected && isGoodHash
 	return &crash, nil
 }
@@ -345,11 +345,11 @@ func GetCoverageRevision(fuzzParameters *FuzzParameters) (intoto.DigestSet, erro
 // TODO(#171): Split GetCoverage into GetTotalCoverage and GetCoverageForTarget.
 // GetCoverage gets the coverage statistics per project or per fuzz-target.
 func GetCoverage(fuzzParameters *FuzzParameters, fuzzTarget string, level string) (*Coverage, error) {
-	var fileName string
 	bucket, err := getBucket(CoverageBucket)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't get %s bucket: %v", CoverageBucket, err)
 	}
+	var fileName string
 	if level == "perProject" {
 		// Coverage summary filename for the whole project in the OSS-Fuzz CoverageBucket.
 		fileName = fmt.Sprintf("%s/reports/%s/linux/summary.json", fuzzParameters.ProjectName, fuzzParameters.Date)
@@ -440,11 +440,11 @@ func GetEvidences(fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber
 // GetFuzzEffort gets the the fuzzing efforts for a given revision
 // of a source code on a given day.
 func GetFuzzEffort(revisionDigest intoto.DigestSet, fuzzParameters *FuzzParameters, fuzzTarget string) (*FuzzEffort, error) {
-	var fuzzEffort FuzzEffort
 	bucket, blobs, err := getLogs(fuzzParameters, fuzzTarget)
 	if err != nil {
 		return nil, err
 	}
+	var fuzzEffort FuzzEffort
 	for _, blob := range blobs {
 		if strings.Contains(blob, ".log") {
 			reader, err := getBlob(bucket, blob)
@@ -465,11 +465,11 @@ func GetFuzzEffort(revisionDigest intoto.DigestSet, fuzzParameters *FuzzParamete
 // GetCrashes checks whether there are any detected crashes for
 // a revision of a source code on a given day.
 func GetCrashes(revisionDigest intoto.DigestSet, fuzzParameters *FuzzParameters, fuzzTarget string) (*Crash, error) {
-	var crash Crash
 	bucket, blobs, err := getLogs(fuzzParameters, fuzzTarget)
 	if err != nil {
 		return nil, err
 	}
+	var crash Crash
 	for _, blob := range blobs {
 		if strings.Contains(blob, ".log") {
 			reader, err := getBlob(bucket, blob)

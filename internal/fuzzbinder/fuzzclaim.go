@@ -186,17 +186,11 @@ func parseFuzzClaimBytes(statementBytes []byte) (*intoto.Statement, error) {
 // generateFuzzClaimSpec generates a fuzzing claim specification using the
 // fuzzing reports of OSS-Fuzz.
 func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *FuzzParameters, fuzzTargets []string) (*FuzzClaimSpec, error) {
-	var fuzzClaimSpec FuzzClaimSpec
 	var projectCrashes Crash
 	var projectFuzzEffort FuzzEffort
 	fuzzersCrashes := make(map[string]*Crash)
 	fuzzersFuzzEffort := make(map[string]*FuzzEffort)
 	fuzzersCoverage := make(map[string]*Coverage)
-	//Get fuzzing statistics.
-	projectCoverage, err := GetCoverage(fuzzParameters, "", "perProject")
-	if err != nil {
-		return nil, err
-	}
 
 	for _, fuzzTarget := range fuzzTargets {
 		coverage, err := GetCoverage(fuzzParameters, fuzzTarget, "perTarget")
@@ -220,6 +214,12 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 		projectFuzzEffort.FuzzTimeSeconds += fuzzEffort.FuzzTimeSeconds
 		projectFuzzEffort.NumberFuzzTests += fuzzEffort.NumberFuzzTests
 	}
+	//Get fuzzing statistics.
+	projectCoverage, err := GetCoverage(fuzzParameters, "", "perProject")
+	if err != nil {
+		return nil, err
+	}
+	var fuzzClaimSpec FuzzClaimSpec
 	// Generate fuzzing claim specification.
 	fuzzClaimSpec.PerProject = &FuzzStats{
 		BranchCoverage:  projectCoverage.BranchCoverage,
@@ -250,8 +250,6 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 // with AmberClaimV1 as the PredicateType and FuzzClaimV1 as the ClaimType) using the
 // fuzzing reports of OSS-Fuzz and ClusterFuzz.
 func GenerateFuzzClaim(fuzzParameters *FuzzParameters) (*intoto.Statement, error) {
-	var statement intoto.Statement
-	var predicate amber.ClaimPredicate
 	revisionDigest, err := GetCoverageRevision(fuzzParameters)
 	if err != nil {
 		return nil, err
@@ -261,6 +259,7 @@ func GenerateFuzzClaim(fuzzParameters *FuzzParameters) (*intoto.Statement, error
 		return nil, err
 	}
 	// Generate Amber predicate
+	var predicate amber.ClaimPredicate
 	predicate.ClaimType = FuzzClaimV1
 	currentTime := time.Now()
 	tomorrow := time.Now().AddDate(0, 0, 1)
@@ -282,6 +281,7 @@ func GenerateFuzzClaim(fuzzParameters *FuzzParameters) (*intoto.Statement, error
 	}
 	predicate.Evidence = evidences
 	// Generate intoto statement
+	var statement intoto.Statement
 	statement.Type = intoto.StatementInTotoV01
 	subject := intoto.Subject{
 		Name:   fuzzParameters.ProjectGitRepo,

@@ -27,7 +27,6 @@ import (
 )
 
 func main() {
-	var fuzzClaimPath string
 	fuzzParameters := &fuzzbinder.FuzzParameters{}
 	flag.StringVar(&fuzzParameters.ProjectName, "project_name", "",
 		"Required - Project name as defined in OSS-Fuzz projects.")
@@ -42,6 +41,7 @@ func main() {
 		"Required - Fuzzing date. The expected date format is YYYYMMDD. \n"+
 			"This date must not be more than 15 days prior to the date of execution of this cmd. \n"+
 			"Therefore, if you run this cmd on 20221215, the date must be between 20221215 and 20221201 (both dates included).")
+	var fuzzClaimPath string
 	flag.StringVar(&fuzzClaimPath, "fuzzclaim_path", "fuzzclaim.json",
 		"Optional - Output file name for storing the generated fuzzing claim.")
 	flag.Parse()
