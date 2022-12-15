@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package main contains a command-line tool for generating fuzzing claims
-// for a revision of the source code.
+// for a revision of a source code.
 package main
 
 import (
@@ -27,31 +27,30 @@ import (
 )
 
 func main() {
-	fuzzParameters := &fuzzbinder.FuzzParameters{}
 	var fuzzClaimPath string
-	var date string
+	fuzzParameters := &fuzzbinder.FuzzParameters{}
 	flag.StringVar(&fuzzParameters.ProjectName, "project_name", "",
 		"Required - Project name as defined in OSS-Fuzz projects.")
-	flag.StringVar(&fuzzParameters.ProjectHomepage, "homepage", "",
-		"Required - Project homepage.")
-	flag.StringVar(&fuzzParameters.FuzzEngine, "fuzzengine", "",
-		"Required - Fuzzing engine.")
-	flag.StringVar(&fuzzParameters.Sanitizer, "sanitizer", "",
-		"Required - Fuzzing sanitizer.")
-	flag.StringVar(&date, "date", "",
-		"Required - Fuzzing date.")
-	flag.StringVar(&fuzzClaimPath, "fuzzclaim_path", "",
-		"Required - Output file path for storing the generated fuzzing claim.")
+	flag.StringVar(&fuzzParameters.ProjectGitRepo, "git_repo", "",
+		"Required - GitHub repository of the project.")
+	flag.StringVar(&fuzzParameters.FuzzEngine, "fuzzengine", "libFuzzer",
+		"Required - Fuzzing engine used for the project. Examples: libFuzzer, afl, honggfuzz, centipede.")
+	flag.StringVar(&fuzzParameters.Sanitizer, "sanitizer", "asan",
+		"Required - Fuzzing sanitizer used for the project. Examples: asan, ubsan, msan.")
+	flag.StringVar(&fuzzParameters.Date, "date", "",
+		"Required - Fuzzing date. The expected date format is YYYYMMDD.")
+	flag.StringVar(&fuzzClaimPath, "fuzzclaim_path", "fuzzclaim.json",
+		"Optional - Output file name for storing the generated fuzzing claim.")
 	flag.Parse()
 
-	// Get the absolute path for storing the fuzzing the claim.
+	// Get the absolute path for storing the fuzzing claim.
 	absFuzzClaimPath, err := filepath.Abs(fuzzClaimPath)
 	if err != nil {
 		log.Fatalf("Couldn't get absolute path for storing the fuzzing claim: %v", err)
 	}
 
 	// Generate the fuzzing claim.
-	statement, err := fuzzbinder.GenerateFuzzClaim(date, fuzzParameters)
+	statement, err := fuzzbinder.GenerateFuzzClaim(fuzzParameters)
 	if err != nil {
 		log.Fatalf("Couldn't generate the fuzzing claim: %v", err)
 	}

@@ -184,30 +184,29 @@ func parseFuzzClaimBytes(statementBytes []byte) (*intoto.Statement, error) {
 
 // generateFuzzClaimSpec generates a fuzzing claim specification using the
 // fuzzing reports of OSS-Fuzz.
-func generateFuzzClaimSpec(date string, revisionDigest intoto.DigestSet, fuzzParameters *FuzzParameters, fuzzTargets []string) (*FuzzClaimSpec, error) {
+func generateFuzzClaimSpec(fuzzParameters *FuzzParameters, revisionDigest intoto.DigestSet, fuzzTargets []string) (*FuzzClaimSpec, error) {
 	var fuzzClaimSpec FuzzClaimSpec
 	var projectCrashes Crash
 	var projectFuzzEffort FuzzEffort
 	fuzzersCrashes := make(map[string]*Crash)
 	fuzzersFuzzEffort := make(map[string]*FuzzEffort)
 	fuzzersCoverage := make(map[string]*Coverage)
-	hyphenDate := fmt.Sprintf("%s-%s-%s", date[:4], date[4:6], date[6:])
 	//Get fuzzing statistics.
-	projectCoverage, err := GetCoverage(date, fuzzParameters, "perProject", "")
+	projectCoverage, err := GetCoverage(fuzzParameters, "", "perProject")
 	if err != nil {
 		return nil, err
 	}
 
 	for _, fuzzTarget := range fuzzTargets {
-		coverage, err := GetCoverage(date, fuzzParameters, "perTarget", fuzzTarget)
+		coverage, err := GetCoverage(fuzzParameters, fuzzTarget, "perTarget")
 		if err != nil {
 			return nil, err
 		}
-		fuzzEffort, err := GetFuzzEffort(revisionDigest, hyphenDate, fuzzTarget, fuzzParameters)
+		fuzzEffort, err := GetFuzzEffort(fuzzParameters, revisionDigest, fuzzTarget)
 		if err != nil {
 			return nil, err
 		}
-		crash, err := GetCrashes(revisionDigest, hyphenDate, fuzzTarget, fuzzParameters)
+		crash, err := GetCrashes(fuzzParameters, revisionDigest, fuzzTarget)
 		if err != nil {
 			return nil, err
 		}
@@ -249,14 +248,14 @@ func generateFuzzClaimSpec(date string, revisionDigest intoto.DigestSet, fuzzPar
 // GenerateFuzzClaim generates a fuzzing claim (an instance of intoto.Statement,
 // with AmberClaimV1 as the PredicateType and FuzzClaimV1 as the ClaimType) using the
 // fuzzing reports of OSS-Fuzz.
-func GenerateFuzzClaim(date string, fuzzParameters *FuzzParameters) (*intoto.Statement, error) {
+func GenerateFuzzClaim(fuzzParameters *FuzzParameters) (*intoto.Statement, error) {
 	var statement intoto.Statement
 	var predicate amber.ClaimPredicate
-	revisionDigest, err := GetCoverageRevision(date, fuzzParameters)
+	revisionDigest, err := GetCoverageRevision(fuzzParameters)
 	if err != nil {
 		return nil, err
 	}
-	fuzzTargets, err := GetFuzzTargets(date, fuzzParameters)
+	fuzzTargets, err := GetFuzzTargets(fuzzParameters)
 	if err != nil {
 		return nil, err
 	}
@@ -270,12 +269,12 @@ func GenerateFuzzClaim(date string, fuzzParameters *FuzzParameters) (*intoto.Sta
 		NotBefore: &tomorrow,
 		NotAfter:  &nextWeek,
 	}
-	fuzzClaimSpec, err := generateFuzzClaimSpec(date, revisionDigest, fuzzParameters, fuzzTargets)
+	fuzzClaimSpec, err := generateFuzzClaimSpec(fuzzParameters, revisionDigest, fuzzTargets)
 	if err != nil {
 		return nil, err
 	}
 	predicate.ClaimSpec = *fuzzClaimSpec
-	evidences, err := GetEvidences(date, fuzzTargets, fuzzParameters)
+	evidences, err := GetEvidences(fuzzParameters, fuzzTargets)
 	if err != nil {
 		return nil, err
 	}
@@ -283,7 +282,7 @@ func GenerateFuzzClaim(date string, fuzzParameters *FuzzParameters) (*intoto.Sta
 	// Generate intoto statement
 	statement.Type = intoto.StatementInTotoV01
 	subject := intoto.Subject{
-		Name:   fuzzParameters.ProjectHomepage,
+		Name:   fuzzParameters.ProjectGitRepo,
 		Digest: revisionDigest,
 	}
 	statement.Subject = append(statement.Subject, subject)

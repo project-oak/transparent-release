@@ -40,7 +40,7 @@ func TestGetRevisionFromFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err := getRevisionFromFile(content, &fuzzParameter)
+	got, err := getRevisionFromFile(&fuzzParameter, content)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
