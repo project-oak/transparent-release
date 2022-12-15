@@ -33,6 +33,7 @@ func main() {
 		"Required - Project name as defined in OSS-Fuzz projects.")
 	flag.StringVar(&fuzzParameters.ProjectGitRepo, "git_repo", "",
 		"Required - GitHub repository of the project.")
+	// TODO(#175): Remove fuzzEngine and sanitizer from FuzzBinder inputs.
 	flag.StringVar(&fuzzParameters.FuzzEngine, "fuzzengine", "libFuzzer",
 		"Required - Fuzzing engine used for the project. Examples: libFuzzer, afl, honggfuzz, centipede.")
 	flag.StringVar(&fuzzParameters.Sanitizer, "sanitizer", "asan",

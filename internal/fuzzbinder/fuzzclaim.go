@@ -182,6 +182,7 @@ func parseFuzzClaimBytes(statementBytes []byte) (*intoto.Statement, error) {
 	return &statement, nil
 }
 
+// TODO(#171): Split generateFuzzClaimSpec into smaller functions.
 // generateFuzzClaimSpec generates a fuzzing claim specification using the
 // fuzzing reports of OSS-Fuzz.
 func generateFuzzClaimSpec(fuzzParameters *FuzzParameters, revisionDigest intoto.DigestSet, fuzzTargets []string) (*FuzzClaimSpec, error) {
@@ -247,7 +248,7 @@ func generateFuzzClaimSpec(fuzzParameters *FuzzParameters, revisionDigest intoto
 
 // GenerateFuzzClaim generates a fuzzing claim (an instance of intoto.Statement,
 // with AmberClaimV1 as the PredicateType and FuzzClaimV1 as the ClaimType) using the
-// fuzzing reports of OSS-Fuzz.
+// fuzzing reports of OSS-Fuzz and ClusterFuzz.
 func GenerateFuzzClaim(fuzzParameters *FuzzParameters) (*intoto.Statement, error) {
 	var statement intoto.Statement
 	var predicate amber.ClaimPredicate
@@ -263,6 +264,7 @@ func GenerateFuzzClaim(fuzzParameters *FuzzParameters) (*intoto.Statement, error
 	predicate.ClaimType = FuzzClaimV1
 	currentTime := time.Now()
 	tomorrow := time.Now().AddDate(0, 0, 1)
+	// TODO(#173): Add validity duration as an input parameter.
 	nextWeek := time.Now().AddDate(0, 0, 7)
 	predicate.IssuedOn = &currentTime
 	predicate.Validity = &amber.ClaimValidity{

@@ -341,6 +341,7 @@ func GetCoverageRevision(fuzzParameters *FuzzParameters) (intoto.DigestSet, erro
 	return revisionDigest, nil
 }
 
+// TODO(#171): Split GetCoverage into GetTotalCoverage and GetCoverageForTarget.
 // GetCoverage gets the coverage statistics per project or per fuzz-target.
 func GetCoverage(fuzzParameters *FuzzParameters, fuzzTarget string, level string) (*Coverage, error) {
 	var fileName string
@@ -399,6 +400,7 @@ func GetEvidences(fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber
 	// Get the GCS absolute path of the file containing the revision hash of the source code used
 	// in the coverage build on a given day.
 	role := "revision"
+	// TODO(#174): Replace GCS path by Ent path in evidences URI.
 	blobName := fmt.Sprintf("%s/srcmap/%s.json", fuzzParameters.ProjectName, fuzzParameters.Date)
 	uri := fmt.Sprintf("gs://%s/%s", CoverageBucket, blobName)
 	digest, err := getGCSFileDigest(CoverageBucket, blobName)
@@ -409,6 +411,7 @@ func GetEvidences(fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber
 
 	// Get the GCS absolute path of the file containing the coverage summary for the project on a given day.
 	role = "project coverage"
+	// TODO(#174): Replace GCS path by Ent path in evidences URI.
 	blobName = fmt.Sprintf("%s/reports/%s/linux/summary.json", fuzzParameters.ProjectName, fuzzParameters.Date)
 	uri = fmt.Sprintf("gs://%s/%s", CoverageBucket, blobName)
 	digest, err = getGCSFileDigest(CoverageBucket, blobName)
@@ -419,6 +422,7 @@ func GetEvidences(fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber
 	for idx, fuzzTarget := range fuzzTargets {
 		// The role of the coverage evidence using the fuzzTarget.
 		role := fmt.Sprintf("%s_%s_%v coverage", fuzzParameters.FuzzEngine, fuzzParameters.ProjectName, fuzzTarget)
+		// TODO(#174): Replace GCS path by Ent path in evidences URI.
 		// The GCS absolute path of the file containing the coverage summary for a fuzz-target on a given day.
 		blobName = fmt.Sprintf("%s/fuzzer_stats/%s/%v.json", fuzzParameters.ProjectName, fuzzParameters.Date, fuzzTarget)
 		uri = fmt.Sprintf("gs://%s/%s", CoverageBucket, blobName)
@@ -431,6 +435,7 @@ func GetEvidences(fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber
 	return evidences, nil
 }
 
+// TODO(#172): Rename functions that take a lot of computation.
 // GetFuzzEffort gets the the fuzzing efforts for a given revision
 // of a source code on a given day.
 func GetFuzzEffort(fuzzParameters *FuzzParameters, revisionDigest intoto.DigestSet, fuzzTarget string) (*FuzzEffort, error) {
