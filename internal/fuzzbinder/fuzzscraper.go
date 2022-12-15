@@ -247,7 +247,7 @@ func getFuzzStatsFromFile(lineScanner *bufio.Scanner) (*FuzzEffort, error) {
 }
 
 // getFuzzEffortFromFile gets the fuzzingEffort from a single fuzzer log file.
-func getFuzzEffortFromFile(reader io.Reader, revisionDigest intoto.DigestSet) (*FuzzEffort, error) {
+func getFuzzEffortFromFile(revisionDigest intoto.DigestSet, reader io.Reader) (*FuzzEffort, error) {
 	var fileFuzzEffort FuzzEffort
 	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
@@ -274,7 +274,7 @@ func getFuzzEffortFromFile(reader io.Reader, revisionDigest intoto.DigestSet) (*
 
 // crashDetected detects crashes in log files that are related to a
 // given revision.
-func crashDetected(reader io.Reader, revisionDigest intoto.DigestSet) (*Crash, error) {
+func crashDetected(revisionDigest intoto.DigestSet, reader io.Reader) (*Crash, error) {
 	var crash Crash
 	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
@@ -439,7 +439,7 @@ func GetEvidences(fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber
 // TODO(#172): Rename functions that take a lot of computation.
 // GetFuzzEffort gets the the fuzzing efforts for a given revision
 // of a source code on a given day.
-func GetFuzzEffort(fuzzParameters *FuzzParameters, revisionDigest intoto.DigestSet, fuzzTarget string) (*FuzzEffort, error) {
+func GetFuzzEffort(revisionDigest intoto.DigestSet, fuzzParameters *FuzzParameters, fuzzTarget string) (*FuzzEffort, error) {
 	var fuzzEffort FuzzEffort
 	bucket, blobs, err := getLogs(fuzzParameters, fuzzTarget)
 	if err != nil {
@@ -451,7 +451,7 @@ func GetFuzzEffort(fuzzParameters *FuzzParameters, revisionDigest intoto.DigestS
 			if err != nil {
 				return nil, fmt.Errorf("couldn't get %s: %v", blob, err)
 			}
-			fuzzEffortFile, err := getFuzzEffortFromFile(reader, revisionDigest)
+			fuzzEffortFile, err := getFuzzEffortFromFile(revisionDigest, reader)
 			if err != nil {
 				return nil, err
 			}
@@ -464,7 +464,7 @@ func GetFuzzEffort(fuzzParameters *FuzzParameters, revisionDigest intoto.DigestS
 
 // GetCrashes checks whether there are any detected crashes for
 // a revision of a source code on a given day.
-func GetCrashes(fuzzParameters *FuzzParameters, revisionDigest intoto.DigestSet, fuzzTarget string) (*Crash, error) {
+func GetCrashes(revisionDigest intoto.DigestSet, fuzzParameters *FuzzParameters, fuzzTarget string) (*Crash, error) {
 	var crash Crash
 	bucket, blobs, err := getLogs(fuzzParameters, fuzzTarget)
 	if err != nil {
@@ -476,7 +476,7 @@ func GetCrashes(fuzzParameters *FuzzParameters, revisionDigest intoto.DigestSet,
 			if err != nil {
 				return nil, fmt.Errorf("couldn't get %s: %v", blob, err)
 			}
-			crash, err := crashDetected(reader, revisionDigest)
+			crash, err := crashDetected(revisionDigest, reader)
 			if err != nil {
 				return nil, err
 			}

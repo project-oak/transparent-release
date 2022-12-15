@@ -185,7 +185,7 @@ func parseFuzzClaimBytes(statementBytes []byte) (*intoto.Statement, error) {
 // TODO(#171): Split generateFuzzClaimSpec into smaller functions.
 // generateFuzzClaimSpec generates a fuzzing claim specification using the
 // fuzzing reports of OSS-Fuzz.
-func generateFuzzClaimSpec(fuzzParameters *FuzzParameters, revisionDigest intoto.DigestSet, fuzzTargets []string) (*FuzzClaimSpec, error) {
+func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *FuzzParameters, fuzzTargets []string) (*FuzzClaimSpec, error) {
 	var fuzzClaimSpec FuzzClaimSpec
 	var projectCrashes Crash
 	var projectFuzzEffort FuzzEffort
@@ -203,11 +203,11 @@ func generateFuzzClaimSpec(fuzzParameters *FuzzParameters, revisionDigest intoto
 		if err != nil {
 			return nil, err
 		}
-		fuzzEffort, err := GetFuzzEffort(fuzzParameters, revisionDigest, fuzzTarget)
+		fuzzEffort, err := GetFuzzEffort(revisionDigest, fuzzParameters, fuzzTarget)
 		if err != nil {
 			return nil, err
 		}
-		crash, err := GetCrashes(fuzzParameters, revisionDigest, fuzzTarget)
+		crash, err := GetCrashes(revisionDigest, fuzzParameters, fuzzTarget)
 		if err != nil {
 			return nil, err
 		}
@@ -271,7 +271,7 @@ func GenerateFuzzClaim(fuzzParameters *FuzzParameters) (*intoto.Statement, error
 		NotBefore: &tomorrow,
 		NotAfter:  &nextWeek,
 	}
-	fuzzClaimSpec, err := generateFuzzClaimSpec(fuzzParameters, revisionDigest, fuzzTargets)
+	fuzzClaimSpec, err := generateFuzzClaimSpec(revisionDigest, fuzzParameters, fuzzTargets)
 	if err != nil {
 		return nil, err
 	}

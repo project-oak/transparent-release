@@ -71,7 +71,7 @@ func TestGetFuzzEffortFromFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	fuzzEffort, err := getFuzzEffortFromFile(reader, revisionDigest)
+	fuzzEffort, err := getFuzzEffortFromFile(revisionDigest, reader)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
@@ -92,7 +92,7 @@ func TestCrashDetected(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err := crashDetected(reader, revisionDigest)
+	got, err := crashDetected(revisionDigest, reader)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
@@ -104,7 +104,7 @@ func TestCrashDetected(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err = crashDetected(reader, revisionDigest)
+	got, err = crashDetected(revisionDigest, reader)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
