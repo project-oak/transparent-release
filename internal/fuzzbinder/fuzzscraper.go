@@ -49,6 +49,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -303,11 +304,12 @@ func getGCSFileDigest(bucketName string, blobName string) (*intoto.DigestSet, er
 	if err != nil {
 		return nil, err
 	}
-	h := sha256.New()
-	if _, err := io.Copy(h, reader); err != nil {
+	fileBytes, err := io.ReadAll(reader)
+	if err != nil {
 		return nil, err
 	}
-	digest := intoto.DigestSet{"sha256": fmt.Sprintf("%x", h.Sum(nil))}
+	sum256 := sha256.Sum256(fileBytes)
+	digest := intoto.DigestSet{"sha256": hex.EncodeToString(sum256[:])}
 	return &digest, nil
 }
 
