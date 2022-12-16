@@ -100,14 +100,14 @@ func ValidateFuzzClaim(statement intoto.Statement) (*amber.ClaimPredicate, error
 func validateFuzzClaimSpec(predicate amber.ClaimPredicate) (*amber.ClaimPredicate, error) {
 	// validate that perProject.fuzzTimeSeconds is the sum of fuzzTimeSeconds for all fuzz-targets
 	// and perProject.numberFuzzTests is the sum of numberFuzzTests for all fuzz-targets.
-	projectTimeSeconds := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.FuzzTimeSeconds
-	projectNumberTests := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.NumberFuzzTests
 	sumTargetsTimeSeconds := 0.0
 	sumTargetsNumberTests := 0
 	for _, spec := range predicate.ClaimSpec.(FuzzClaimSpec).PerTarget {
 		sumTargetsTimeSeconds += spec.FuzzStats.FuzzTimeSeconds
 		sumTargetsNumberTests += spec.FuzzStats.NumberFuzzTests
 	}
+	projectTimeSeconds := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.FuzzTimeSeconds
+	projectNumberTests := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.NumberFuzzTests
 	if projectTimeSeconds != sumTargetsTimeSeconds {
 		return nil, fmt.Errorf("perProject.fuzzTimeSeconds (%f) is not equal to the sum of per-target fuzzTimeSeconds (%f)",
 			projectTimeSeconds, sumTargetsTimeSeconds)

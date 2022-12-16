@@ -181,10 +181,11 @@ func parseCoverageSummary(fileBytes []byte) (*Coverage, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not unmarshal fileBytes into a CoverageSummary: %v", err)
 	}
-	var coverage Coverage
 	// Return branch coverage and line coverage using the coverage summary structure.
-	coverage.BranchCoverage = formatCoverage(summary.Data[0].Totals["branches"])
-	coverage.LineCoverage = formatCoverage(summary.Data[0].Totals["lines"])
+	coverage := Coverage{
+		BranchCoverage: formatCoverage(summary.Data[0].Totals["branches"]),
+		LineCoverage:   formatCoverage(summary.Data[0].Totals["lines"]),
+	}
 	return &coverage, nil
 }
 
@@ -213,6 +214,9 @@ func getLogs(fuzzParameters *FuzzParameters, fuzzTarget string) (*storage.Bucket
 	blobs, err := listBlobs(bucket, relativePath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not get blobs in %s in %s bucket: %v", relativePath, logsBucket, err)
+	}
+	if len(blobs) == 0 {
+		return nil, nil, fmt.Errorf("could not find log files in %s under %s", logsBucket, relativePath)
 	}
 	return bucket, blobs, nil
 }
@@ -268,7 +272,8 @@ func getFuzzEffortFromFile(revisionDigest intoto.DigestSet, reader io.Reader) (*
 		}
 		return getFuzzStatsFromScanner(lineScanner)
 	}
-	return &FuzzEffort{0, 0}, nil
+	noFuzzEffort := FuzzEffort{0, 0}
+	return &noFuzzEffort, nil
 }
 
 // crashDetected detects crashes in log files that are related to a
@@ -289,8 +294,9 @@ func crashDetected(revisionDigest intoto.DigestSet, reader io.Reader) (*Crash, e
 		return nil, fmt.Errorf(
 			"could not check if log file contains crashes: %v", err)
 	}
-	var crash Crash
-	crash.Detected = isDetected && isGoodHash
+	crash := Crash{
+		Detected: isDetected && isGoodHash,
+	}
 	return &crash, nil
 }
 
@@ -313,14 +319,17 @@ func getGCSFileDigest(bucketName string, blobName string) (*intoto.DigestSet, er
 			"could not get data from %s reader to compute SHA256: %v", blobName, err)
 	}
 	sum256 := sha256.Sum256(fileBytes)
-	digest := intoto.DigestSet{"sha256": hex.EncodeToString(sum256[:])}
+	digest := intoto.DigestSet{
+		"sha256": hex.EncodeToString(sum256[:]),
+	}
 	return &digest, nil
 }
 
 // FormatCoverage transforms a coverage map into a string in the expected
 // coverage statistics format.
 func formatCoverage(coverage map[string]float64) string {
-	return fmt.Sprintf("%.2f%% (%v/%v)", coverage["percent"], coverage["covered"], coverage["count"])
+	return fmt.Sprintf(
+		"%.2f%% (%v/%v)", coverage["percent"], coverage["covered"], coverage["count"])
 }
 
 // GetCoverageRevision gets the revision of the source code for which a coverage report
@@ -401,6 +410,9 @@ func GetFuzzTargets(fuzzParameters *FuzzParameters) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not get blobs in %s in %s bucket: %v", relativePath, CoverageBucket, err)
+	}
+	if len(blobs) == 0 {
+		return nil, fmt.Errorf("could not find fuzz-targets in %s under %s", CoverageBucket, relativePath)
 	}
 	fuzzTargets := make([]string, 0, len(blobs))
 	for _, blob := range blobs {
@@ -493,7 +505,6 @@ func GetCrashes(revisionDigest intoto.DigestSet, fuzzParameters *FuzzParameters,
 		return nil, fmt.Errorf(
 			"could not get logs to GetCrashes: %v", err)
 	}
-	var crash Crash
 	for _, blob := range blobs {
 		if strings.Contains(blob, ".log") {
 			reader, err := getBlob(bucket, blob)
@@ -510,5 +521,8 @@ func GetCrashes(revisionDigest intoto.DigestSet, fuzzParameters *FuzzParameters,
 			}
 		}
 	}
-	return &crash, nil
+	noCrash := Crash{
+		Detected: false,
+	}
+	return &noCrash, nil
 }

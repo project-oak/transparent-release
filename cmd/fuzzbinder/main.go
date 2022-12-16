@@ -38,9 +38,7 @@ func main() {
 	flag.StringVar(&fuzzParameters.Sanitizer, "sanitizer", "asan",
 		"Required - Fuzzing sanitizer used for the project. Examples: asan, ubsan, msan.")
 	flag.StringVar(&fuzzParameters.Date, "date", "",
-		"Required - Fuzzing date. The expected date format is YYYYMMDD. \n"+
-			"This date must not be more than 15 days prior to the date of execution of this cmd. \n"+
-			"Therefore, if you run this cmd on 20221215, the date must be between 20221215 and 20221201 (both dates included).")
+		"Required - Fuzzing date. The expected date format is YYYYMMDD.")
 	fuzzClaimPath := flag.String("fuzzclaim_path", "fuzzclaim.json",
 		"Optional - Output file name for storing the generated fuzzing claim.")
 	flag.Parse()
