@@ -178,7 +178,7 @@ func parseCoverageSummary(fileBytes []byte) (*Coverage, error) {
 	var summary CoverageSummary
 	err := json.Unmarshal(fileBytes, &summary)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't unmarshal fileBytes into a CoverageSummary: %v", err)
+		return nil, fmt.Errorf("could not unmarshal fileBytes into a CoverageSummary: %v", err)
 	}
 	var coverage Coverage
 	// Return branch coverage and line coverage using the coverage summary structure.
@@ -202,7 +202,7 @@ func getLogs(fuzzParameters *FuzzParameters, fuzzTarget string) (*storage.Bucket
 	logsBucket := fmt.Sprintf("%s-logs.clusterfuzz-external.appspot.com", fuzzParameters.ProjectName)
 	bucket, err := getBucket(logsBucket)
 	if err != nil {
-		return nil, nil, fmt.Errorf("couldn't get %s bucket: %v", logsBucket, err)
+		return nil, nil, fmt.Errorf("could not get %s bucket: %v", logsBucket, err)
 	}
 	fuzzengine := strings.ToLower(fuzzParameters.FuzzEngine)
 	// relativePath is the relative path in the logsBucket where the logs of
@@ -211,7 +211,7 @@ func getLogs(fuzzParameters *FuzzParameters, fuzzTarget string) (*storage.Bucket
 		fuzzTarget, fuzzengine, fuzzParameters.Sanitizer, fuzzParameters.ProjectName, formatDate(fuzzParameters))
 	blobs, err := listBlobs(bucket, relativePath)
 	if err != nil {
-		return nil, nil, fmt.Errorf("couldn't get blobs in %s in %s bucket: %v", relativePath, logsBucket, err)
+		return nil, nil, fmt.Errorf("could not get blobs in %s in %s bucket: %v", relativePath, logsBucket, err)
 	}
 	return bucket, blobs, nil
 }
@@ -226,7 +226,7 @@ func getFuzzStatsFromFile(lineScanner *bufio.Scanner) (*FuzzEffort, error) {
 			timeFuzzStr := strings.Split(lineScanner.Text(), " ")[2]
 			timeFuzzSecondsTemp, err := strconv.ParseFloat(timeFuzzStr, 32)
 			if err != nil {
-				return nil, fmt.Errorf("couldn't convert %s to float: %v", timeFuzzStr, err)
+				return nil, fmt.Errorf("could not convert %s to float: %v", timeFuzzStr, err)
 			}
 			fuzzEffort.FuzzTimeSeconds = timeFuzzSecondsTemp
 		}
@@ -235,7 +235,7 @@ func getFuzzStatsFromFile(lineScanner *bufio.Scanner) (*FuzzEffort, error) {
 			numTestsStr := strings.Split(lineScanner.Text(), " ")[1]
 			numTestsTemp, err := strconv.Atoi(numTestsStr)
 			if err != nil {
-				return nil, fmt.Errorf("couldn't convert %s to int: %v", numTestsStr, err)
+				return nil, fmt.Errorf("could not convert %s to int: %v", numTestsStr, err)
 			}
 			fuzzEffort.NumberFuzzTests = numTestsTemp
 		}
@@ -322,22 +322,22 @@ func formatCoverage(coverage map[string]float64) string {
 func GetCoverageRevision(fuzzParameters *FuzzParameters) (intoto.DigestSet, error) {
 	bucket, err := getBucket(CoverageBucket)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get %s bucket: %v", CoverageBucket, err)
+		return nil, fmt.Errorf("could not get %s bucket: %v", CoverageBucket, err)
 	}
 	// fileName contains the relative path to the source-map JSON file linking
 	// the date to the revision of the source code for which the coverage build was made.
 	fileName := fmt.Sprintf("%s/srcmap/%s.json", fuzzParameters.ProjectName, fuzzParameters.Date)
 	reader, err := getBlob(bucket, fileName)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get %s blob: %v", fileName, err)
+		return nil, fmt.Errorf("could not get %s blob: %v", fileName, err)
 	}
 	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't read %s: %v", fileName, err)
+		return nil, fmt.Errorf("could not read %s: %v", fileName, err)
 	}
 	revisionDigest, err := getRevisionFromFile(fuzzParameters, fileBytes)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get revisionHash: %v", err)
+		return nil, fmt.Errorf("could not get revisionHash: %v", err)
 	}
 	return revisionDigest, nil
 }
@@ -347,7 +347,7 @@ func GetCoverageRevision(fuzzParameters *FuzzParameters) (intoto.DigestSet, erro
 func GetCoverage(fuzzParameters *FuzzParameters, fuzzTarget string, level string) (*Coverage, error) {
 	bucket, err := getBucket(CoverageBucket)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get %s bucket: %v", CoverageBucket, err)
+		return nil, fmt.Errorf("could not get %s bucket: %v", CoverageBucket, err)
 	}
 	var fileName string
 	if level == "perProject" {
@@ -359,7 +359,7 @@ func GetCoverage(fuzzParameters *FuzzParameters, fuzzTarget string, level string
 	}
 	reader, err := getBlob(bucket, fileName)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get %s in %s bucket: %v", fileName, CoverageBucket, err)
+		return nil, fmt.Errorf("could not get %s in %s bucket: %v", fileName, CoverageBucket, err)
 	}
 	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
@@ -377,14 +377,14 @@ func GetCoverage(fuzzParameters *FuzzParameters, fuzzTarget string, level string
 func GetFuzzTargets(fuzzParameters *FuzzParameters) ([]string, error) {
 	bucket, err := getBucket(CoverageBucket)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get %s bucket: %v", CoverageBucket, err)
+		return nil, fmt.Errorf("could not get %s bucket: %v", CoverageBucket, err)
 	}
 	// Relative path in the OSS-Fuzz CoverageBucket where the names
 	// of the fuzz-targets are mentioned.
 	relativePath := fmt.Sprintf("%s/fuzzer_stats/%s", fuzzParameters.ProjectName, fuzzParameters.Date)
 	blobs, err := listBlobs(bucket, relativePath)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't get blobs in %s in %s bucket: %v", relativePath, CoverageBucket, err)
+		return nil, fmt.Errorf("could not get blobs in %s in %s bucket: %v", relativePath, CoverageBucket, err)
 	}
 	fuzzTargets := make([]string, 0, len(blobs))
 	for _, blob := range blobs {
@@ -449,7 +449,7 @@ func GetFuzzEffort(revisionDigest intoto.DigestSet, fuzzParameters *FuzzParamete
 		if strings.Contains(blob, ".log") {
 			reader, err := getBlob(bucket, blob)
 			if err != nil {
-				return nil, fmt.Errorf("couldn't get %s: %v", blob, err)
+				return nil, fmt.Errorf("could not get %s: %v", blob, err)
 			}
 			fuzzEffortFile, err := getFuzzEffortFromFile(revisionDigest, reader)
 			if err != nil {
@@ -474,7 +474,7 @@ func GetCrashes(revisionDigest intoto.DigestSet, fuzzParameters *FuzzParameters,
 		if strings.Contains(blob, ".log") {
 			reader, err := getBlob(bucket, blob)
 			if err != nil {
-				return nil, fmt.Errorf("couldn't get %s: %v", blob, err)
+				return nil, fmt.Errorf("could not get %s: %v", blob, err)
 			}
 			crash, err := crashDetected(revisionDigest, reader)
 			if err != nil {

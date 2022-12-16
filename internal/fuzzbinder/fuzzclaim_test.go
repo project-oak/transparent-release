@@ -33,7 +33,7 @@ func TestParseFuzzClaimFile(t *testing.T) {
 	path := filepath.Join(testdataPath, fuzzclaimExamplePath)
 	statement, err := ParseFuzzClaimFile(path)
 	if err != nil {
-		t.Fatalf("Failed to parse fuzzing claim example: %v", err)
+		t.Fatalf("failed to parse fuzzing claim example: %v", err)
 	}
 
 	// Verify that the fuzzclaim JSON file parses correctly

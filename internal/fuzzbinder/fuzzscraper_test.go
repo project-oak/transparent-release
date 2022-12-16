@@ -76,10 +76,10 @@ func TestGetFuzzEffortFromFile(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 	if !(fuzzEffort.NumberFuzzTests > 0) {
-		t.Errorf("Unexpected numFuzzTests: got %v, want non-zero value", fuzzEffort.NumberFuzzTests)
+		t.Errorf("unexpected numFuzzTests: got %v, want non-zero value", fuzzEffort.NumberFuzzTests)
 	}
 	if !(fuzzEffort.FuzzTimeSeconds > 0.0) {
-		t.Errorf("Unexpected fuzzTimeSeconds: got %v, want non-zero value", fuzzEffort.FuzzTimeSeconds)
+		t.Errorf("unexpected fuzzTimeSeconds: got %v, want non-zero value", fuzzEffort.FuzzTimeSeconds)
 	}
 }
 
@@ -97,7 +97,7 @@ func TestCrashDetected(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 	if got.Detected {
-		t.Errorf("Unexpected crash detection: got %v, want false", got.Detected)
+		t.Errorf("unexpected crash detection: got %v, want false", got.Detected)
 	}
 	path = filepath.Join(testdataPath, logFileWithCrashPath)
 	reader, err = os.Open(path)
@@ -109,6 +109,6 @@ func TestCrashDetected(t *testing.T) {
 		t.Fatalf("%v", err)
 	}
 	if !got.Detected {
-		t.Errorf("Unexpected crash detection: got %v, want true", got.Detected)
+		t.Errorf("unexpected crash detection: got %v, want true", got.Detected)
 	}
 }

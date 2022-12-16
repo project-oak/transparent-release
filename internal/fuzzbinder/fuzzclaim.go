@@ -74,7 +74,11 @@ type FuzzStats struct {
 
 // ValidateFuzzClaim validates that an Amber Claim is a Fuzz Claim with a valid ClaimType.
 // If valid, the ClaimPredicate object is returned. Otherwise an error is returned.
-func ValidateFuzzClaim(predicate amber.ClaimPredicate) (*amber.ClaimPredicate, error) {
+func ValidateFuzzClaim(statement intoto.Statement) (*amber.ClaimPredicate, error) {
+	predicate, err := amber.ValidateAmberClaim(statement)
+	if err != nil {
+		return nil, fmt.Errorf("could not validate the fuzzing AmberClaim: %v", err)
+	}
 	if predicate.ClaimType != FuzzClaimV1 {
 		return nil, fmt.Errorf(
 			"the claimPredicate does not have the expected claim type; got: %s, want: %s",
@@ -85,7 +89,7 @@ func ValidateFuzzClaim(predicate amber.ClaimPredicate) (*amber.ClaimPredicate, e
 	// Verify the type of the ClaimSpec, and return it if it is of type ClaimPredicate.
 	switch predicate.ClaimSpec.(type) {
 	case FuzzClaimSpec:
-		return validateFuzzClaimSpec(predicate)
+		return validateFuzzClaimSpec(*predicate)
 	default:
 		return nil, fmt.Errorf(
 			"the claimSpec does not have the expected type; got: %T, want: FuzzClaimSpec",
@@ -157,12 +161,6 @@ func parseFuzzClaimBytes(statementBytes []byte) (*intoto.Statement, error) {
 		return nil, fmt.Errorf("could not unmarshal JSON bytes into a ClaimPredicate: %v", err)
 	}
 
-	statement.Predicate = predicate
-	statement.Predicate, err = amber.ValidateAmberClaim(statement)
-	if err != nil {
-		return nil, err
-	}
-
 	claimSpecBytes, err := json.Marshal(predicate.ClaimSpec)
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal ClaimSpec map into JSON bytes: %v", err)
@@ -174,7 +172,8 @@ func parseFuzzClaimBytes(statementBytes []byte) (*intoto.Statement, error) {
 	}
 
 	predicate.ClaimSpec = claimSpec
-	statement.Predicate, err = ValidateFuzzClaim(predicate)
+	statement.Predicate = predicate
+	statement.Predicate, err = ValidateFuzzClaim(statement)
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +190,7 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 	fuzzersCrashes := make(map[string]*Crash)
 	fuzzersFuzzEffort := make(map[string]*FuzzEffort)
 	fuzzersCoverage := make(map[string]*Coverage)
-
+	//Get fuzzing statistics.
 	for _, fuzzTarget := range fuzzTargets {
 		coverage, err := GetCoverage(fuzzParameters, fuzzTarget, "perTarget")
 		if err != nil {
@@ -214,20 +213,19 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 		projectFuzzEffort.FuzzTimeSeconds += fuzzEffort.FuzzTimeSeconds
 		projectFuzzEffort.NumberFuzzTests += fuzzEffort.NumberFuzzTests
 	}
-	//Get fuzzing statistics.
 	projectCoverage, err := GetCoverage(fuzzParameters, "", "perProject")
 	if err != nil {
 		return nil, err
 	}
-	var fuzzClaimSpec FuzzClaimSpec
 	// Generate fuzzing claim specification.
-	fuzzClaimSpec.PerProject = &FuzzStats{
+	perProject := &FuzzStats{
 		BranchCoverage:  projectCoverage.BranchCoverage,
 		LineCoverage:    projectCoverage.LineCoverage,
 		DetectedCrashes: projectCrashes.Detected,
 		FuzzTimeSeconds: projectFuzzEffort.FuzzTimeSeconds,
 		NumberFuzzTests: projectFuzzEffort.NumberFuzzTests,
 	}
+	var perTarget []FuzzSpecPerTarget
 	for _, fuzzTagret := range fuzzTargets {
 		targetStats := FuzzStats{
 			BranchCoverage:  fuzzersCoverage[fuzzTagret].BranchCoverage,
@@ -241,7 +239,11 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 			Path:      fmt.Sprintf("%s/fuzz/fuzz_targets/%s.rs", fuzzParameters.ProjectName, fuzzTagret),
 			FuzzStats: &targetStats,
 		}
-		fuzzClaimSpec.PerTarget = append(fuzzClaimSpec.PerTarget, targetSpec)
+		perTarget = append(perTarget, targetSpec)
+	}
+	fuzzClaimSpec := FuzzClaimSpec{
+		PerTarget:  perTarget,
+		PerProject: perProject,
 	}
 	return &fuzzClaimSpec, nil
 }
@@ -258,46 +260,48 @@ func GenerateFuzzClaim(fuzzParameters *FuzzParameters) (*intoto.Statement, error
 	if err != nil {
 		return nil, err
 	}
-	// Generate Amber predicate
-	var predicate amber.ClaimPredicate
-	predicate.ClaimType = FuzzClaimV1
-	currentTime := time.Now()
-	tomorrow := time.Now().AddDate(0, 0, 1)
-	// TODO(#173): Add validity duration as an input parameter.
-	nextWeek := time.Now().AddDate(0, 0, 7)
-	predicate.IssuedOn = &currentTime
-	predicate.Validity = &amber.ClaimValidity{
-		NotBefore: &tomorrow,
-		NotAfter:  &nextWeek,
-	}
 	fuzzClaimSpec, err := generateFuzzClaimSpec(revisionDigest, fuzzParameters, fuzzTargets)
 	if err != nil {
 		return nil, err
 	}
-	predicate.ClaimSpec = *fuzzClaimSpec
 	evidences, err := GetEvidences(fuzzParameters, fuzzTargets)
 	if err != nil {
 		return nil, err
 	}
-	predicate.Evidence = evidences
+	currentTime := time.Now()
+	tomorrow := time.Now().AddDate(0, 0, 1)
+	// TODO(#173): Add validity duration as an input parameter.
+	endValidity := time.Now().AddDate(0, 0, 7)
+	validity := amber.ClaimValidity{
+		NotBefore: &tomorrow,
+		NotAfter:  &endValidity,
+	}
+	// Generate Amber predicate
+	predicate := amber.ClaimPredicate{
+		ClaimType: FuzzClaimV1,
+		ClaimSpec: *fuzzClaimSpec,
+		IssuedOn:  &currentTime,
+		Validity:  &validity,
+		Evidence:  evidences,
+	}
 	// Generate intoto statement
-	var statement intoto.Statement
-	statement.Type = intoto.StatementInTotoV01
 	subject := intoto.Subject{
 		Name:   fuzzParameters.ProjectGitRepo,
 		Digest: revisionDigest,
 	}
-	statement.Subject = append(statement.Subject, subject)
-	statement.PredicateType = amber.AmberClaimV1
-	validFuzzPredicate, err := ValidateFuzzClaim(predicate)
+	statementHeader := intoto.StatementHeader{
+		Type:          intoto.StatementInTotoV01,
+		PredicateType: amber.AmberClaimV1,
+		Subject:       []intoto.Subject{subject},
+	}
+	statement := intoto.Statement{
+		StatementHeader: statementHeader,
+		Predicate:       predicate,
+	}
+	validFuzzPredicate, err := ValidateFuzzClaim(statement)
 	if err != nil {
 		return nil, err
 	}
-	statement.Predicate = *validFuzzPredicate
-	validAmberPredicate, err := amber.ValidateAmberClaim(statement)
-	if err != nil {
-		return nil, err
-	}
-	statement.Predicate = *validAmberPredicate
+	statement.Predicate = validFuzzPredicate
 	return &statement, nil
 }
