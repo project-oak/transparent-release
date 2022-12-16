@@ -175,7 +175,7 @@ func parseFuzzClaimBytes(statementBytes []byte) (*intoto.Statement, error) {
 	statement.Predicate = predicate
 	statement.Predicate, err = ValidateFuzzClaim(statement)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not validate the parsed fuzzing claim: %v", err)
 	}
 
 	return &statement, nil
@@ -194,15 +194,18 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 	for _, fuzzTarget := range fuzzTargets {
 		coverage, err := GetCoverage(fuzzParameters, fuzzTarget, "perTarget")
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf(
+				"could not get %s coverage to generate the fuzzing ClaimSpec: %v", fuzzTarget, err)
 		}
 		fuzzEffort, err := GetFuzzEffort(revisionDigest, fuzzParameters, fuzzTarget)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf(
+				"could not get %s fuzzing efforts to generate the fuzzing ClaimSpec: %v", fuzzTarget, err)
 		}
 		crash, err := GetCrashes(revisionDigest, fuzzParameters, fuzzTarget)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf(
+				"could not get %s crashes to generate the fuzzing ClaimSpec: %v", fuzzTarget, err)
 		}
 
 		fuzzersCrashes[fuzzTarget] = crash
@@ -215,7 +218,8 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 	}
 	projectCoverage, err := GetCoverage(fuzzParameters, "", "perProject")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(
+			"could not get the project coverage to generate the fuzzing ClaimSpec: %v", err)
 	}
 	// Generate fuzzing claim specification.
 	perProject := &FuzzStats{
@@ -254,19 +258,23 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 func GenerateFuzzClaim(fuzzParameters *FuzzParameters) (*intoto.Statement, error) {
 	revisionDigest, err := GetCoverageRevision(fuzzParameters)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(
+			"could not get the revision digest to generate the fuzzing claim: %v", err)
 	}
 	fuzzTargets, err := GetFuzzTargets(fuzzParameters)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(
+			"could not get the fuzzing targets to generate the fuzzing claim: %v", err)
 	}
 	fuzzClaimSpec, err := generateFuzzClaimSpec(revisionDigest, fuzzParameters, fuzzTargets)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(
+			"could not get the fuzzing ClaimSpec to generate the fuzzing claim: %v", err)
 	}
 	evidences, err := GetEvidences(fuzzParameters, fuzzTargets)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(
+			"could not get evidences to generate the fuzzing claim: %v", err)
 	}
 	currentTime := time.Now()
 	tomorrow := time.Now().AddDate(0, 0, 1)
@@ -300,7 +308,8 @@ func GenerateFuzzClaim(fuzzParameters *FuzzParameters) (*intoto.Statement, error
 	}
 	validFuzzPredicate, err := ValidateFuzzClaim(statement)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(
+			"could not validate the generated fuzzing claim: %v", err)
 	}
 	statement.Predicate = validFuzzPredicate
 	return &statement, nil
