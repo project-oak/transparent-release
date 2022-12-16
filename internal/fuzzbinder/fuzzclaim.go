@@ -225,7 +225,7 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 		FuzzTimeSeconds: projectFuzzEffort.FuzzTimeSeconds,
 		NumberFuzzTests: projectFuzzEffort.NumberFuzzTests,
 	}
-	var perTarget []FuzzSpecPerTarget
+	perTarget := make([]FuzzSpecPerTarget, 0, len(fuzzTargets))
 	for _, fuzzTagret := range fuzzTargets {
 		targetStats := FuzzStats{
 			BranchCoverage:  fuzzersCoverage[fuzzTagret].BranchCoverage,

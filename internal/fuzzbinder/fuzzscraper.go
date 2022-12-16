@@ -397,7 +397,7 @@ func GetFuzzTargets(fuzzParameters *FuzzParameters) ([]string, error) {
 
 // GetEvidences gets the list of the evidence files used by the fuzzscraper.
 func GetEvidences(fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber.ClaimEvidence, error) {
-	evidences := make([]amber.ClaimEvidence, len(fuzzTargets)+2)
+	evidences := make([]amber.ClaimEvidence, 0, len(fuzzTargets)+2)
 	// Get the GCS absolute path of the file containing the revision hash of the source code used
 	// in the coverage build on a given day.
 	role := "revision"
@@ -408,7 +408,7 @@ func GetEvidences(fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber
 	if err != nil {
 		return nil, err
 	}
-	evidences[0] = amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest}
+	evidences = append(evidences, amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest})
 
 	// Get the GCS absolute path of the file containing the coverage summary for the project on a given day.
 	role = "project coverage"
@@ -419,8 +419,8 @@ func GetEvidences(fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber
 	if err != nil {
 		return nil, err
 	}
-	evidences[1] = amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest}
-	for idx, fuzzTarget := range fuzzTargets {
+	evidences = append(evidences, amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest})
+	for _, fuzzTarget := range fuzzTargets {
 		// The role of the coverage evidence using the fuzzTarget.
 		role := fmt.Sprintf("%s_%s_%v coverage", fuzzParameters.FuzzEngine, fuzzParameters.ProjectName, fuzzTarget)
 		// TODO(#174): Replace GCS path by Ent path in evidences URI.
@@ -431,7 +431,7 @@ func GetEvidences(fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber
 		if err != nil {
 			return nil, err
 		}
-		evidences[2+idx] = amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest}
+		evidences = append(evidences, amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest})
 	}
 	return evidences, nil
 }
