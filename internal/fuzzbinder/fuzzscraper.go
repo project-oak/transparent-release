@@ -417,45 +417,47 @@ func GetFuzzTargets(fuzzParameters *FuzzParameters) ([]string, error) {
 	return fuzzTargets, nil
 }
 
+// addClaimEvidence adds an evidence to the list of the evidence files used by the fuzzscraper.
+func addClaimEvidence(evidences []amber.ClaimEvidence, blobName string, role string) ([]amber.ClaimEvidence, error) {
+	digest, err := getGCSFileDigest(CoverageBucket, blobName)
+	if err != nil {
+		return nil, fmt.Errorf("could not get digest of evidence %s: %v", blobName, err)
+	}
+	evidence := amber.ClaimEvidence{
+		Role:   role,
+		URI:    fmt.Sprintf("gs://%s/%s", CoverageBucket, blobName),
+		Digest: *digest,
+	}
+	evidences = append(evidences, evidence)
+	return evidences, nil
+}
+
 // GetEvidences gets the list of the evidence files used by the fuzzscraper.
 func GetEvidences(fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber.ClaimEvidence, error) {
 	evidences := make([]amber.ClaimEvidence, 0, len(fuzzTargets)+2)
-	// Get the GCS absolute path of the file containing the revision hash of the source code used
+	// TODO(#174): Replace GCS path by Ent path in evidences URI.
+	// The GCS absolute path of the file containing the revision hash of the source code used
 	// in the coverage build on a given day.
-	role := "revision"
-	// TODO(#174): Replace GCS path by Ent path in evidences URI.
 	blobName := fmt.Sprintf("%s/srcmap/%s.json", fuzzParameters.ProjectName, fuzzParameters.Date)
-	uri := fmt.Sprintf("gs://%s/%s", CoverageBucket, blobName)
-	digest, err := getGCSFileDigest(CoverageBucket, blobName)
+	evidences, err := addClaimEvidence(evidences, blobName, "revision")
 	if err != nil {
-		return nil, fmt.Errorf("could not get digest of evidence %s: %v", uri, err)
+		return nil, fmt.Errorf("could not add revision evidence: %v", err)
 	}
-	evidences = append(evidences, amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest})
-
-	// Get the GCS absolute path of the file containing the coverage summary for the project on a given day.
-	role = "project coverage"
 	// TODO(#174): Replace GCS path by Ent path in evidences URI.
+	// The GCS absolute path of the file containing the coverage summary for the project on a given day.
 	blobName = fmt.Sprintf("%s/reports/%s/linux/summary.json", fuzzParameters.ProjectName, fuzzParameters.Date)
-	uri = fmt.Sprintf("gs://%s/%s", CoverageBucket, blobName)
-	digest, err = getGCSFileDigest(CoverageBucket, blobName)
+	evidences, err = addClaimEvidence(evidences, blobName, "project coverage")
 	if err != nil {
-		return nil, fmt.Errorf(
-			"could not get digest of evidence %s: %v", uri, err)
+		return nil, fmt.Errorf("could not add project coverage evidence: %v", err)
 	}
-	evidences = append(evidences, amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest})
 	for _, fuzzTarget := range fuzzTargets {
-		// The role of the coverage evidence using the fuzzTarget.
-		role := fmt.Sprintf("%s coverage", fuzzTarget)
 		// TODO(#174): Replace GCS path by Ent path in evidences URI.
 		// The GCS absolute path of the file containing the coverage summary for a fuzz-target on a given day.
 		blobName = fmt.Sprintf("%s/fuzzer_stats/%s/%v.json", fuzzParameters.ProjectName, fuzzParameters.Date, fuzzTarget)
-		uri = fmt.Sprintf("gs://%s/%s", CoverageBucket, blobName)
-		digest, err = getGCSFileDigest(CoverageBucket, blobName)
+		evidences, err = addClaimEvidence(evidences, blobName, "fuzzTarget coverage")
 		if err != nil {
-			return nil, fmt.Errorf(
-				"could not get digest of evidence %s: %v", uri, err)
+			return nil, fmt.Errorf("could not add fuzzTarget coverage evidence: %v", err)
 		}
-		evidences = append(evidences, amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest})
 	}
 	return evidences, nil
 }
