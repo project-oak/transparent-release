@@ -439,7 +439,7 @@ func GetEvidences(fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber
 	// The GCS absolute path of the file containing the revision hash of the source code used
 	// in the coverage build on a given day.
 	blobName := fmt.Sprintf("%s/srcmap/%s.json", fuzzParameters.ProjectName, fuzzParameters.Date)
-	evidences, err := addClaimEvidence(evidences, blobName, "revision")
+	evidences, err := addClaimEvidence(evidences, blobName, "srcmap")
 	if err != nil {
 		return nil, fmt.Errorf("could not add revision evidence: %v", err)
 	}
