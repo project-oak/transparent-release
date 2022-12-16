@@ -441,7 +441,7 @@ func GetEvidences(fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber
 	blobName := fmt.Sprintf("%s/srcmap/%s.json", fuzzParameters.ProjectName, fuzzParameters.Date)
 	evidences, err := addClaimEvidence(evidences, blobName, "srcmap")
 	if err != nil {
-		return nil, fmt.Errorf("could not add revision evidence: %v", err)
+		return nil, fmt.Errorf("could not add srcmap evidence: %v", err)
 	}
 	// TODO(#174): Replace GCS path by Ent path in evidences URI.
 	// The GCS absolute path of the file containing the coverage summary for the project on a given day.
