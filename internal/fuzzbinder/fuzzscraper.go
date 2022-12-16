@@ -422,7 +422,7 @@ func GetEvidences(fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber
 	evidences = append(evidences, amber.ClaimEvidence{Role: role, URI: uri, Digest: *digest})
 	for _, fuzzTarget := range fuzzTargets {
 		// The role of the coverage evidence using the fuzzTarget.
-		role := fmt.Sprintf("%s_%s_%v coverage", fuzzParameters.FuzzEngine, fuzzParameters.ProjectName, fuzzTarget)
+		role := fmt.Sprintf("%s coverage", fuzzTarget)
 		// TODO(#174): Replace GCS path by Ent path in evidences URI.
 		// The GCS absolute path of the file containing the coverage summary for a fuzz-target on a given day.
 		blobName = fmt.Sprintf("%s/fuzzer_stats/%s/%v.json", fuzzParameters.ProjectName, fuzzParameters.Date, fuzzTarget)

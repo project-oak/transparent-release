@@ -235,7 +235,7 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 			NumberFuzzTests: fuzzersFuzzEffort[fuzzTagret].NumberFuzzTests,
 		}
 		targetSpec := FuzzSpecPerTarget{
-			Name:      fmt.Sprintf("%s_%s_%s", fuzzParameters.FuzzEngine, fuzzParameters.ProjectName, fuzzTagret),
+			Name:      fuzzTagret,
 			Path:      fmt.Sprintf("%s/fuzz/fuzz_targets/%s.rs", fuzzParameters.ProjectName, fuzzTagret),
 			FuzzStats: &targetStats,
 		}
