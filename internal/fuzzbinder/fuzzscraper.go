@@ -217,9 +217,9 @@ func getLogs(fuzzParameters *FuzzParameters, fuzzTarget string) (*storage.Bucket
 	return bucket, blobs, nil
 }
 
-// getFuzzStatsFromFile gets the fuzzing effort from a fuzzer log file of
-// the correct revision of the source code.
-func getFuzzStatsFromFile(lineScanner *bufio.Scanner) (*FuzzEffort, error) {
+// getFuzzStatsScanner gets the fuzzing effort from a fuzzer log file of
+// the good revision of the source code.
+func getFuzzStatsFromScanner(lineScanner *bufio.Scanner) (*FuzzEffort, error) {
 	var fuzzEffort FuzzEffort
 	for lineScanner.Scan() {
 		// Get the fuzzing time in seconds.
@@ -259,7 +259,6 @@ func getFuzzEffortFromFile(revisionDigest intoto.DigestSet, reader io.Reader) (*
 		return nil, fmt.Errorf(
 			"could not check if log file has good revision hash: %v", err)
 	}
-	var fileFuzzEffort FuzzEffort
 	if isGoodHash {
 		reader := bytes.NewReader(fileBytes)
 		lineScanner := bufio.NewScanner(reader)
@@ -267,14 +266,9 @@ func getFuzzEffortFromFile(revisionDigest intoto.DigestSet, reader io.Reader) (*
 			return nil, fmt.Errorf(
 				"could not get linescanner for log file: %v", err)
 		}
-		gotFuzzEffort, err := getFuzzStatsFromFile(lineScanner)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"could not use linescanner to get fuzzing efforts from log file: %v", err)
-		}
-		fileFuzzEffort = *gotFuzzEffort
+		return getFuzzStatsFromScanner(lineScanner)
 	}
-	return &fileFuzzEffort, nil
+	return &FuzzEffort{0, 0}, nil
 }
 
 // crashDetected detects crashes in log files that are related to a
