@@ -27,17 +27,17 @@ func ValidateDate(date string) error {
 	claimDate, err := time.Parse("20060102", date)
 	if err != nil {
 		return fmt.Errorf(
-			"the format of %s is not valid: the date format should be YYYYMMDD.", date)
+			"the format of %s is not valid: the date format should be yyyymmdd", date)
 	}
 	currentTime := time.Now()
 	duration := currentTime.Sub(claimDate).Hours() / 24
 	if duration > 15 {
 		return fmt.Errorf(
-			"the fuzzing logs on %s are deleted: select a more recent date.", date)
+			"the fuzzing logs on %s are deleted: select a more recent date", date)
 	}
 	if duration < 0 {
 		return fmt.Errorf(
-			"no fuzzing logs generated for %s: do not select a date in the future.", date)
+			"no fuzzing logs generated for %s: do not select a date in the future", date)
 	}
 	return nil
 }
