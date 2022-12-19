@@ -17,6 +17,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"log"
@@ -24,6 +25,7 @@ import (
 	"path/filepath"
 
 	"github.com/project-oak/transparent-release/internal/fuzzbinder"
+	"github.com/project-oak/transparent-release/internal/gcsutil"
 )
 
 func main() {
@@ -50,8 +52,17 @@ func main() {
 		log.Fatalf("could not get absolute path for storing the fuzzing claim: %v", err)
 	}
 
+	// Get context
+	ctx := context.Background()
+
+	// Create new GCS client
+	client, err := gcsutil.NewClient(ctx)
+	if err != nil {
+		log.Fatalf("could not create GCS client for FuzzBinder: %v", err)
+	}
+
 	// Generate the fuzzing claim.
-	statement, err := fuzzbinder.GenerateFuzzClaim(fuzzParameters)
+	statement, err := fuzzbinder.GenerateFuzzClaim(ctx, client, fuzzParameters)
 	if err != nil {
 		log.Fatalf("could not generate the fuzzing claim: %v", err)
 	}
