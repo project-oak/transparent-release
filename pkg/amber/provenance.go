@@ -107,7 +107,7 @@ func (p *ValidatedProvenance) GetBuilderImageDigest() (string, error) {
 
 		}
 	}
-	return "", fmt.Errorf("Could not find the builder image in %v", materials)
+	return "", fmt.Errorf("could not find the builder image in %v", materials)
 }
 
 func validateSLSAProvenanceJSON(provenanceFile []byte) error {
