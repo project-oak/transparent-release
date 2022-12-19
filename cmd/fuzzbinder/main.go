@@ -44,6 +44,12 @@ func main() {
 		"Optional - Output file name for storing the generated fuzzing claim.")
 	flag.Parse()
 
+	// validate fuzzing date.
+	err := fuzzbinder.ValidateDate(fuzzParameters.Date)
+	if err != nil {
+		log.Fatalf("could not validate the fuzzing date: %v", err)
+	}
+
 	// Get the absolute path for storing the fuzzing claim.
 	absFuzzClaimPath, err := filepath.Abs(*fuzzClaimPath)
 	if err != nil {
