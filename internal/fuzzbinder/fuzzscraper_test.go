@@ -14,6 +14,7 @@
 package fuzzbinder
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -71,7 +72,11 @@ func TestGetFuzzEffortFromFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	fuzzEffort, err := getFuzzEffortFromFile(revisionDigest, reader)
+	fileBytes, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	fuzzEffort, err := getFuzzEffortFromFile(revisionDigest, fileBytes)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
@@ -92,7 +97,11 @@ func TestCrashDetected(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err := crashDetected(revisionDigest, reader)
+	fileBytes, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	got, err := crashDetectedInFile(revisionDigest, fileBytes)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
@@ -104,7 +113,11 @@ func TestCrashDetected(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err = crashDetected(revisionDigest, reader)
+	fileBytes, err = io.ReadAll(reader)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	got, err = crashDetectedInFile(revisionDigest, fileBytes)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
