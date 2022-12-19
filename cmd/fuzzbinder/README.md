@@ -27,7 +27,7 @@ Set up `gsutil` by doing the following:
 
 - Install the [gsutil tool](https://cloud.google.com/storage/docs/gsutil_install).
 
-#### Step 1.2: Authenticate to google cloud
+#### Step 1.3: Authenticate to google cloud
 
 Check whether you have access to the coverage reports and the fuzzing logs of your project:
 
