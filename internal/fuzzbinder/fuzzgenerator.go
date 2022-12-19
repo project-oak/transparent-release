@@ -19,9 +19,11 @@ package fuzzbinder
 // with AmberClaimV1 as the PredicateType and FuzzClaimV1 as the ClaimType.
 
 import (
+	"context"
 	"fmt"
 	"time"
 
+	"github.com/project-oak/transparent-release/internal/gcsutil"
 	"github.com/project-oak/transparent-release/pkg/amber"
 	"github.com/project-oak/transparent-release/pkg/intoto"
 )
@@ -29,7 +31,7 @@ import (
 // TODO(#171): Split generateFuzzClaimSpec into smaller functions.
 // generateFuzzClaimSpec generates a fuzzing claim specification using the
 // fuzzing reports of OSS-Fuzz.
-func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *FuzzParameters, fuzzTargets []string) (*FuzzClaimSpec, error) {
+func generateFuzzClaimSpec(ctx context.Context, client *gcsutil.GCSClient, revisionDigest intoto.DigestSet, fuzzParameters *FuzzParameters, fuzzTargets []string) (*FuzzClaimSpec, error) {
 	var projectCrashes Crash
 	var projectFuzzEffort FuzzEffort
 	fuzzersCrashes := make(map[string]*Crash)
@@ -37,17 +39,17 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 	fuzzersCoverage := make(map[string]*Coverage)
 	//Get fuzzing statistics.
 	for _, fuzzTarget := range fuzzTargets {
-		coverage, err := GetCoverage(fuzzParameters, fuzzTarget, "perTarget")
+		coverage, err := GetCoverage(ctx, client, fuzzParameters, fuzzTarget, "perTarget")
 		if err != nil {
 			return nil, fmt.Errorf(
 				"could not get %s coverage to generate the fuzzing ClaimSpec: %v", fuzzTarget, err)
 		}
-		fuzzEffort, err := GetFuzzEffort(revisionDigest, fuzzParameters, fuzzTarget)
+		fuzzEffort, err := GetFuzzEffort(ctx, client, revisionDigest, fuzzParameters, fuzzTarget)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"could not get %s fuzzing efforts to generate the fuzzing ClaimSpec: %v", fuzzTarget, err)
 		}
-		crash, err := GetCrashes(revisionDigest, fuzzParameters, fuzzTarget)
+		crash, err := GetCrashes(ctx, client, revisionDigest, fuzzParameters, fuzzTarget)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"could not get %s crashes to generate the fuzzing ClaimSpec: %v", fuzzTarget, err)
@@ -61,7 +63,7 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 		projectFuzzEffort.FuzzTimeSeconds += fuzzEffort.FuzzTimeSeconds
 		projectFuzzEffort.NumberFuzzTests += fuzzEffort.NumberFuzzTests
 	}
-	projectCoverage, err := GetCoverage(fuzzParameters, "", "perProject")
+	projectCoverage, err := GetCoverage(ctx, client, fuzzParameters, "", "perProject")
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not get the project coverage to generate the fuzzing ClaimSpec: %v", err)
@@ -101,23 +103,23 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 // GenerateFuzzClaim generates a fuzzing claim (an instance of intoto.Statement,
 // with AmberClaimV1 as the PredicateType and FuzzClaimV1 as the ClaimType) using the
 // fuzzing reports of OSS-Fuzz and ClusterFuzz.
-func GenerateFuzzClaim(fuzzParameters *FuzzParameters) (*intoto.Statement, error) {
-	revisionDigest, err := GetCoverageRevision(fuzzParameters)
+func GenerateFuzzClaim(ctx context.Context, client *gcsutil.GCSClient, fuzzParameters *FuzzParameters) (*intoto.Statement, error) {
+	revisionDigest, err := GetCoverageRevision(ctx, client, fuzzParameters)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not get the revision digest to generate the fuzzing claim: %v", err)
 	}
-	fuzzTargets, err := GetFuzzTargets(fuzzParameters)
+	fuzzTargets, err := GetFuzzTargets(ctx, client, fuzzParameters)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not get the fuzzing targets to generate the fuzzing claim: %v", err)
 	}
-	fuzzClaimSpec, err := generateFuzzClaimSpec(revisionDigest, fuzzParameters, fuzzTargets)
+	fuzzClaimSpec, err := generateFuzzClaimSpec(ctx, client, revisionDigest, fuzzParameters, fuzzTargets)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not get the fuzzing ClaimSpec to generate the fuzzing claim: %v", err)
 	}
-	evidences, err := GetEvidences(fuzzParameters, fuzzTargets)
+	evidences, err := GetEvidences(ctx, client, fuzzParameters, fuzzTargets)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not get evidences to generate the fuzzing claim: %v", err)
