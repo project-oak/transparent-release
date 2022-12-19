@@ -42,6 +42,8 @@ func main() {
 		"Required - Fuzzing date. The expected date format is YYYYMMDD.")
 	fuzzClaimPath := flag.String("fuzzclaim_path", "fuzzclaim.json",
 		"Optional - Output file name for storing the generated fuzzing claim.")
+	validityDays := flag.Int("validity", 7,
+		"Optional - Validity period of the fuzzing claim that will be generated in days.")
 	flag.Parse()
 
 	// Get the absolute path for storing the fuzzing claim.
@@ -51,7 +53,7 @@ func main() {
 	}
 
 	// Generate the fuzzing claim.
-	statement, err := fuzzbinder.GenerateFuzzClaim(fuzzParameters)
+	statement, err := fuzzbinder.GenerateFuzzClaim(fuzzParameters, *validityDays)
 	if err != nil {
 		log.Fatalf("could not generate the fuzzing claim: %v", err)
 	}
