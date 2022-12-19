@@ -73,7 +73,11 @@ type FuzzStats struct {
 
 // ValidateFuzzClaim validates that an Amber Claim is a Fuzz Claim with a valid ClaimType.
 // If valid, the ClaimPredicate object is returned. Otherwise an error is returned.
-func ValidateFuzzClaim(predicate amber.ClaimPredicate) (*amber.ClaimPredicate, error) {
+func ValidateFuzzClaim(statement intoto.Statement) (*amber.ClaimPredicate, error) {
+	predicate, err := amber.ValidateAmberClaim(statement)
+	if err != nil {
+		return nil, fmt.Errorf("could not validate the fuzzing AmberClaim: %v", err)
+	}
 	if predicate.ClaimType != FuzzClaimV1 {
 		return nil, fmt.Errorf(
 			"the claimPredicate does not have the expected claim type; got: %s, want: %s",
@@ -84,7 +88,7 @@ func ValidateFuzzClaim(predicate amber.ClaimPredicate) (*amber.ClaimPredicate, e
 	// Verify the type of the ClaimSpec, and return it if it is of type ClaimPredicate.
 	switch predicate.ClaimSpec.(type) {
 	case FuzzClaimSpec:
-		return validateFuzzClaimSpec(predicate)
+		return validateFuzzClaimSpec(*predicate)
 	default:
 		return nil, fmt.Errorf(
 			"the claimSpec does not have the expected type; got: %T, want: FuzzClaimSpec",
@@ -96,14 +100,14 @@ func ValidateFuzzClaim(predicate amber.ClaimPredicate) (*amber.ClaimPredicate, e
 func validateFuzzClaimSpec(predicate amber.ClaimPredicate) (*amber.ClaimPredicate, error) {
 	// validate that perProject.fuzzTimeSeconds is the sum of fuzzTimeSeconds for all fuzz-targets
 	// and perProject.numberFuzzTests is the sum of numberFuzzTests for all fuzz-targets.
-	projectTimeSeconds := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.FuzzTimeSeconds
-	projectNumberTests := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.NumberFuzzTests
 	sumTargetsTimeSeconds := 0.0
 	sumTargetsNumberTests := 0
 	for _, spec := range predicate.ClaimSpec.(FuzzClaimSpec).PerTarget {
 		sumTargetsTimeSeconds += spec.FuzzStats.FuzzTimeSeconds
 		sumTargetsNumberTests += spec.FuzzStats.NumberFuzzTests
 	}
+	projectTimeSeconds := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.FuzzTimeSeconds
+	projectNumberTests := predicate.ClaimSpec.(FuzzClaimSpec).PerProject.NumberFuzzTests
 	if projectTimeSeconds != sumTargetsTimeSeconds {
 		return nil, fmt.Errorf("perProject.fuzzTimeSeconds (%f) is not equal to the sum of per-target fuzzTimeSeconds (%f)",
 			projectTimeSeconds, sumTargetsTimeSeconds)
@@ -156,12 +160,6 @@ func parseFuzzClaimBytes(statementBytes []byte) (*intoto.Statement, error) {
 		return nil, fmt.Errorf("could not unmarshal JSON bytes into a ClaimPredicate: %v", err)
 	}
 
-	statement.Predicate = predicate
-	statement.Predicate, err = amber.ValidateAmberClaim(statement)
-	if err != nil {
-		return nil, err
-	}
-
 	claimSpecBytes, err := json.Marshal(predicate.ClaimSpec)
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal ClaimSpec map into JSON bytes: %v", err)
@@ -173,9 +171,10 @@ func parseFuzzClaimBytes(statementBytes []byte) (*intoto.Statement, error) {
 	}
 
 	predicate.ClaimSpec = claimSpec
-	statement.Predicate, err = ValidateFuzzClaim(predicate)
+	statement.Predicate = predicate
+	statement.Predicate, err = ValidateFuzzClaim(statement)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not validate the parsed fuzzing claim: %v", err)
 	}
 
 	return &statement, nil

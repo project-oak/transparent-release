@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/project-oak/transparent-release/internal/testutil"
+	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
 const (
@@ -39,12 +40,12 @@ func TestGetRevisionFromFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err := getRevisionFromFile(content, &fuzzParameter)
+	got, err := getRevisionFromFile(&fuzzParameter, content)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
 	// Check that the length of the extracted commitHash is correct.
-	testutil.AssertEq(t, "commitHash length", len(got.Hash), wantSHA1HexDigitLength)
+	testutil.AssertEq(t, "commitHash length", len(got["sha1"]), wantSHA1HexDigitLength)
 }
 
 func TestParseCoverageSummary(t *testing.T) {
@@ -62,52 +63,52 @@ func TestParseCoverageSummary(t *testing.T) {
 }
 
 func TestGetFuzzEffortFromFile(t *testing.T) {
-	revision := Revision{
-		Hash: hash,
+	revisionDigest := intoto.DigestSet{
+		"sha1": hash,
 	}
 	path := filepath.Join(testdataPath, logFilePath)
 	reader, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	fuzzEffort, err := getFuzzEffortFromFile(reader, &revision)
+	fuzzEffort, err := getFuzzEffortFromFile(revisionDigest, reader)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
 	if !(fuzzEffort.NumberFuzzTests > 0) {
-		t.Errorf("Unexpected numFuzzTests: got %v, want non-zero value", fuzzEffort.NumberFuzzTests)
+		t.Errorf("unexpected numFuzzTests: got %v, want non-zero value", fuzzEffort.NumberFuzzTests)
 	}
 	if !(fuzzEffort.FuzzTimeSeconds > 0.0) {
-		t.Errorf("Unexpected fuzzTimeSeconds: got %v, want non-zero value", fuzzEffort.FuzzTimeSeconds)
+		t.Errorf("unexpected fuzzTimeSeconds: got %v, want non-zero value", fuzzEffort.FuzzTimeSeconds)
 	}
 }
 
 func TestCrashDetected(t *testing.T) {
-	revision := Revision{
-		Hash: hash,
+	revisionDigest := intoto.DigestSet{
+		"sha1": hash,
 	}
 	path := filepath.Join(testdataPath, logFilePath)
 	reader, err := os.Open(path)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err := crashDetected(reader, &revision)
+	got, err := crashDetected(revisionDigest, reader)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
 	if got.Detected {
-		t.Errorf("Unexpected crash detection: got %v, want false", got.Detected)
+		t.Errorf("unexpected crash detection: got %v, want false", got.Detected)
 	}
 	path = filepath.Join(testdataPath, logFileWithCrashPath)
 	reader, err = os.Open(path)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err = crashDetected(reader, &revision)
+	got, err = crashDetected(revisionDigest, reader)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
 	if !got.Detected {
-		t.Errorf("Unexpected crash detection: got %v, want true", got.Detected)
+		t.Errorf("unexpected crash detection: got %v, want true", got.Detected)
 	}
 }
