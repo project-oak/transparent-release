@@ -37,6 +37,7 @@ func main() {
 		"Required - Fuzzing engine used for the project. Examples: libFuzzer, afl, honggfuzz, centipede.")
 	flag.StringVar(&fuzzParameters.Sanitizer, "sanitizer", "asan",
 		"Required - Fuzzing sanitizer used for the project. Examples: asan, ubsan, msan.")
+	// TODO(#176): Check the date range in the main before passing it to any downstream functions.
 	flag.StringVar(&fuzzParameters.Date, "date", "",
 		"Required - Fuzzing date. The expected date format is YYYYMMDD.")
 	fuzzClaimPath := flag.String("fuzzclaim_path", "fuzzclaim.json",

@@ -84,7 +84,8 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 			NumberFuzzTests: fuzzersFuzzEffort[fuzzTagret].NumberFuzzTests,
 		}
 		targetSpec := FuzzSpecPerTarget{
-			Name:      fuzzTagret,
+			Name: fuzzTagret,
+			// TODO(##177): Add fuzz-target path extraction to FuzzBinder.
 			Path:      fmt.Sprintf("%s/fuzz/fuzz_targets/%s.rs", fuzzParameters.ProjectName, fuzzTagret),
 			FuzzStats: &targetStats,
 		}
