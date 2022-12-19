@@ -104,7 +104,6 @@ func (p *ValidatedProvenance) GetBuilderImageDigest() (string, error) {
 		if strings.Contains(material.URI, "@sha256:") {
 			digest := material.Digest["sha256"]
 			return digest, nil
-
 		}
 	}
 	return "", fmt.Errorf("could not find the builder image in %v", materials)
