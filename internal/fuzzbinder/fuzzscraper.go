@@ -236,12 +236,12 @@ func crashDetectedInFile(revisionDigest intoto.DigestSet, fileBytes []byte) (*Cr
 
 // getGCSFileDigest gets the digest of a file stored in GCS given its name
 // and the bucket where it is stored.
-func getGCSFileDigest(fileBytes []byte) (*intoto.DigestSet, error) {
+func getGCSFileDigest(fileBytes []byte) *intoto.DigestSet {
 	sum256 := sha256.Sum256(fileBytes)
 	digest := intoto.DigestSet{
 		"sha256": hex.EncodeToString(sum256[:]),
 	}
-	return &digest, nil
+	return &digest
 }
 
 // FormatCoverage transforms a coverage map into a string in the expected
@@ -323,10 +323,7 @@ func addClaimEvidence(ctx context.Context, client *gcsutil.GCSClient, evidences 
 	if err != nil {
 		return nil, fmt.Errorf("could not get date in evidence file: %v", err)
 	}
-	digest, err := getGCSFileDigest(fileBytes)
-	if err != nil {
-		return nil, fmt.Errorf("could not get digest of evidence %s: %v", blobName, err)
-	}
+	digest := getGCSFileDigest(fileBytes)
 	evidence := amber.ClaimEvidence{
 		Role:   role,
 		URI:    fmt.Sprintf("gs://%s/%s", CoverageBucket, blobName),
