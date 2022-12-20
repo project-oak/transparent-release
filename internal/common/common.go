@@ -93,7 +93,7 @@ func LoadBuildConfigFromFile(path string) (*BuildConfig, error) {
 
 	config := BuildConfig{}
 	if err := tomlTree.Unmarshal(&config); err != nil {
-		return nil, fmt.Errorf("couldn't ubmarshal toml file: %v", err)
+		return nil, fmt.Errorf("couldn't unmarshal toml file: %v", err)
 	}
 
 	return &config, nil
@@ -333,7 +333,7 @@ func LoadReferenceValuesFromFile(path string) (*ReferenceValues, error) {
 
 	referenceValues := ReferenceValues{}
 	if err := tomlTree.Unmarshal(&referenceValues); err != nil {
-		return nil, fmt.Errorf("couldn't ubmarshal toml file: %v", err)
+		return nil, fmt.Errorf("couldn't unmarshal toml file: %v", err)
 	}
 
 	return &referenceValues, nil
