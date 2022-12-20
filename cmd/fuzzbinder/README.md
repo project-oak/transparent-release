@@ -56,7 +56,7 @@ $ go run cmd/fuzzbinder/main.go -project_name <project-name> \
   -git_repo <project-git-repo>  \
   -fuzzengine <fuzzing-engine> -sanitizer <fuzzing-sanitizer>  \
   -date <fuzzing-date> -fuzzclaim_path <fuzzclaim-path> \
-  --not_before <not-before-date> not_after <not-after-date>
+  -not_before <not-before-date> -not_after <not-after-date>
 ```
 
 As you may have noticed, you will need `<fuzzing-engine>` and `<fuzzing-sanitizer>` that you used in your OSS-Fuzz project configuration.
@@ -71,7 +71,7 @@ $ go run cmd/fuzzbinder/main.go -project_name <project-name> \
   -git_repo <project-git-repo>  \
   -fuzzengine libFuzzer -sanitizer asan  \
   -date YYYYMMDD -fuzzclaim_path <fuzzclaim-path>  \
-  --not_before <not-before-date> not_after <not-after-date>
+  -not_before <not-before-date> -not_after <not-after-date>
 ```
 
 The generated fuzzing claim will be saved in `<fuzzclaim-path>`.
