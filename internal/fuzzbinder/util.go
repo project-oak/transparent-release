@@ -62,7 +62,7 @@ func ValidateFuzzingDate(date string, referenceTime time.Time) error {
 
 // GetFuzzClaimValidity gets the fuzzing claim validity using
 // the values entered for notBeforeStr and notAfterStr.
-func GetValidFuzzClaimValidity(currentTime time.Time, notBeforeStr *string, notAfterStr *string) (*amber.ClaimValidity, error) {
+func GetValidFuzzClaimValidity(referenceTime time.Time, notBeforeStr *string, notAfterStr *string) (*amber.ClaimValidity, error) {
 	notAfter, err := parseDate(*notAfterStr)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse notAfter to *time.Time: %v", err)
@@ -75,7 +75,7 @@ func GetValidFuzzClaimValidity(currentTime time.Time, notBeforeStr *string, notA
 		NotBefore: notBefore,
 		NotAfter:  notAfter,
 	}
-	err = validateFuzzClaimValidity(validity, currentTime)
+	err = validateFuzzClaimValidity(validity, referenceTime)
 	if err != nil {
 		return nil, fmt.Errorf("could not validate the fuzzing claim validity: %v", err)
 	}
@@ -83,11 +83,11 @@ func GetValidFuzzClaimValidity(currentTime time.Time, notBeforeStr *string, notA
 }
 
 // validateFuzzClaimValidity validates the fuzzing claim validity
-// to make sure that NotBefore is after current time and
+// to make sure that NotBefore is after referenceTime and
 // NotAfter is after NotBefore.
-func validateFuzzClaimValidity(validity amber.ClaimValidity, currentTime time.Time) error {
-	if validity.NotBefore.Before(currentTime) {
-		return fmt.Errorf("notBefore (%v) is not after currentTime (%v)", validity.NotBefore, currentTime)
+func validateFuzzClaimValidity(validity amber.ClaimValidity, referenceTime time.Time) error {
+	if validity.NotBefore.Before(referenceTime) {
+		return fmt.Errorf("notBefore (%v) is not after currentTime (%v)", validity.NotBefore, referenceTime)
 	}
 	if validity.NotBefore.After(*validity.NotAfter) {
 		return fmt.Errorf("notAfter (%v) is not after notBefore (%v)", validity.NotAfter, validity.NotBefore)
