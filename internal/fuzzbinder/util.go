@@ -20,10 +20,12 @@ import (
 	"time"
 )
 
+const OssFuzzLogRetentionDays = 15
+
 // ValidateFuzzingDate validates that the fuzzing date chosen to generate the fuzzing
 // claims is no more than 15 days prior to the date of execution of FuzzBinder cmd
 // and not in the future.
-func ValidateFuzzingDate(date string, currentTime time.Time) error {
+func ValidateFuzzingDate(date string, referenceTime time.Time) error {
 	// The layout that represents the expected date format.
 	layout := "20060102"
 	fuzzClaimDate, err := time.Parse(layout, date)
@@ -32,12 +34,11 @@ func ValidateFuzzingDate(date string, currentTime time.Time) error {
 			"the format of %s is not valid: the date format should be yyyymmdd", date)
 	}
 	// The retention duration of the fuzzers logs saved in ClusterFuzz project bucket.
-	ossFuzzLogRetentionDays := 15
-	if fuzzClaimDate.Before(currentTime.AddDate(0, 0, -ossFuzzLogRetentionDays)) {
+	if fuzzClaimDate.Before(referenceTime.AddDate(0, 0, -OssFuzzLogRetentionDays)) {
 		return fmt.Errorf(
 			"the fuzzing logs on %s are deleted: select a more recent date", date)
 	}
-	if fuzzClaimDate.After(currentTime) {
+	if fuzzClaimDate.After(referenceTime) {
 		return fmt.Errorf(
 			"no fuzzing logs generated for %s: do not select a date in the future", date)
 	}
