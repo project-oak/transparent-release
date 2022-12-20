@@ -22,6 +22,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/project-oak/transparent-release/internal/fuzzbinder"
 )
@@ -45,6 +46,13 @@ func main() {
 	validityDays := flag.Uint("validity", 7,
 		"Optional - Validity period of the fuzzing claim that will be generated in days.")
 	flag.Parse()
+
+	// Current time in UTC time zone since it is used by OSS-Fuzz.
+	currentTime := time.Now().UTC()
+	err := fuzzbinder.ValidateFuzzingDate(fuzzParameters.Date, currentTime)
+	if err != nil {
+		log.Fatalf("could not validate the fuzzing date: %v", err)
+	}
 
 	// Get the absolute path for storing the fuzzing claim.
 	absFuzzClaimPath, err := filepath.Abs(*fuzzClaimPath)
