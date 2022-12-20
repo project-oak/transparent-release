@@ -68,7 +68,7 @@ type ReferenceValues struct {
 	// The digests of the binaries whose provenance the product team wants to verify.
 	BinarySHA256Digests []string `toml:"binary_256sha_digests"`
 	// If true the product teams wants the provenance to have a non-empty build command.
-	HasBuildCmds bool `toml:"has_build_cmds"`
+	WantBuildCmds bool `toml:"want_build_cmds"`
 	// The digests of the builder images the product team trusts to build the binary.
 	BuilderImageSHA256Digests []string `toml:"builder_image_256sha_digests"`
 }
@@ -322,6 +322,21 @@ func (b *BuildConfig) ChangeDirToGitRoot(gitRootDir string) (*RepoCheckoutInfo, 
 	}
 
 	return info, nil
+}
+
+// LoadReferenceValuesFromFile loads reference values from a toml file in the given path and returns an instance of ReferenceValues.
+func LoadReferenceValuesFromFile(path string) (*ReferenceValues, error) {
+	tomlTree, err := toml.LoadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't load toml file: %v", err)
+	}
+
+	referenceValues := ReferenceValues{}
+	if err := tomlTree.Unmarshal(&referenceValues); err != nil {
+		return nil, fmt.Errorf("couldn't ubmarshal toml file: %v", err)
+	}
+
+	return &referenceValues, nil
 }
 
 func parseBuilderImageURI(imageURI string) (string, string, error) {

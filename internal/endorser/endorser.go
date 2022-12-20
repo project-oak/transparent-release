@@ -26,6 +26,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/project-oak/transparent-release/internal/common"
 	"github.com/project-oak/transparent-release/internal/verifier"
 	"github.com/project-oak/transparent-release/pkg/amber"
 	"github.com/project-oak/transparent-release/pkg/intoto"
@@ -37,7 +38,7 @@ import (
 // must be provided. The endorsement statement is generated only if the provenance statements are
 // valid. Each provenanceURI must either specify a local file (using the `file` scheme), or a
 // remote file (using the `http/https` scheme).
-func GenerateEndorsement(referenceValues verifier.ProvenanceIR, validityDuration amber.ClaimValidity, provenanceURIs []string) (*intoto.Statement, error) {
+func GenerateEndorsement(referenceValues common.ReferenceValues, validityDuration amber.ClaimValidity, provenanceURIs []string) (*intoto.Statement, error) {
 	verifiedProvenances, err := loadAndVerifyProvenances(provenanceURIs, referenceValues)
 	if err != nil {
 		return nil, fmt.Errorf("could not load provenances: %v", err)
@@ -52,7 +53,7 @@ func GenerateEndorsement(referenceValues verifier.ProvenanceIR, validityDuration
 // (2) Any of the provenances cannot be loaded (e.g., invalid URI),
 // (3) Any of the provenances is invalid (see verifyProvenances for details on validity),
 // (4) Provenances do not match (e.g., have different binary names).
-func loadAndVerifyProvenances(provenanceURIs []string, referenceValues verifier.ProvenanceIR) (*amber.VerifiedProvenanceSet, error) {
+func loadAndVerifyProvenances(provenanceURIs []string, referenceValues common.ReferenceValues) (*amber.VerifiedProvenanceSet, error) {
 	if len(provenanceURIs) == 0 {
 		return nil, fmt.Errorf("at least one provenance file must be provided")
 	}
@@ -100,7 +101,7 @@ func loadAndVerifyProvenances(provenanceURIs []string, referenceValues verifier.
 
 // verifyProvenances verifies the given list of provenances. An error is returned if not.
 // TODO(b/222440937): Document any additional checks.
-func verifyProvenances(provenances []slsa.ValidatedProvenance, referenceValues verifier.ProvenanceIR) (verifier.VerificationResult, error) {
+func verifyProvenances(provenances []slsa.ValidatedProvenance, referenceValues common.ReferenceValues) (verifier.VerificationResult, error) {
 	combinedResult := verifier.NewVerificationResult()
 	for index := range provenances {
 		provenanceVerifier := verifier.ProvenanceMetadataVerifier{
