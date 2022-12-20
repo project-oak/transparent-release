@@ -24,6 +24,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/project-oak/transparent-release/pkg/intoto"
 	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
@@ -92,6 +93,21 @@ func (p *ValidatedProvenance) GetBuildCmd() ([]string, error) {
 		return nil, fmt.Errorf("could not parse BuildConfig")
 	}
 	return buildConfig.Command, nil
+}
+
+// GetBuilderImageDigest returns the digest for the Builder Image.
+func (p *ValidatedProvenance) GetBuilderImageDigest() (string, error) {
+	materials := p.provenance.Predicate.([]slsa.ProvenanceMaterial)
+	for _, material := range materials {
+		// This is a crude way to estimate if one of the materials is the builder image.
+		// However, even if we get a "wrong" digest as the builder image, the reference values should
+		// not contain this wrong digest, so worst case verifying the provenance fails, when it should not.
+		if strings.Contains(material.URI, "@sha256:") {
+			digest := material.Digest["sha256"]
+			return digest, nil
+		}
+	}
+	return "", fmt.Errorf("could not find the builder image in %v", materials)
 }
 
 func validateSLSAProvenanceJSON(provenanceFile []byte) error {
