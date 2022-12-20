@@ -60,7 +60,7 @@ func ValidateFuzzingDate(date string, referenceTime time.Time) error {
 	return nil
 }
 
-// GetFuzzClaimValidity gets the fuzzing claim validity using
+// GetValidFuzzClaimValidity gets the fuzzing claim validity using
 // the values entered for notBeforeStr and notAfterStr.
 func GetValidFuzzClaimValidity(referenceTime time.Time, notBeforeStr *string, notAfterStr *string) (*amber.ClaimValidity, error) {
 	notAfter, err := parseDate(*notAfterStr)
