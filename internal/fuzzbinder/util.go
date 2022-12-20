@@ -18,22 +18,35 @@ package fuzzbinder
 import (
 	"fmt"
 	"time"
+
+	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
-// OssFuzzLogRetentionDays contains the retention duration of the fuzzers
-// logs saved in ClusterFuzz project bucket.
-const OssFuzzLogRetentionDays = 15
+const (
+	// OssFuzzLogRetentionDays contains the retention duration of the fuzzers
+	// logs saved in ClusterFuzz project bucket.
+	OssFuzzLogRetentionDays = 15
+	// The layout that represents the expected date format.
+	Layout = "20060102"
+)
+
+// ParseDate parses a dateStr in YYYYMMDD date format.
+func ParseDate(dateStr string) (*time.Time, error) {
+	date, err := time.Parse(Layout, dateStr)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"the format of %s is not valid: the date format should be yyyymmdd", date)
+	}
+	return &date, nil
+}
 
 // ValidateFuzzingDate validates that the fuzzing date chosen to generate the fuzzing
 // claims is no more than 15 days prior to the date of execution of FuzzBinder cmd
 // and not in the future.
 func ValidateFuzzingDate(date string, referenceTime time.Time) error {
-	// The layout that represents the expected date format.
-	layout := "20060102"
-	fuzzClaimDate, err := time.Parse(layout, date)
+	fuzzClaimDate, err := ParseDate(date)
 	if err != nil {
-		return fmt.Errorf(
-			"the format of %s is not valid: the date format should be yyyymmdd", date)
+		return err
 	}
 	if fuzzClaimDate.Before(referenceTime.AddDate(0, 0, -OssFuzzLogRetentionDays)) {
 		return fmt.Errorf(
@@ -42,6 +55,41 @@ func ValidateFuzzingDate(date string, referenceTime time.Time) error {
 	if fuzzClaimDate.After(referenceTime) {
 		return fmt.Errorf(
 			"no fuzzing logs generated for %s: do not select a date in the future", date)
+	}
+	return nil
+}
+
+// GetFuzzClaimValidity gets the fuzzing claim validity using
+// the values entered for notBeforeStr and notAfterStr.
+func GetFuzzClaimValidity(currentTime time.Time, notBeforeStr *string, notAfterStr *string) (*amber.ClaimValidity, error) {
+	notAfter, err := ParseDate(*notAfterStr)
+	if err != nil {
+		return nil, err
+	}
+	notBefore, err := ParseDate(*notBeforeStr)
+	if err != nil {
+		return nil, err
+	}
+	validity := amber.ClaimValidity{
+		NotBefore: notBefore,
+		NotAfter:  notAfter,
+	}
+	err = ValidateFuzzClaimValidity(currentTime, validity)
+	if err != nil {
+		return nil, fmt.Errorf("could not validate the fuzzing claim validity: %v", err)
+	}
+	return &validity, nil
+}
+
+// ValidateFuzzClaimValidity validates the fuzzing claim validity
+// to make sure that NotBefore is after current time and
+// NotAfter is after NotBefore.
+func ValidateFuzzClaimValidity(currentTime time.Time, validity amber.ClaimValidity) error {
+	if validity.NotBefore.Before(currentTime) {
+		return fmt.Errorf("notBefore (%v) is not after currentTime (%v)", validity.NotBefore, currentTime)
+	}
+	if validity.NotBefore.After(*validity.NotAfter) {
+		return fmt.Errorf("notAfter (%v) is not after notBefore (%v)", validity.NotAfter, validity.NotBefore)
 	}
 	return nil
 }
