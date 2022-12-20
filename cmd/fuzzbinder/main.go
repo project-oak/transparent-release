@@ -47,9 +47,9 @@ func main() {
 		"Required - Fuzzing date. The expected date format is YYYYMMDD.")
 	fuzzClaimPath := flag.String("fuzzclaim_path", "fuzzclaim.json",
 		"Optional - Output file name for storing the generated fuzzing claim.")
-	notBefore := flag.String("notbefore", defaultNotBefore,
+	notBefore := flag.String("not_before", defaultNotBefore,
 		"Optional -  The date from which the fuzzing claim is effective. The expected date format is YYYYMMDD.")
-	notAfter := flag.String("notafter", defaultNotAfter,
+	notAfter := flag.String("not_after", defaultNotAfter,
 		"Required - The date of when the fuzzing claim is no longer endorsed for use. The expected date format is YYYYMMDD.")
 	flag.Parse()
 

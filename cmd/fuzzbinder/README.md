@@ -55,7 +55,8 @@ To generate a fuzzing claim run:
 $ go run cmd/fuzzbinder/main.go -project_name <project-name> \
   -git_repo <project-git-repo>  \
   -fuzzengine <fuzzing-engine> -sanitizer <fuzzing-sanitizer>  \
-  -date <fuzzing-date> -fuzzclaim_path <fuzzclaim-path>
+  -date <fuzzing-date> -fuzzclaim_path <fuzzclaim-path> \
+  --not_before <not-before-date> not_after <not-after-date>
 ```
 
 As you may have noticed, you will need `<fuzzing-engine>` and `<fuzzing-sanitizer>` that you used in your OSS-Fuzz project configuration.
@@ -69,7 +70,10 @@ using the fuzzing reports of the date `YYYYMMDD` you have to run:
 $ go run cmd/fuzzbinder/main.go -project_name <project-name> \
   -git_repo <project-git-repo>  \
   -fuzzengine libFuzzer -sanitizer asan  \
-  -date YYYYMMDD -fuzzclaim_path <fuzzclaim-path>
+  -date YYYYMMDD -fuzzclaim_path <fuzzclaim-path>  \
+  --not_before <not-before-date> not_after <not-after-date>
 ```
 
 The generated fuzzing claim will be saved in `<fuzzclaim-path>`.
+
+Note that `<not-before-date>` is the date from which the generated fuzzing claim is effective and `<not-after-date>` is the date of when the generated fuzzing claim is no longer endorsed for use. For both of them, the expected format is `YYYYMMDD`.
