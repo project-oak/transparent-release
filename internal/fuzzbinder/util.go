@@ -32,12 +32,12 @@ const (
 
 // ParseDate parses a dateStr in YYYYMMDD date format.
 func ParseDate(dateStr string) (*time.Time, error) {
-	date, err := time.Parse(Layout, dateStr)
+	parsedDate, err := time.Parse(Layout, dateStr)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"the format of %s is not valid: the date format should be yyyymmdd", date)
+			"the format of %s is not valid: the date format should be yyyymmdd", dateStr)
 	}
-	return &date, nil
+	return &parsedDate, nil
 }
 
 // ValidateFuzzingDate validates that the fuzzing date chosen to generate the fuzzing
