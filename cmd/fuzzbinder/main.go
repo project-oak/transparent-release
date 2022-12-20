@@ -42,7 +42,7 @@ func main() {
 		"Required - Fuzzing date. The expected date format is YYYYMMDD.")
 	fuzzClaimPath := flag.String("fuzzclaim_path", "fuzzclaim.json",
 		"Optional - Output file name for storing the generated fuzzing claim.")
-	validityDays := flag.Int("validity", 7,
+	validityDays := flag.Uint("validity", 7,
 		"Optional - Validity period of the fuzzing claim that will be generated in days.")
 	flag.Parse()
 
