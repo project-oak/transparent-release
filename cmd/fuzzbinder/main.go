@@ -45,7 +45,6 @@ func main() {
 		"Optional - Output file name for storing the generated fuzzing claim.")
 	flag.Parse()
 
-	// Validate fuzzing date.
 	// Current time in UTC time zone since it is used by OSS-Fuzz.
 	currentTime := time.Now().UTC()
 	err := fuzzbinder.ValidateFuzzingDate(fuzzParameters.Date, currentTime)
