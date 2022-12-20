@@ -154,6 +154,7 @@ func (verifier *ProvenanceMetadataVerifier) Verify() (VerificationResult, error)
 type ProvenanceIR struct {
 	BinarySHA256Digests []string
 	BuildCmds           [][]string
+	BuilderImageDigests []string
 }
 
 // FromSLSAv02 maps data from a validated SLSA v0.2 provenance to ProvenanceIR.
@@ -172,9 +173,15 @@ func FromAmber(provenance *amber.ValidatedProvenance) (ProvenanceIR, error) {
 
 	buildCmd, err := provenance.GetBuildCmd()
 	if err != nil {
-		return provenanceIR, fmt.Errorf("could not convert from *amber.ValidatedProvenance: %v", err)
+		return provenanceIR, fmt.Errorf("could not get build cmd from *amber.ValidatedProvenance: %v", err)
 	}
 	provenanceIR.BuildCmds = [][]string{buildCmd}
+
+	builderImageDigest, err := provenance.GetBuilderImageDigest()
+	if err != nil {
+		return provenanceIR, fmt.Errorf("could get builder image digest from *amber.ValidatedProvenance: %v", err)
+	}
+	provenanceIR.BuilderImageDigests = []string{builderImageDigest}
 
 	return provenanceIR, nil
 }
@@ -210,6 +217,16 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 
 		if err != nil {
 			return combinedResult, fmt.Errorf("verify build cmds failed: %v", err)
+		}
+		combinedResult.Combine(nextResult)
+	}
+
+	// Verify BuilderImageDigest.
+	if verifier.Want.BuilderImageDigests != nil {
+		nextResult, err := verifier.Got.verifyBuilderImageDigest(verifier.Want)
+
+		if err != nil {
+			return combinedResult, fmt.Errorf("verify builder image digests failed: %v", err)
 		}
 		combinedResult.Combine(nextResult)
 	}
@@ -256,6 +273,31 @@ func (got *ProvenanceIR) verifyHasBuildCmd() (VerificationResult, error) {
 
 	if len(got.BuildCmds) == 0 || len(got.BuildCmds[0]) == 0 {
 		result.SetFailed("no build cmd found")
+	}
+
+	return result, nil
+}
+
+// verifyBuilderImageDigest verifies that the given builder image digest matches a builder image digest in the reference values.
+func (got *ProvenanceIR) verifyBuilderImageDigest(want ProvenanceIR) (VerificationResult, error) {
+	result := NewVerificationResult()
+
+	if len(got.BuilderImageDigests) > 1 {
+		return result, fmt.Errorf("got multiple builder image digests (%s)", got.BuilderImageDigests)
+	}
+
+	foundInReferences := false
+
+	for _, want := range want.BuilderImageDigests {
+		if want == got.BuilderImageDigests[0] {
+			foundInReferences = true
+		}
+	}
+
+	if !foundInReferences {
+		result.SetFailed(fmt.Sprintf("the reference builder image digests (%v) do not contain the actual builder image digest (%v)",
+			want.BuilderImageDigests,
+			got.BuilderImageDigests))
 	}
 
 	return result, nil
