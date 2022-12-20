@@ -20,7 +20,7 @@ import (
 	"time"
 )
 
-func TestValidateFuzzingDate(t *testing.T) {
+func TestValidateFuzzingDateValidDate(t *testing.T) {
 	referenceTimeStr := "2022-12-20 14:06:49.055696838 +0000 UTC"
 	layout := "2006-01-02 15:04:05 -0700 MST"
 	referenceTime, err := time.Parse(layout, referenceTimeStr)
@@ -35,6 +35,15 @@ func TestValidateFuzzingDate(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected fuzzing date validation error : got %q want %v", err, nil)
 		}
+	}
+}
+
+func TestValidateFuzzingDateInvalidDate(t *testing.T) {
+	referenceTimeStr := "2022-12-20 14:06:49.055696838 +0000 UTC"
+	layout := "2006-01-02 15:04:05 -0700 MST"
+	referenceTime, err := time.Parse(layout, referenceTimeStr)
+	if err != nil {
+		t.Fatalf("could not parse current time: %v", err)
 	}
 
 	invalidFormatDates := []string{"20221321", "2023122"}
