@@ -20,6 +20,8 @@ import (
 	"time"
 )
 
+// OssFuzzLogRetentionDays contains the retention duration of the fuzzers
+// logs saved in ClusterFuzz project bucket.
 const OssFuzzLogRetentionDays = 15
 
 // ValidateFuzzingDate validates that the fuzzing date chosen to generate the fuzzing
@@ -33,7 +35,6 @@ func ValidateFuzzingDate(date string, referenceTime time.Time) error {
 		return fmt.Errorf(
 			"the format of %s is not valid: the date format should be yyyymmdd", date)
 	}
-	// The retention duration of the fuzzers logs saved in ClusterFuzz project bucket.
 	if fuzzClaimDate.Before(referenceTime.AddDate(0, 0, -OssFuzzLogRetentionDays)) {
 		return fmt.Errorf(
 			"the fuzzing logs on %s are deleted: select a more recent date", date)
