@@ -33,7 +33,7 @@ func TestValidateFuzzingDate(t *testing.T) {
 	for _, date := range validDates {
 		err := ValidateFuzzingDate(date, referenceTime)
 		if err != nil {
-			t.Errorf("unexpected fuzzing date validation error : got %v want %v", err, nil)
+			t.Errorf("unexpected fuzzing date validation error : got %q want %v", err, nil)
 		}
 	}
 
@@ -42,7 +42,7 @@ func TestValidateFuzzingDate(t *testing.T) {
 		want := fmt.Sprintf("the format of %s is not valid: the date format should be yyyymmdd", date)
 		err := ValidateFuzzingDate(date, referenceTime)
 		if err == nil || !strings.Contains(err.Error(), want) {
-			t.Errorf("unexpected fuzzing date validation error : got %v want %v", err, want)
+			t.Errorf("unexpected fuzzing date validation error : got %q want %q", err, want)
 		}
 	}
 
@@ -51,7 +51,7 @@ func TestValidateFuzzingDate(t *testing.T) {
 		want := fmt.Sprintf("the fuzzing logs on %s are deleted: select a more recent date", date)
 		err := ValidateFuzzingDate(date, referenceTime)
 		if err == nil || !strings.Contains(err.Error(), want) {
-			t.Errorf("unexpected fuzzing date validation error : got %v want %v", err, want)
+			t.Errorf("unexpected fuzzing date validation error : got %q want %q", err, want)
 		}
 	}
 
@@ -60,7 +60,7 @@ func TestValidateFuzzingDate(t *testing.T) {
 		want := fmt.Sprintf("no fuzzing logs generated for %s: do not select a date in the future", date)
 		err := ValidateFuzzingDate(date, referenceTime)
 		if err == nil || !strings.Contains(err.Error(), want) {
-			t.Errorf("unexpected fuzzing date validation error : got %v want %v", err, want)
+			t.Errorf("unexpected fuzzing date validation error : got %q want %q", err, want)
 		}
 	}
 }
