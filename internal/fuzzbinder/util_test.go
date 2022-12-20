@@ -20,9 +20,12 @@ import (
 	"time"
 )
 
+const (
+	referenceTimeStr = "2022-12-20 14:06:49.055696838 +0000 UTC"
+	layout           = "2006-01-02 15:04:05 -0700 MST"
+)
+
 func TestValidateFuzzingDateValidDate(t *testing.T) {
-	referenceTimeStr := "2022-12-20 14:06:49.055696838 +0000 UTC"
-	layout := "2006-01-02 15:04:05 -0700 MST"
 	referenceTime, err := time.Parse(layout, referenceTimeStr)
 	if err != nil {
 		t.Fatalf("could not parse current time: %v", err)
@@ -39,8 +42,6 @@ func TestValidateFuzzingDateValidDate(t *testing.T) {
 }
 
 func TestValidateFuzzingDateInvalidDateFormat(t *testing.T) {
-	referenceTimeStr := "2022-12-20 14:06:49.055696838 +0000 UTC"
-	layout := "2006-01-02 15:04:05 -0700 MST"
 	referenceTime, err := time.Parse(layout, referenceTimeStr)
 	if err != nil {
 		t.Fatalf("could not parse current time: %v", err)
@@ -57,8 +58,6 @@ func TestValidateFuzzingDateInvalidDateFormat(t *testing.T) {
 }
 
 func TestValidateFuzzingDateInvalidDate(t *testing.T) {
-	referenceTimeStr := "2022-12-20 14:06:49.055696838 +0000 UTC"
-	layout := "2006-01-02 15:04:05 -0700 MST"
 	referenceTime, err := time.Parse(layout, referenceTimeStr)
 	if err != nil {
 		t.Fatalf("could not parse current time: %v", err)
