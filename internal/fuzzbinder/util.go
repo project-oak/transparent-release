@@ -20,18 +20,22 @@ import (
 	"time"
 )
 
-// ValidateDate validates that the fuzzing date chosen to generate the fuzzing
+// ValidateFuzzingDate validates that the fuzzing date chosen to generate the fuzzing
 // claims is no more than 15 days prior to the date of execution of FuzzBinder cmd
 // and not in the future.
-func ValidateDate(date string) error {
-	claimDate, err := time.Parse("20060102", date)
+func ValidateFuzzingDate(date string) error {
+	// The layout that represents the expected date format.
+	layout := "20060102"
+	claimDate, err := time.Parse(layout, date)
 	if err != nil {
 		return fmt.Errorf(
 			"the format of %s is not valid: the date format should be yyyymmdd", date)
 	}
 	currentTime := time.Now()
 	duration := currentTime.Sub(claimDate).Hours() / 24
-	if duration > 15 {
+	// The retention duration of the fuzzers logs saved in ClusterFuzz project bucket.
+	ossFuzzLogRetentionDays := 15.0
+	if duration > ossFuzzLogRetentionDays {
 		return fmt.Errorf(
 			"the fuzzing logs on %s are deleted: select a more recent date", date)
 	}

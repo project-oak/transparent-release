@@ -44,8 +44,8 @@ func main() {
 		"Optional - Output file name for storing the generated fuzzing claim.")
 	flag.Parse()
 
-	// validate fuzzing date.
-	err := fuzzbinder.ValidateDate(fuzzParameters.Date)
+	// Validate fuzzing date.
+	err := fuzzbinder.ValidateFuzzingDate(fuzzParameters.Date)
 	if err != nil {
 		log.Fatalf("could not validate the fuzzing date: %v", err)
 	}
