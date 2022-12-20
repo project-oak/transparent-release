@@ -91,7 +91,8 @@ func TestGetValidFuzzClaimValidity(t *testing.T) {
 	validNotAfter := "20231221"
 	_, err = GetValidFuzzClaimValidity(referenceTime, &validNotBefore, &validNotAfter)
 	if err != nil {
-		t.Errorf("unexpected fuzzing claim validity validation error : got %q want %v", err, nil)
+		t.Errorf(
+			"unexpected fuzzing claim validity validation error : got %q want %v", err, nil)
 	}
 
 	invalidNotBefore := "20221219"
@@ -100,9 +101,12 @@ func TestGetValidFuzzClaimValidity(t *testing.T) {
 		t.Fatalf("could not parse invalidNotBefore: %v", err)
 	}
 	_, err = GetValidFuzzClaimValidity(referenceTime, &invalidNotBefore, &validNotAfter)
-	want := fmt.Sprintf("could not validate the fuzzing claim validity: notBefore (%v) is not after referenceTime (%v)", parsedInvalidNotBefore, referenceTime)
+	want := fmt.Sprintf(
+		"could not validate the fuzzing claim validity: notBefore (%v) is not after referenceTime (%v)",
+		parsedInvalidNotBefore, referenceTime)
 	if err == nil || !strings.Contains(err.Error(), want) {
-		t.Errorf("unexpected fuzzing claim validity validation error : got %q want %q", err, want)
+		t.Errorf(
+			"unexpected fuzzing claim validity validation error : got %q want %q", err, want)
 	}
 
 	invalidNotAfter := "20211219"
@@ -115,8 +119,11 @@ func TestGetValidFuzzClaimValidity(t *testing.T) {
 		t.Fatalf("could not parse validNotBefore: %v", err)
 	}
 	_, err = GetValidFuzzClaimValidity(referenceTime, &validNotBefore, &invalidNotAfter)
-	want = fmt.Sprintf("could not validate the fuzzing claim validity: notAfter (%v) is not after notBefore (%v)", parsedInvalidNotAfter, parsedValidNotBefore)
+	want = fmt.Sprintf(
+		"could not validate the fuzzing claim validity: notAfter (%v) is not after notBefore (%v)",
+		parsedInvalidNotAfter, parsedValidNotBefore)
 	if err == nil || !strings.Contains(err.Error(), want) {
-		t.Errorf("unexpected fuzzing claim validity validation error : got %q want %q", err, want)
+		t.Errorf(
+			"unexpected fuzzing claim validity validation error : got %q want %q", err, want)
 	}
 }
