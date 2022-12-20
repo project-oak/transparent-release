@@ -82,9 +82,8 @@ func GetValidFuzzClaimValidity(referenceTime time.Time, notBeforeStr *string, no
 	return &validity, nil
 }
 
-// validateFuzzClaimValidity validates the fuzzing claim validity
-// to make sure that NotBefore is after referenceTime and
-// NotAfter is after NotBefore.
+// validateFuzzClaimValidity validates the fuzzing claim validity to make
+// sure that NotBefore is after referenceTime and NotAfter is after NotBefore.
 func validateFuzzClaimValidity(validity amber.ClaimValidity, referenceTime time.Time) error {
 	if validity.NotBefore.Before(referenceTime) {
 		return fmt.Errorf("notBefore (%v) is not after referenceTime (%v)", validity.NotBefore, referenceTime)
