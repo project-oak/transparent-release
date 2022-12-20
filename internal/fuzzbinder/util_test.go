@@ -28,7 +28,7 @@ const (
 func TestValidateFuzzingDateValidDate(t *testing.T) {
 	referenceTime, err := time.Parse(layout, referenceTimeStr)
 	if err != nil {
-		t.Fatalf("could not parse current time: %v", err)
+		t.Fatalf("could not parse referenceTimeStr: %v", err)
 	}
 
 	validDates := []string{"20221206", "20221207", "20221208", "20221215",
@@ -44,7 +44,7 @@ func TestValidateFuzzingDateValidDate(t *testing.T) {
 func TestValidateFuzzingDateInvalidDateFormat(t *testing.T) {
 	referenceTime, err := time.Parse(layout, referenceTimeStr)
 	if err != nil {
-		t.Fatalf("could not parse current time: %v", err)
+		t.Fatalf("could not parse referenceTimeStr: %v", err)
 	}
 
 	invalidFormatDates := []string{"20221321", "2023122"}
@@ -60,7 +60,7 @@ func TestValidateFuzzingDateInvalidDateFormat(t *testing.T) {
 func TestValidateFuzzingDateInvalidDate(t *testing.T) {
 	referenceTime, err := time.Parse(layout, referenceTimeStr)
 	if err != nil {
-		t.Fatalf("could not parse current time: %v", err)
+		t.Fatalf("could not parse referenceTimeStr: %v", err)
 	}
 	invalidPastDates := []string{"20221205", "20221204", "20221121"}
 	for _, date := range invalidPastDates {
