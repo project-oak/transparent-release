@@ -173,13 +173,13 @@ func FromAmber(provenance *amber.ValidatedProvenance) (ProvenanceIR, error) {
 
 	buildCmd, err := provenance.GetBuildCmd()
 	if err != nil {
-		return provenanceIR, fmt.Errorf("could not convert from *amber.ValidatedProvenance: %v", err)
+		return provenanceIR, fmt.Errorf("could not get build cmd from *amber.ValidatedProvenance: %v", err)
 	}
 	provenanceIR.BuildCmds = [][]string{buildCmd}
 
 	builderImageDigest, err := provenance.GetBuilderImageDigest()
 	if err != nil {
-		return provenanceIR, fmt.Errorf("could not convert from *amber.ValidatedProvenance: %v", err)
+		return provenanceIR, fmt.Errorf("could get builder image digest from *amber.ValidatedProvenance: %v", err)
 	}
 	provenanceIR.BuilderImageDigests = []string{builderImageDigest}
 

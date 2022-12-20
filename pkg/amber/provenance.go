@@ -95,12 +95,13 @@ func (p *ValidatedProvenance) GetBuildCmd() ([]string, error) {
 	return buildConfig.Command, nil
 }
 
-// Guess the digest for the Builder Image.
+// GetBuilderImageDigest returns the digest for the Builder Image.
 func (p *ValidatedProvenance) GetBuilderImageDigest() (string, error) {
-
 	materials := p.provenance.Predicate.([]slsa.ProvenanceMaterial)
 	for _, material := range materials {
 		// This is a crude way to estimate if one of the materials is the builder image.
+		// However, even if we get a "wrong" digest as the builder image, the reference values should
+		// not contain this wrong digest, so worst case verifying the provenance fails, when it should not.
 		if strings.Contains(material.URI, "@sha256:") {
 			digest := material.Digest["sha256"]
 			return digest, nil
