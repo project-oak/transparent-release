@@ -22,6 +22,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/project-oak/transparent-release/internal/fuzzbinder"
 )
@@ -45,7 +46,9 @@ func main() {
 	flag.Parse()
 
 	// Validate fuzzing date.
-	err := fuzzbinder.ValidateFuzzingDate(fuzzParameters.Date)
+	// Current time in UTC time zone since it is used by OSS-Fuzz.
+	currentTime := time.Now().UTC()
+	err := fuzzbinder.ValidateFuzzingDate(fuzzParameters.Date, currentTime)
 	if err != nil {
 		log.Fatalf("could not validate the fuzzing date: %v", err)
 	}
