@@ -157,6 +157,59 @@ func TestVerifyHasBuildCmd_EmptyBuildCmds(t *testing.T) {
 	testutil.AssertEq(t, "no verification happened", result.IsVerified, true)
 }
 
+func TestVerifyBuilderImageDigest_DigestFound(t *testing.T) {
+	builderImageDigest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
+
+	got := ProvenanceIR{
+		BuilderImageDigests: []string{builderImageDigest},
+	}
+	want := ProvenanceIR{
+		BuilderImageDigests: []string{"some_other_digest", builderImageDigest},
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: want,
+	}
+
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
+	testutil.AssertEq(t, "builder digest not found", result.IsVerified, true)
+}
+
+func TestVerifyBuilderImageDigest_DigestNotFound(t *testing.T) {
+	builderImageDigest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
+
+	got := ProvenanceIR{
+		BuilderImageDigests: []string{builderImageDigest},
+	}
+	want := ProvenanceIR{
+		BuilderImageDigests: []string{"some_other_digest", "and_some_other"},
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: want,
+	}
+
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
+	testutil.AssertEq(t, "builder digest found", result.IsVerified, false)
+
+	gotJustifications := fmt.Sprintf("%s", result.Justifications)
+	wantJustifications := fmt.Sprintf("the reference builder image digests (%v) do not contain the actual builder image digest (%v)",
+		want.BuilderImageDigests,
+		got.BuilderImageDigests)
+
+	if !strings.Contains(gotJustifications, wantJustifications) {
+		t.Fatalf("got %q, want justification containing %q,", gotJustifications, wantJustifications)
+	}
+}
+
 func TestAmberProvenanceMetadataVerifier(t *testing.T) {
 	path := filepath.Join(testdataPath, validProvenancePath)
 	provenance, err := amber.ParseProvenanceFile(path)
