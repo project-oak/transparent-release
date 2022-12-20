@@ -30,7 +30,8 @@ const (
 	Layout = "20060102"
 )
 
-// ParseDate parses a dateStr in YYYYMMDD date format.
+// ParseDate parses a dateStr in YYYYMMDD date format
+// to *time.Time.
 func ParseDate(dateStr string) (*time.Time, error) {
 	parsedDate, err := time.Parse(Layout, dateStr)
 	if err != nil {
@@ -61,14 +62,14 @@ func ValidateFuzzingDate(date string, referenceTime time.Time) error {
 
 // GetFuzzClaimValidity gets the fuzzing claim validity using
 // the values entered for notBeforeStr and notAfterStr.
-func GetFuzzClaimValidity(currentTime time.Time, notBeforeStr *string, notAfterStr *string) (*amber.ClaimValidity, error) {
+func GetValidFuzzClaimValidity(currentTime time.Time, notBeforeStr *string, notAfterStr *string) (*amber.ClaimValidity, error) {
 	notAfter, err := ParseDate(*notAfterStr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not parse notAfter to *time.Time: %v", err)
 	}
 	notBefore, err := ParseDate(*notBeforeStr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not parse notBefore to *time.Time: %v", err)
 	}
 	validity := amber.ClaimValidity{
 		NotBefore: notBefore,

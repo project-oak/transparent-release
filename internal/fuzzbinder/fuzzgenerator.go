@@ -122,6 +122,7 @@ func GenerateFuzzClaim(fuzzParameters *FuzzParameters, validity amber.ClaimValid
 		return nil, fmt.Errorf(
 			"could not get evidences to generate the fuzzing claim: %v", err)
 	}
+	// Current time in UTC time zone since it is used by OSS-Fuzz.
 	currentTime := time.Now().UTC()
 	// Generate Amber predicate
 	predicate := amber.ClaimPredicate{

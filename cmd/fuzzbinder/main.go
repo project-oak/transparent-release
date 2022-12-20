@@ -64,14 +64,14 @@ func main() {
 		log.Fatalf("could not get absolute path for storing the fuzzing claim: %v", err)
 	}
 
-	// Validity of the fuzzing claim.
-	validity, err := fuzzbinder.GetFuzzClaimValidity(currentTime, notBefore, notAfter)
+	// Get and validate the validity of the fuzzing claim.
+	validValidity, err := fuzzbinder.GetValidFuzzClaimValidity(currentTime, notBefore, notAfter)
 	if err != nil {
 		log.Fatalf("could not get the fuzzing claim validity: %v", err)
 	}
 
 	// Generate the fuzzing claim.
-	statement, err := fuzzbinder.GenerateFuzzClaim(fuzzParameters, *validity)
+	statement, err := fuzzbinder.GenerateFuzzClaim(fuzzParameters, *validValidity)
 	if err != nil {
 		log.Fatalf("could not generate the fuzzing claim: %v", err)
 	}
