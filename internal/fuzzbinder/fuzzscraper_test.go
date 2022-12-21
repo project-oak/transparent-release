@@ -63,6 +63,25 @@ func TestParseCoverageSummary(t *testing.T) {
 	testutil.AssertNonEmpty(t, "parsed line coverage", coverage.LineCoverage)
 }
 
+func TestGetLogDirInfo(t *testing.T) {
+	fuzzTarget := "apply_policy"
+	fuzzParameters := FuzzParameters{
+		ProjectName: "oak",
+		FuzzEngine:  "libFuzzer",
+		Sanitizer:   "asan",
+		Date:        "20221206",
+	}
+	wantLogsBucket := "oak-logs.clusterfuzz-external.appspot.com"
+	wantRelativePath := "libFuzzer_oak_apply_policy/libfuzzer_asan_oak/2022-12-06"
+	gotLogsBucket, gotRelativePath := getLogDirInfo(&fuzzParameters, fuzzTarget)
+	if gotLogsBucket != wantLogsBucket {
+		t.Errorf("invalid logsBucket: got %q want %q", gotLogsBucket, wantLogsBucket)
+	}
+	if gotRelativePath != wantRelativePath {
+		t.Errorf("invalid relativePath: got %q want %q", gotRelativePath, wantRelativePath)
+	}
+}
+
 func TestGetFuzzEffortFromFile(t *testing.T) {
 	revisionDigest := intoto.DigestSet{
 		"sha1": hash,
