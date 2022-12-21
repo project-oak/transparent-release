@@ -327,20 +327,20 @@ func addClaimEvidence(client *gcsutil.Client, evidences []amber.ClaimEvidence, b
 }
 
 // GetEvidences gets the list of the evidence files used by the fuzzscraper.
-func GetEvidences(c *gcsutil.Client, fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber.ClaimEvidence, error) {
+func GetEvidences(client *gcsutil.Client, fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber.ClaimEvidence, error) {
 	evidences := make([]amber.ClaimEvidence, 0, len(fuzzTargets)+2)
 	// TODO(#174): Replace GCS path by Ent path in evidences URI.
 	// The GCS absolute path of the file containing the revision hash of the source code used
 	// in the coverage build on a given day.
 	blobName := fmt.Sprintf("%s/srcmap/%s.json", fuzzParameters.ProjectName, fuzzParameters.Date)
-	evidences, err := addClaimEvidence(c, evidences, blobName, "srcmap")
+	evidences, err := addClaimEvidence(client, evidences, blobName, "srcmap")
 	if err != nil {
 		return nil, fmt.Errorf("could not add srcmap evidence: %v", err)
 	}
 	// TODO(#174): Replace GCS path by Ent path in evidences URI.
 	// The GCS absolute path of the file containing the coverage summary for the project on a given day.
 	blobName = fmt.Sprintf("%s/reports/%s/linux/summary.json", fuzzParameters.ProjectName, fuzzParameters.Date)
-	evidences, err = addClaimEvidence(c, evidences, blobName, "project coverage")
+	evidences, err = addClaimEvidence(client, evidences, blobName, "project coverage")
 	if err != nil {
 		return nil, fmt.Errorf("could not add project coverage evidence: %v", err)
 	}
@@ -348,7 +348,7 @@ func GetEvidences(c *gcsutil.Client, fuzzParameters *FuzzParameters, fuzzTargets
 		// TODO(#174): Replace GCS path by Ent path in evidences URI.
 		// The GCS absolute path of the file containing the coverage summary for a fuzz-target on a given day.
 		blobName = fmt.Sprintf("%s/fuzzer_stats/%s/%v.json", fuzzParameters.ProjectName, fuzzParameters.Date, fuzzTarget)
-		evidences, err = addClaimEvidence(c, evidences, blobName, "fuzzTarget coverage")
+		evidences, err = addClaimEvidence(client, evidences, blobName, "fuzzTarget coverage")
 		if err != nil {
 			return nil, fmt.Errorf("could not add fuzzTarget coverage evidence: %v", err)
 		}
