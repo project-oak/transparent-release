@@ -82,6 +82,7 @@ type ReferenceValues struct {
 type ProvenanceIR struct {
 	binarySHA256Digest       string
 	buildType                string
+	binaryName               string
 	buildCmd                 []string
 	builderImageSHA256Digest string
 	repoURIs                 []string
@@ -95,6 +96,13 @@ func NewProvenanceIR(binarySHA256Digest string, options ...func(p *ProvenanceIR)
 		addOption(provenance)
 	}
 	return provenance
+}
+
+// WithBinaryName adds a binary name when creating a new ProvenanceIR.
+func WithBinaryName(binaryName string) func(p *ProvenanceIR) {
+	return func(p *ProvenanceIR) {
+		p.binaryName = binaryName
+	}
 }
 
 // WithBuildCmd adds a build cmd when creating a new ProvenanceIR.
@@ -131,6 +139,14 @@ func (p *ProvenanceIR) GetBinarySHA256Digest() (string, error) {
 		return "", fmt.Errorf("provenance does not have a binary SHA256 digest")
 	}
 	return p.binarySHA256Digest, nil
+}
+
+// GetBinaryName gets the binary name. Returns an error if the binary name is empty.
+func (p *ProvenanceIR) GetBinaryName() (string, error) {
+	if p.binaryName == "" {
+		return "", fmt.Errorf("provenance does not have a binary name")
+	}
+	return p.binaryName, nil
 }
 
 // GetBuildCmd gets the build cmd. Returns an error if the build cmd is empty.
@@ -215,19 +231,8 @@ func fromSLSAv02(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 	// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
 	binarySHA256Digest := provenance.GetBinarySHA256Digest()
 	buildType := slsav02.GenericSLSABuildType
-
-	predicate, err := slsav02.ParseSLSAv02Predicate(provenance.GetProvenance().Predicate)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse provenance predicate: %v", err)
-	}
-
-	// We collect repo uris from where they appear in the provenance to verify that they point to the same reference repo uri.
-	repoURIs := slsav02.GetMaterialsGitURI(*predicate)
-
-	provenanceIR := NewProvenanceIR(binarySHA256Digest,
-		WithBuildType(buildType),
-		WithRepoURIs(repoURIs),
-	)
+	binaryName := provenance.GetBinaryName()
+	provenanceIR := NewProvenanceIR(binarySHA256Digest, WithBinaryName(binaryName), WithBuildType(buildType))
 	return provenanceIR, nil
 }
 
