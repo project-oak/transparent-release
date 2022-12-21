@@ -82,6 +82,28 @@ func TestGetLogDirInfo(t *testing.T) {
 	}
 }
 
+func TestCheckHash(t *testing.T) {
+	revisionDigest := intoto.DigestSet{
+		"sha1": hash,
+	}
+	path := filepath.Join(testdataPath, logFilePath)
+	reader, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	fileBytes, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	isGoodHash, err := checkHash(revisionDigest, fileBytes)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	if !*isGoodHash {
+		t.Errorf("invalid hash check: got %t want %t", *isGoodHash, !*isGoodHash)
+	}
+}
+
 func TestGetFuzzEffortFromFile(t *testing.T) {
 	revisionDigest := intoto.DigestSet{
 		"sha1": hash,

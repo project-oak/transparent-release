@@ -188,14 +188,24 @@ func getFuzzStatsFromScanner(lineScanner *bufio.Scanner) (*FuzzEffort, error) {
 	return &fuzzEffort, nil
 }
 
-// getFuzzEffortFromFile gets the fuzzingEffort from a single fuzzer log file.
-func getFuzzEffortFromFile(revisionDigest intoto.DigestSet, fileBytes []byte) (*FuzzEffort, error) {
+// checkHash checks if a log file has a good revision hash.
+func checkHash(revisionDigest intoto.DigestSet, fileBytes []byte) (*bool, error) {
 	isGoodHash, err := regexp.Match(revisionDigest["sha1"], fileBytes)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not check if log file has good revision hash: %v", err)
 	}
-	if isGoodHash {
+	return &isGoodHash, nil
+}
+
+// getFuzzEffortFromFile gets the fuzzingEffort from a single fuzzer log file.
+func getFuzzEffortFromFile(revisionDigest intoto.DigestSet, fileBytes []byte) (*FuzzEffort, error) {
+	isGoodHash, err := checkHash(revisionDigest, fileBytes)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"could not check revision hash for fuzzing effort: %v", err)
+	}
+	if *isGoodHash {
 		reader := bytes.NewReader(fileBytes)
 		lineScanner := bufio.NewScanner(reader)
 		if err := lineScanner.Err(); err != nil {
@@ -211,10 +221,10 @@ func getFuzzEffortFromFile(revisionDigest intoto.DigestSet, fileBytes []byte) (*
 // crashDetectedInFile detects crashes in log files that are related to a
 // given revision.
 func crashDetectedInFile(revisionDigest intoto.DigestSet, fileBytes []byte) (*Crash, error) {
-	isGoodHash, err := regexp.Match(revisionDigest["sha1"], fileBytes)
+	isGoodHash, err := checkHash(revisionDigest, fileBytes)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"could not check if log file has good revision hash: %v", err)
+			"could not check revision hash for crash detection: %v", err)
 	}
 	isDetected, err := regexp.Match("fuzzer-testcases/crash-", fileBytes)
 	if err != nil {
@@ -222,13 +232,12 @@ func crashDetectedInFile(revisionDigest intoto.DigestSet, fileBytes []byte) (*Cr
 			"could not check if log file contains crashes: %v", err)
 	}
 	crash := Crash{
-		Detected: isDetected && isGoodHash,
+		Detected: isDetected && *isGoodHash,
 	}
 	return &crash, nil
 }
 
-// getGCSFileDigest gets the digest of a file stored in GCS given its name
-// and the bucket where it is stored.
+// getGCSFileDigest gets the digest of a file stored in GCS.
 func getGCSFileDigest(fileBytes []byte) *intoto.DigestSet {
 	sum256 := sha256.Sum256(fileBytes)
 	digest := intoto.DigestSet{
