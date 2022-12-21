@@ -136,7 +136,7 @@ type ProvenanceMetadataVerifier struct {
 // ProvenanceMetadataVerifier instance.
 // TODO(#69): Check metadata against the expected values.
 func (verifier *ProvenanceMetadataVerifier) Verify() (VerificationResult, error) {
-	provenanceIR := FromSLSAv02(verifier.Got)
+	provenanceIR := common.FromSLSAv02(verifier.Got)
 
 	provenanceVerifier := ProvenanceIRVerifier{
 		Got:  provenanceIR,
@@ -144,36 +144,6 @@ func (verifier *ProvenanceMetadataVerifier) Verify() (VerificationResult, error)
 	}
 
 	return provenanceVerifier.Verify()
-}
-
-// FromSLSAv02 maps data from a validated SLSA v0.2 provenance to ProvenanceIR.
-func FromSLSAv02(provenance *slsa.ValidatedProvenance) *common.ProvenanceIR {
-	// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
-	binarySHA256Digest := provenance.GetBinarySHA256Digest()
-	return common.NewProvenanceIR(binarySHA256Digest)
-}
-
-// FromAmber maps data from a validated Amber provenance to ProvenanceIR.
-func FromAmber(provenance *amber.ValidatedProvenance) (*common.ProvenanceIR, error) {
-
-	// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
-	binarySHA256Digest := provenance.GetBinarySHA256Digest()
-
-	buildCmd, err := provenance.GetBuildCmd()
-	if err != nil {
-		return nil, fmt.Errorf("could not get build cmd from *amber.ValidatedProvenance: %v", err)
-	}
-
-	builderImageDigest, err := provenance.GetBuilderImageDigest()
-	if err != nil {
-		return nil, fmt.Errorf("could get builder image digest from *amber.ValidatedProvenance: %v", err)
-	}
-
-	provenanceIR := common.NewProvenanceIR(binarySHA256Digest,
-		common.WithBuildCmd(buildCmd),
-		common.WithBuilderImageSHA256Digest(builderImageDigest))
-
-	return provenanceIR, nil
 }
 
 // ProvenanceIRVerifier verifies a provenance against a given reference, by verifying
