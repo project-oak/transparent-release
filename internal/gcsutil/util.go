@@ -32,13 +32,14 @@ type ContextInStruct context.Context
 
 // The documentation for context states:
 //
-//	Contexts should not be stored inside a struct type, but instead passed to each function that needs it.
+//	Contexts should not be stored inside a struct type, but instead passed
+//	to each function that needs it.
 //
-// However, while it is generally important to pass the Context rather than store it in another type,
-// in the case below, this is not needed since there is no risk of confusion.
-// Indeed, the context is only used for the GCS client here.
-// Note that, if the use of context is extended in the future, then it should be passed explicitly to each
-// function that needs it as an argument.
+// However, while it is generally important to pass the Context rather than
+// store it in another type, in the case below, this is not needed since there
+// is no risk of confusion. Indeed, the context is only used for the GCS client here.
+// Note that, if the use of context is extended in the future, then it should be
+// passed explicitly to each function that needs it as an argument.
 //
 // Client contains a Google Cloud Storage client and a context.Context.
 type Client struct {
