@@ -25,29 +25,43 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-// GCSClient contains a Google Cloud Storage client.
-type GCSClient struct {
-	Client *storage.Client
+// The documentation for context states:
+//
+//     Contexts should not be stored inside a struct type, but instead passed to each function that needs it.
+//
+// However, while it is generally important to pass the Context rather than store it in another type,
+// in the case below, this is not needed since there is no risk of confusion.
+// Indeed, the context is only used for the GCS client.
+// Note that, if the use of context is extended in the future, then it should be passed explicitly to each
+// function that needs it as an argument.
+
+// Client contains a Google Cloud Storage client
+// and a context.Context.
+type Client struct {
+	StorageClient *storage.Client
+	Context       context.Context
 }
 
-// NewClient creates and returns a new GCSClient.
-func NewClient(ctx context.Context) (*GCSClient, error) {
-	client, err := storage.NewClient(ctx)
+// NewClientWithContext creates and returns a new Client.
+// The given ctx is used for the lifetime of the Client!
+func NewClientWithContext(ctx context.Context) (*Client, error) {
+	storageClient, err := storage.NewClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not create a new Google Cloud Storage client: %v", err)
 	}
-	defer client.Close()
-	gcsClient := GCSClient{
-		Client: client,
+	defer storageClient.Close()
+	client := Client{
+		StorageClient: storageClient,
+		Context:       ctx,
 	}
-	return &gcsClient, nil
+	return &client, nil
 }
 
 // ListBlobPaths returns all the objects paths in a Google Cloud Storage bucket
 // under a given relative path.
-func (client *GCSClient) ListBlobPaths(ctx context.Context, bucketName string, relativePath string) ([]string, error) {
+func (client *Client) ListBlobPaths(bucketName string, relativePath string) ([]string, error) {
 	query := &storage.Query{Prefix: relativePath}
-	objects := client.Client.Bucket(bucketName).Objects(ctx, query)
+	objects := client.StorageClient.Bucket(bucketName).Objects(client.Context, query)
 	var blobs []string
 	for {
 		attrs, err := objects.Next()
@@ -64,9 +78,9 @@ func (client *GCSClient) ListBlobPaths(ctx context.Context, bucketName string, r
 
 // ListLogFilePaths returns all the log-files paths in a Google Cloud Storage bucket
 // under a given relative path.
-func (client *GCSClient) ListLogFilePaths(ctx context.Context, bucketName string, relativePath string) ([]string, error) {
+func (client *Client) ListLogFilePaths(bucketName string, relativePath string) ([]string, error) {
 	query := &storage.Query{Prefix: relativePath}
-	objects := client.Client.Bucket(bucketName).Objects(ctx, query)
+	objects := client.StorageClient.Bucket(bucketName).Objects(client.Context, query)
 	var logFilePaths []string
 	for {
 		attrs, err := objects.Next()
@@ -87,8 +101,8 @@ func (client *GCSClient) ListLogFilePaths(ctx context.Context, bucketName string
 }
 
 // GetBlobData gets the data in a blob in a Google Cloud Storage bucket.
-func (client *GCSClient) GetBlobData(ctx context.Context, bucketName string, blobPath string) ([]byte, error) {
-	reader, err := client.Client.Bucket(bucketName).Object(blobPath).NewReader(ctx)
+func (client *Client) GetBlobData(bucketName string, blobPath string) ([]byte, error) {
+	reader, err := client.StorageClient.Bucket(bucketName).Object(blobPath).NewReader(client.Context)
 	if err != nil {
 		return nil, fmt.Errorf("could not create a new reader for blob %q: %v", blobPath, err)
 	}
@@ -103,14 +117,14 @@ func (client *GCSClient) GetBlobData(ctx context.Context, bucketName string, blo
 
 // GetLogsData gets the data in log-files in a Google Cloud Storage bucket
 // under a relative path.
-func (client *GCSClient) GetLogsData(ctx context.Context, bucketName string, relativePath string) ([][]byte, error) {
-	logFilePaths, err := client.ListLogFilePaths(ctx, bucketName, relativePath)
+func (client *Client) GetLogsData(bucketName string, relativePath string) ([][]byte, error) {
+	logFilePaths, err := client.ListLogFilePaths(bucketName, relativePath)
 	if err != nil {
 		return nil, fmt.Errorf("could not get log files: %v", err)
 	}
 	listFileBytes := make([][]byte, 0, len(logFilePaths))
 	for _, logFilePath := range logFilePaths {
-		fileBytes, err := client.GetBlobData(ctx, bucketName, logFilePath)
+		fileBytes, err := client.GetBlobData(bucketName, logFilePath)
 		if err != nil {
 			return nil, err
 		}

@@ -72,15 +72,14 @@ func main() {
 		log.Fatalf("could not get the fuzzing claim validity: %v", err)
 	}
 
-	ctx := context.Background()
 	// Create new GCS client
-	client, err := gcsutil.NewClient(ctx)
+	client, err := gcsutil.NewClientWithContext(context.Background())
 	if err != nil {
 		log.Fatalf("could not create GCS client for FuzzBinder: %v", err)
 	}
 
 	// Generate the fuzzing claim.
-	statement, err := fuzzbinder.GenerateFuzzClaim(ctx, client, fuzzParameters, *validValidity)
+	statement, err := fuzzbinder.GenerateFuzzClaim(client, fuzzParameters, *validValidity)
 	if err != nil {
 		log.Fatalf("could not generate the fuzzing claim: %v", err)
 	}
