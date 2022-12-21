@@ -392,7 +392,7 @@ func GetCrashes(client *gcsutil.Client, revisionDigest intoto.DigestSet, fuzzPar
 		crash, err := crashDetectedInFile(revisionDigest, fileBytes)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"could not analyze log data for crashes to GetCrashes: %v", err)
+				"could not analyze log data for crashes: %v", err)
 		}
 		if crash.Detected {
 			return crash, nil
