@@ -73,36 +73,43 @@ type ReferenceValues struct {
 	BuilderImageSHA256Digests []string `toml:"builder_image_sha256_digests"`
 }
 
-// ProvenanceIR is an internal intermediate representation of data from provenances for verification.
-// We use the ProvenanceIR to map different provenance formats.
+// ProvenanceIR is an internal intermediate representation of data from provenances.
+// We want to map different provenances of different build types to ProvenanceIR, so
+// all fields except for `binarySHA256Digest` are optional.
 type ProvenanceIR struct {
 	binarySHA256Digest       string
 	buildCmd                 []string
 	builderImageSHA256Digest string
 }
 
+// ProvenanceIROption is a helper type to enable the optional setting of fields in `NewProvenanceIR`
 type ProvenanceIROption = func(p *ProvenanceIR)
 
+// NewProvenanceIR creates a new proveance with given optional fields.
+// Every provenancy needs to have binary sha256 digest, so this is not optional.
 func NewProvenanceIR(binarySHA256Digest string, options ...func(*ProvenanceIR)) *ProvenanceIR {
-	p := &ProvenanceIR{binarySHA256Digest: binarySHA256Digest}
-	for _, option := range options {
-		option(p)
+	provenance := &ProvenanceIR{binarySHA256Digest: binarySHA256Digest}
+	for _, addOption := range options {
+		addOption(provenance)
 	}
-	return p
+	return provenance
 }
 
+// WithBuildCmd adds a build cmd when creating a new ProvenanceIR.
 func WithBuildCmd(buildCmd []string) ProvenanceIROption {
 	return func(p *ProvenanceIR) {
 		p.buildCmd = buildCmd
 	}
 }
 
+// WithBuilderImageSHA256Digest adds a builder image sha256 digest when creating a new ProvenanceIR.
 func WithBuilderImageSHA256Digest(builderImageSHA256Digest string) ProvenanceIROption {
 	return func(p *ProvenanceIR) {
 		p.builderImageSHA256Digest = builderImageSHA256Digest
 	}
 }
 
+// GetBinarySHA256Digest gets the binary sha256 digest. Throws an error if the binary sha256 digest is empty.
 func (p *ProvenanceIR) GetBinarySHA256Digest() (string, error) {
 	if p.binarySHA256Digest == "" {
 		return "", fmt.Errorf("provenance does not have a binary SHA256 digest")
@@ -110,6 +117,7 @@ func (p *ProvenanceIR) GetBinarySHA256Digest() (string, error) {
 	return p.binarySHA256Digest, nil
 }
 
+// GetBuildCmd gets the build cmd. Throws an error if the build cmd is empty.
 func (p *ProvenanceIR) GetBuildCmd() ([]string, error) {
 	if len(p.buildCmd) == 0 {
 		return nil, fmt.Errorf("provenance does not have a build cmd")
@@ -117,7 +125,8 @@ func (p *ProvenanceIR) GetBuildCmd() ([]string, error) {
 	return p.buildCmd, nil
 }
 
-func (p *ProvenanceIR) GetBuilderImageDigest() (string, error) {
+// GetBuilderImageSHA256Digest gets the builder image sha256 digest. Throws an error if the builder image sha256 digest is empty.
+func (p *ProvenanceIR) GetBuilderImageSHA256Digest() (string, error) {
 	if p.builderImageSHA256Digest == "" {
 		return "", fmt.Errorf("provenance does not have a builder image SHA256 digest")
 	}
@@ -126,7 +135,6 @@ func (p *ProvenanceIR) GetBuilderImageDigest() (string, error) {
 
 // FromAmber maps data from a validated Amber provenance to ProvenanceIR.
 func FromAmber(provenance *amber.ValidatedProvenance) (*ProvenanceIR, error) {
-
 	// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
 	binarySHA256Digest := provenance.GetBinarySHA256Digest()
 

@@ -229,7 +229,7 @@ func verifyHasBuildCmd(got *common.ProvenanceIR) VerificationResult {
 func verifyBuilderImageDigest(want common.ReferenceValues, got *common.ProvenanceIR) (VerificationResult, error) {
 	result := NewVerificationResult()
 
-	gotBuilderImageDigest, err := got.GetBuilderImageDigest()
+	gotBuilderImageDigest, err := got.GetBuilderImageSHA256Digest()
 
 	if err != nil {
 		return result, err
