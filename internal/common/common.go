@@ -87,7 +87,7 @@ type ProvenanceIROption = func(p *ProvenanceIR)
 
 // NewProvenanceIR creates a new proveance with given optional fields.
 // Every provenancy needs to have binary sha256 digest, so this is not optional.
-func NewProvenanceIR(binarySHA256Digest string, options ...func(*ProvenanceIR)) *ProvenanceIR {
+func NewProvenanceIR(binarySHA256Digest string, options ...ProvenanceIROption) *ProvenanceIR {
 	provenance := &ProvenanceIR{binarySHA256Digest: binarySHA256Digest}
 	for _, addOption := range options {
 		addOption(provenance)
