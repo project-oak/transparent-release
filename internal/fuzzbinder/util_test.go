@@ -80,3 +80,50 @@ func TestValidateFuzzingDateInvalidDate(t *testing.T) {
 		}
 	}
 }
+
+func TestGetValidFuzzClaimValidity(t *testing.T) {
+	referenceTime, err := time.Parse(layout, referenceTimeStr)
+	if err != nil {
+		t.Fatalf("could not parse referenceTimeStr: %v", err)
+	}
+
+	validNotBefore := "20221221"
+	validNotAfter := "20231221"
+	_, err = GetValidFuzzClaimValidity(referenceTime, &validNotBefore, &validNotAfter)
+	if err != nil {
+		t.Errorf(
+			"unexpected fuzzing claim validity validation error : got %q want %v", err, nil)
+	}
+
+	invalidNotBefore := "20221219"
+	parsedInvalidNotBefore, err := parseDate(invalidNotBefore)
+	if err != nil {
+		t.Fatalf("could not parse invalidNotBefore: %v", err)
+	}
+	_, err = GetValidFuzzClaimValidity(referenceTime, &invalidNotBefore, &validNotAfter)
+	want := fmt.Sprintf(
+		"could not validate the fuzzing claim validity: notBefore (%v) is not after referenceTime (%v)",
+		parsedInvalidNotBefore, referenceTime)
+	if err == nil || !strings.Contains(err.Error(), want) {
+		t.Errorf(
+			"unexpected fuzzing claim validity validation error : got %q want %q", err, want)
+	}
+
+	invalidNotAfter := "20211219"
+	parsedInvalidNotAfter, err := parseDate(invalidNotAfter)
+	if err != nil {
+		t.Fatalf("could not parse invalidNotAfter: %v", err)
+	}
+	parsedValidNotBefore, err := parseDate(validNotBefore)
+	if err != nil {
+		t.Fatalf("could not parse validNotBefore: %v", err)
+	}
+	_, err = GetValidFuzzClaimValidity(referenceTime, &validNotBefore, &invalidNotAfter)
+	want = fmt.Sprintf(
+		"could not validate the fuzzing claim validity: notAfter (%v) is not after notBefore (%v)",
+		parsedInvalidNotAfter, parsedValidNotBefore)
+	if err == nil || !strings.Contains(err.Error(), want) {
+		t.Errorf(
+			"unexpected fuzzing claim validity validation error : got %q want %q", err, want)
+	}
+}

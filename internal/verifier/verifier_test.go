@@ -20,6 +20,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/project-oak/transparent-release/internal/common"
 	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/amber"
 )
@@ -139,8 +140,8 @@ func TestVerifyHasBuildCmd_EmptyBuildCmds(t *testing.T) {
 	// There is no build cmd.
 	got := ProvenanceIR{}
 	// But the reference values do not ask for a build cmd.
-	want := ProvenanceIR{
-		BuildCmds: nil,
+	want := common.ReferenceValues{
+		WantBuildCmds: false,
 	}
 
 	verifier := ProvenanceIRVerifier{
@@ -161,10 +162,10 @@ func TestVerifyBuilderImageDigest_DigestFound(t *testing.T) {
 	builderImageDigest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
 
 	got := ProvenanceIR{
-		BuilderImageDigests: []string{builderImageDigest},
+		BuilderImageSHA256Digests: []string{builderImageDigest},
 	}
-	want := ProvenanceIR{
-		BuilderImageDigests: []string{"some_other_digest", builderImageDigest},
+	want := common.ReferenceValues{
+		BuilderImageSHA256Digests: []string{"some_other_digest", builderImageDigest},
 	}
 
 	verifier := ProvenanceIRVerifier{
@@ -183,10 +184,10 @@ func TestVerifyBuilderImageDigest_DigestNotFound(t *testing.T) {
 	builderImageDigest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
 
 	got := ProvenanceIR{
-		BuilderImageDigests: []string{builderImageDigest},
+		BuilderImageSHA256Digests: []string{builderImageDigest},
 	}
-	want := ProvenanceIR{
-		BuilderImageDigests: []string{"some_other_digest", "and_some_other"},
+	want := common.ReferenceValues{
+		BuilderImageSHA256Digests: []string{"some_other_digest", "and_some_other"},
 	}
 
 	verifier := ProvenanceIRVerifier{
@@ -202,8 +203,8 @@ func TestVerifyBuilderImageDigest_DigestNotFound(t *testing.T) {
 
 	gotJustifications := fmt.Sprintf("%s", result.Justifications)
 	wantJustifications := fmt.Sprintf("the reference builder image digests (%v) do not contain the actual builder image digest (%v)",
-		want.BuilderImageDigests,
-		got.BuilderImageDigests)
+		want.BuilderImageSHA256Digests,
+		got.BuilderImageSHA256Digests)
 
 	if !strings.Contains(gotJustifications, wantJustifications) {
 		t.Fatalf("got %q, want justification containing %q,", gotJustifications, wantJustifications)
