@@ -25,6 +25,11 @@ import (
 	"google.golang.org/api/iterator"
 )
 
+// ContextInStruct contains contexts that can be used in
+// structures when there is no risk of confusion. Using
+// context.Context directly can lead to linting errors.
+type ContextInStruct context.Context
+
 // The documentation for context states:
 //
 //	Contexts should not be stored inside a struct type, but instead passed to each function that needs it.
@@ -38,7 +43,7 @@ import (
 // Client contains a Google Cloud Storage client and a context.Context.
 type Client struct {
 	StorageClient *storage.Client
-	Context       context.Context
+	Context       ContextInStruct
 }
 
 // NewClientWithContext creates and returns a new Client.
