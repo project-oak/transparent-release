@@ -124,13 +124,13 @@ func (client *Client) GetBlobData(bucketName string, blobPath string) ([]byte, e
 func (client *Client) GetLogsData(bucketName string, relativePath string) ([][]byte, error) {
 	logFilesPaths, err := client.ListLogFilePaths(bucketName, relativePath)
 	if err != nil {
-		return nil, fmt.Errorf("could not get log-files paths: %v", err)
+		return nil, fmt.Errorf("could not get log files paths: %v", err)
 	}
 	logFilesBytes := make([][]byte, 0, len(logFilesPaths))
 	for _, logFilePath := range logFilesPaths {
 		fileBytes, err := client.GetBlobData(bucketName, logFilePath)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("could not get data from log file: %v", err)
 		}
 		logFilesBytes = append(logFilesBytes, fileBytes)
 	}
