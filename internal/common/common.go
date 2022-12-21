@@ -83,7 +83,7 @@ type ProvenanceIR struct {
 }
 
 // NewProvenanceIR creates a new proveance with given optional fields.
-// Every provenancy needs to have binary sha256 digest, so this is not optional.
+// Every provenancy needs to a have binary sha256 digest, so this is not optional.
 func NewProvenanceIR(binarySHA256Digest string, options ...func(p *ProvenanceIR)) *ProvenanceIR {
 	provenance := &ProvenanceIR{binarySHA256Digest: binarySHA256Digest}
 	for _, addOption := range options {
@@ -106,7 +106,7 @@ func WithBuilderImageSHA256Digest(builderImageSHA256Digest string) func(p *Prove
 	}
 }
 
-// GetBinarySHA256Digest gets the binary sha256 digest. Throws an error if the binary sha256 digest is empty.
+// GetBinarySHA256Digest gets the binary sha256 digest. Returns an error if the binary sha256 digest is empty.
 func (p *ProvenanceIR) GetBinarySHA256Digest() (string, error) {
 	if p.binarySHA256Digest == "" {
 		return "", fmt.Errorf("provenance does not have a binary SHA256 digest")
@@ -114,7 +114,7 @@ func (p *ProvenanceIR) GetBinarySHA256Digest() (string, error) {
 	return p.binarySHA256Digest, nil
 }
 
-// GetBuildCmd gets the build cmd. Throws an error if the build cmd is empty.
+// GetBuildCmd gets the build cmd. Returns an error if the build cmd is empty.
 func (p *ProvenanceIR) GetBuildCmd() ([]string, error) {
 	if len(p.buildCmd) == 0 {
 		return nil, fmt.Errorf("provenance does not have a build cmd")
@@ -122,7 +122,7 @@ func (p *ProvenanceIR) GetBuildCmd() ([]string, error) {
 	return p.buildCmd, nil
 }
 
-// GetBuilderImageSHA256Digest gets the builder image sha256 digest. Throws an error if the builder image sha256 digest is empty.
+// GetBuilderImageSHA256Digest gets the builder image sha256 digest. Returns an error if the builder image sha256 digest is empty.
 func (p *ProvenanceIR) GetBuilderImageSHA256Digest() (string, error) {
 	if p.builderImageSHA256Digest == "" {
 		return "", fmt.Errorf("provenance does not have a builder image SHA256 digest")

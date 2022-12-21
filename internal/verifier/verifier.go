@@ -200,9 +200,9 @@ func verifyBinarySHA256Digest(want common.ReferenceValues, got *common.Provenanc
 	}
 
 	foundDigestInReferences := false
-	for _, want := range want.BinarySHA256Digests {
+	for _, wantBinarySHA256Digest := range want.BinarySHA256Digests {
 		// We checked before that got has exactly one binary SHA256 digest.
-		if want == gotBinarySHA256Digest {
+		if wantBinarySHA256Digest == gotBinarySHA256Digest {
 			foundDigestInReferences = true
 		}
 	}
@@ -236,8 +236,8 @@ func verifyBuilderImageDigest(want common.ReferenceValues, got *common.Provenanc
 	}
 
 	foundInReferences := false
-	for _, want := range want.BuilderImageSHA256Digests {
-		if want == gotBuilderImageDigest {
+	for _, wantBuilderImageSHA256Digest := range want.BuilderImageSHA256Digests {
+		if wantBuilderImageSHA256Digest == gotBuilderImageDigest {
 			foundInReferences = true
 		}
 	}
