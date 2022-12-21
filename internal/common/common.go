@@ -82,12 +82,9 @@ type ProvenanceIR struct {
 	builderImageSHA256Digest string
 }
 
-// ProvenanceIROption is a helper type to enable the optional setting of fields in `NewProvenanceIR`
-type ProvenanceIROption = func(p *ProvenanceIR)
-
 // NewProvenanceIR creates a new proveance with given optional fields.
 // Every provenancy needs to have binary sha256 digest, so this is not optional.
-func NewProvenanceIR(binarySHA256Digest string, options ...ProvenanceIROption) *ProvenanceIR {
+func NewProvenanceIR(binarySHA256Digest string, options ...func(p *ProvenanceIR)) *ProvenanceIR {
 	provenance := &ProvenanceIR{binarySHA256Digest: binarySHA256Digest}
 	for _, addOption := range options {
 		addOption(provenance)
@@ -96,14 +93,14 @@ func NewProvenanceIR(binarySHA256Digest string, options ...ProvenanceIROption) *
 }
 
 // WithBuildCmd adds a build cmd when creating a new ProvenanceIR.
-func WithBuildCmd(buildCmd []string) ProvenanceIROption {
+func WithBuildCmd(buildCmd []string) func(p *ProvenanceIR) {
 	return func(p *ProvenanceIR) {
 		p.buildCmd = buildCmd
 	}
 }
 
 // WithBuilderImageSHA256Digest adds a builder image sha256 digest when creating a new ProvenanceIR.
-func WithBuilderImageSHA256Digest(builderImageSHA256Digest string) ProvenanceIROption {
+func WithBuilderImageSHA256Digest(builderImageSHA256Digest string) func(p *ProvenanceIR) {
 	return func(p *ProvenanceIR) {
 		p.builderImageSHA256Digest = builderImageSHA256Digest
 	}
