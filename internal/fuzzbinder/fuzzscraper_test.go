@@ -166,3 +166,22 @@ func TestCrashDetected(t *testing.T) {
 		t.Errorf("unexpected crash detection: got %v, want true", got.Detected)
 	}
 }
+
+func TestGetGCSFileDigest(t *testing.T) {
+	path := filepath.Join(testdataPath, logFilePath)
+	reader, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	fileBytes, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	want := intoto.DigestSet{
+		"sha256": "8ea7d9bbacb35add616272afcccc44cc2fc297deebde0ca57aac8ccfaabbdd97",
+	}
+	got := *getGCSFileDigest(fileBytes)
+	if got["sha256"] != want["sha256"] {
+		t.Errorf("invalid file digest: got %v want %v", got, want)
+	}
+}
