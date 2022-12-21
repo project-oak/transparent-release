@@ -101,7 +101,7 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 // GenerateFuzzClaim generates a fuzzing claim (an instance of intoto.Statement,
 // with AmberClaimV1 as the PredicateType and FuzzClaimV1 as the ClaimType) using the
 // fuzzing reports of OSS-Fuzz and ClusterFuzz.
-func GenerateFuzzClaim(fuzzParameters *FuzzParameters) (*intoto.Statement, error) {
+func GenerateFuzzClaim(fuzzParameters *FuzzParameters, validity amber.ClaimValidity) (*intoto.Statement, error) {
 	revisionDigest, err := GetCoverageRevision(fuzzParameters)
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -122,14 +122,8 @@ func GenerateFuzzClaim(fuzzParameters *FuzzParameters) (*intoto.Statement, error
 		return nil, fmt.Errorf(
 			"could not get evidences to generate the fuzzing claim: %v", err)
 	}
-	currentTime := time.Now()
-	tomorrow := time.Now().AddDate(0, 0, 1)
-	// TODO(#173): Add validity duration as an input parameter.
-	endValidity := time.Now().AddDate(0, 0, 7)
-	validity := amber.ClaimValidity{
-		NotBefore: &tomorrow,
-		NotAfter:  &endValidity,
-	}
+	// Current time in UTC time zone since it is used by OSS-Fuzz.
+	currentTime := time.Now().UTC()
 	// Generate Amber predicate
 	predicate := amber.ClaimPredicate{
 		ClaimType: FuzzClaimV1,
