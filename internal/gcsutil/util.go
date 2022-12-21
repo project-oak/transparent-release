@@ -27,16 +27,15 @@ import (
 
 // The documentation for context states:
 //
-//     Contexts should not be stored inside a struct type, but instead passed to each function that needs it.
+//	Contexts should not be stored inside a struct type, but instead passed to each function that needs it.
 //
 // However, while it is generally important to pass the Context rather than store it in another type,
 // in the case below, this is not needed since there is no risk of confusion.
-// Indeed, the context is only used for the GCS client.
+// Indeed, the context is only used for the GCS client here.
 // Note that, if the use of context is extended in the future, then it should be passed explicitly to each
 // function that needs it as an argument.
-
-// Client contains a Google Cloud Storage client
-// and a context.Context.
+//
+// Client contains a Google Cloud Storage client and a context.Context.
 type Client struct {
 	StorageClient *storage.Client
 	Context       context.Context
@@ -62,18 +61,18 @@ func NewClientWithContext(ctx context.Context) (*Client, error) {
 func (client *Client) ListBlobPaths(bucketName string, relativePath string) ([]string, error) {
 	query := &storage.Query{Prefix: relativePath}
 	objects := client.StorageClient.Bucket(bucketName).Objects(client.Context, query)
-	var blobs []string
+	var blobPaths []string
 	for {
 		attrs, err := objects.Next()
 		if err == iterator.Done {
 			break
 		}
 		if err != nil {
-			return nil, fmt.Errorf("could not fetch object from bucket: %v", err)
+			return nil, fmt.Errorf("could not fetch object from %q: %v", bucketName, err)
 		}
-		blobs = append(blobs, attrs.Name)
+		blobPaths = append(blobPaths, attrs.Name)
 	}
-	return blobs, nil
+	return blobPaths, nil
 }
 
 // ListLogFilePaths returns all the log-files paths in a Google Cloud Storage bucket
@@ -88,14 +87,14 @@ func (client *Client) ListLogFilePaths(bucketName string, relativePath string) (
 			break
 		}
 		if err != nil {
-			return nil, fmt.Errorf("could not fetch object from bucket: %v", err)
+			return nil, fmt.Errorf("could not fetch object from %q: %v", bucketName, err)
 		}
 		if strings.Contains(attrs.Name, ".log") {
 			logFilePaths = append(logFilePaths, attrs.Name)
 		}
 	}
 	if len(logFilePaths) == 0 {
-		return nil, fmt.Errorf("could not find log files in %s under %s", bucketName, relativePath)
+		return nil, fmt.Errorf("could not find log files in %q under %q", bucketName, relativePath)
 	}
 	return logFilePaths, nil
 }
@@ -115,20 +114,19 @@ func (client *Client) GetBlobData(bucketName string, blobPath string) ([]byte, e
 	return fileBytes, nil
 }
 
-// GetLogsData gets the data in log-files in a Google Cloud Storage bucket
-// under a relative path.
+// GetLogsData gets the data in log-files in a Google Cloud Storage bucket under a relative path.
 func (client *Client) GetLogsData(bucketName string, relativePath string) ([][]byte, error) {
-	logFilePaths, err := client.ListLogFilePaths(bucketName, relativePath)
+	logFilesPaths, err := client.ListLogFilePaths(bucketName, relativePath)
 	if err != nil {
-		return nil, fmt.Errorf("could not get log files: %v", err)
+		return nil, fmt.Errorf("could not get log-files paths: %v", err)
 	}
-	listFileBytes := make([][]byte, 0, len(logFilePaths))
-	for _, logFilePath := range logFilePaths {
+	logFilesBytes := make([][]byte, 0, len(logFilesPaths))
+	for _, logFilePath := range logFilesPaths {
 		fileBytes, err := client.GetBlobData(bucketName, logFilePath)
 		if err != nil {
 			return nil, err
 		}
-		listFileBytes = append(listFileBytes, fileBytes)
+		logFilesBytes = append(logFilesBytes, fileBytes)
 	}
-	return listFileBytes, nil
+	return logFilesBytes, nil
 }
