@@ -66,11 +66,11 @@ type RepoCheckoutInfo struct {
 // ReferenceValues given by the product team to verify provenances against.
 type ReferenceValues struct {
 	// The digests of the binaries whose provenance the product team wants to verify.
-	BinarySHA256Digests []string `toml:"binary_256sha_digests"`
-	// If true the product teams wants the provenance to have a non-empty build command.
+	BinarySHA256Digests []string `toml:"binary_sha256_digests"`
+	// If true the product team wants the provenance to have a non-empty build command.
 	WantBuildCmds bool `toml:"want_build_cmds"`
 	// The digests of the builder images the product team trusts to build the binary.
-	BuilderImageSHA256Digests []string `toml:"builder_image_256sha_digests"`
+	BuilderImageSHA256Digests []string `toml:"builder_image_sha256_digests"`
 }
 
 // Cleanup removes the generated temp files. But it might not be able to remove

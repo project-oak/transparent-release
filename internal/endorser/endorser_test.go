@@ -76,7 +76,7 @@ func TestLoadAndVerifyProvenances_MultipleValidEndorsement(t *testing.T) {
 		// Make sure we pick the correct binary hash if there are several reference values.
 		BinarySHA256Digests: []string{binaryHash + "_diff", binaryHash},
 	}
-	provenanceSet, err := loadAndVerifyProvenances(provenances, referenceValues)
+	provenanceSet, err := loadAndVerifyProvenances(referenceValues, provenances)
 	if err != nil {
 		t.Fatalf("Could not generate endorsement from %q: %v", provenances[0], err)
 	}
@@ -115,7 +115,7 @@ func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
 	}
 
 	// Provenances do not contain the given reference binary SHA256 digest value, but are consistent.
-	_, err = loadAndVerifyProvenances([]string{"file://" + tempPath1, "file://" + tempPath1}, referenceValues)
+	_, err = loadAndVerifyProvenances(referenceValues, []string{"file://" + tempPath1, "file://" + tempPath1})
 	want := "do not contain the actual binary SHA256 digest"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
@@ -138,7 +138,7 @@ func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
 	}
 
 	// Provenances each contain a (different) given reference binary SHA256 digest value, but are inconsistent.
-	_, err = loadAndVerifyProvenances([]string{"file://" + tempPath1, "file://" + tempPath2}, referenceValues)
+	_, err = loadAndVerifyProvenances(referenceValues, []string{"file://" + tempPath1, "file://" + tempPath2})
 	want := "provenances are not consistent"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
@@ -160,7 +160,7 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 		BinarySHA256Digests: []string{binaryHash + "_diff"},
 	}
 
-	_, err = loadAndVerifyProvenances([]string{"file://" + tempPath1, "file://" + tempPath2}, referenceValues)
+	_, err = loadAndVerifyProvenances(referenceValues, []string{"file://" + tempPath1, "file://" + tempPath2})
 	want := "do not contain the actual binary SHA256 digest"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
