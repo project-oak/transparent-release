@@ -30,6 +30,14 @@ const (
 	Layout = "20060102"
 )
 
+// formatDate gets a "YYYY-MM-DD" date format from a "YYYYMMDD" date format.
+// The "YYYYMMDD" date format is used by OSS-Fuzz while the "YYYY-MM-DD"
+// date format is used by ClusterFuzz.
+func formatDate(fuzzParameters *FuzzParameters) string {
+	hyphenDate := fmt.Sprintf("%s-%s-%s", fuzzParameters.Date[:4], fuzzParameters.Date[4:6], fuzzParameters.Date[6:])
+	return hyphenDate
+}
+
 // parseDate parses a dateStr in YYYYMMDD date format
 // to *time.Time.
 func parseDate(dateStr string) (*time.Time, error) {

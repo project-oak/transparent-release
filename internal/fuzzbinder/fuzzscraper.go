@@ -120,10 +120,12 @@ func getRevisionFromFile(fuzzParameters *FuzzParameters, fileBytes []byte) (into
 	var payload map[string](map[string]string)
 	err := json.Unmarshal(fileBytes, &payload)
 	if err != nil {
-		return nil, fmt.Errorf("could not unmarshal srcmap fileBytes into a map[string](map[string]string): %v", err)
+		return nil, fmt.Errorf("could not unmarshal srcmap fileBytes into a %T: %v", payload, err)
 	}
 	// Get the revisionHash using the source-map file structure defined by OSS-Fuzz.
-	revisionDigest := intoto.DigestSet{"sha1": payload[fmt.Sprintf("/src/%s", fuzzParameters.ProjectName)]["rev"]}
+	revisionDigest := intoto.DigestSet{
+		"sha1": payload[fmt.Sprintf("/src/%s", fuzzParameters.ProjectName)]["rev"],
+	}
 	return revisionDigest, nil
 }
 
@@ -132,7 +134,7 @@ func parseCoverageSummary(fileBytes []byte) (*Coverage, error) {
 	var summary CoverageSummary
 	err := json.Unmarshal(fileBytes, &summary)
 	if err != nil {
-		return nil, fmt.Errorf("could not unmarshal fileBytes into a CoverageSummary: %v", err)
+		return nil, fmt.Errorf("could not unmarshal fileBytes into a %T: %v", summary, err)
 	}
 	// Return branch coverage and line coverage using the coverage summary structure.
 	coverage := Coverage{
@@ -140,14 +142,6 @@ func parseCoverageSummary(fileBytes []byte) (*Coverage, error) {
 		LineCoverage:   formatCoverage(summary.Data[0].Totals["lines"]),
 	}
 	return &coverage, nil
-}
-
-// formatDate gets a "YYYY-MM-DD" date format from a "YYYYMMDD" date format.
-// The "YYYYMMDD" date format is used by OSS-Fuzz while the "YYYY-MM-DD"
-// date format is used by ClusterFuzz.
-func formatDate(fuzzParameters *FuzzParameters) string {
-	hyphenDate := fmt.Sprintf("%s-%s-%s", fuzzParameters.Date[:4], fuzzParameters.Date[4:6], fuzzParameters.Date[6:])
-	return hyphenDate
 }
 
 // getLogDirInfo gets the bucket and relative path of the directory
