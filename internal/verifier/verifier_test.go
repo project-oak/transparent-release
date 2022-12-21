@@ -30,6 +30,7 @@ const (
 	validProvenancePath       = "provenance.json"
 	invalidHashProvenancePath = "invalid_hash_provenance.json"
 	badCommandProvenancePath  = "bad_command_provenance.json"
+	binarySHA256Digest        = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
 )
 
 func TestReproducibleProvenanceVerifier_validProvenance(t *testing.T) {
@@ -95,25 +96,15 @@ func TestReproducibleProvenanceVerifier_badCommand(t *testing.T) {
 }
 
 func TestVerifyHasBuildCmd_HasBuildCmd(t *testing.T) {
-	got := ProvenanceIR{
-		BuildCmds: [][]string{{"build cmd"}},
-	}
-	result, err := got.verifyHasBuildCmd()
-
-	if err != nil {
-		t.Fatalf("Could not verify that there is a build cmd: %v", err)
-	}
+	got := common.NewProvenanceIR(binarySHA256Digest, common.WithBuildCmd([]string{"build cmd"}))
+	result := verifyHasBuildCmd(got)
 
 	testutil.AssertEq(t, "has build cmd", result.IsVerified, true)
 }
 
 func TestVerifyHasBuildCmd_HasNoBuildCmd(t *testing.T) {
-	got := ProvenanceIR{}
-	result, err := got.verifyHasBuildCmd()
-
-	if err != nil {
-		t.Fatalf("Could not verify that there is a build cmd: %v", err)
-	}
+	got := common.NewProvenanceIR(binarySHA256Digest)
+	result := verifyHasBuildCmd(got)
 
 	testutil.AssertEq(t, "has no build cmd", result.IsVerified, false)
 
@@ -124,22 +115,10 @@ func TestVerifyHasBuildCmd_HasNoBuildCmd(t *testing.T) {
 	}
 }
 
-func TestVerifyHasBuildCmd_HasTooManyBuildCmds(t *testing.T) {
-	got := ProvenanceIR{
-		BuildCmds: [][]string{{"build cmd"}, {"another build cmd"}},
-	}
-	_, err := got.verifyHasBuildCmd()
-
-	want := "got multiple build cmds"
-	if err == nil || !strings.Contains(err.Error(), want) {
-		t.Fatalf("got %q, want error message containing %q,", err, want)
-	}
-}
-
 func TestVerifyHasBuildCmd_EmptyBuildCmds(t *testing.T) {
 	// There is no build cmd.
-	got := ProvenanceIR{}
-	// But the reference values do not ask for a build cmd.
+	got := common.NewProvenanceIR(binarySHA256Digest)
+	// And the reference values do not ask for a build cmd.
 	want := common.ReferenceValues{
 		WantBuildCmds: false,
 	}
@@ -160,10 +139,7 @@ func TestVerifyHasBuildCmd_EmptyBuildCmds(t *testing.T) {
 
 func TestVerifyBuilderImageDigest_DigestFound(t *testing.T) {
 	builderImageDigest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
-
-	got := ProvenanceIR{
-		BuilderImageSHA256Digests: []string{builderImageDigest},
-	}
+	got := common.NewProvenanceIR(binarySHA256Digest, common.WithBuilderImageSHA256Digest(builderImageDigest))
 	want := common.ReferenceValues{
 		BuilderImageSHA256Digests: []string{"some_other_digest", builderImageDigest},
 	}
@@ -182,10 +158,7 @@ func TestVerifyBuilderImageDigest_DigestFound(t *testing.T) {
 
 func TestVerifyBuilderImageDigest_DigestNotFound(t *testing.T) {
 	builderImageDigest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
-
-	got := ProvenanceIR{
-		BuilderImageSHA256Digests: []string{builderImageDigest},
-	}
+	got := common.NewProvenanceIR(binarySHA256Digest, common.WithBuilderImageSHA256Digest(builderImageDigest))
 	want := common.ReferenceValues{
 		BuilderImageSHA256Digests: []string{"some_other_digest", "and_some_other"},
 	}
@@ -204,7 +177,7 @@ func TestVerifyBuilderImageDigest_DigestNotFound(t *testing.T) {
 	gotJustifications := fmt.Sprintf("%s", result.Justifications)
 	wantJustifications := fmt.Sprintf("the reference builder image digests (%v) do not contain the actual builder image digest (%v)",
 		want.BuilderImageSHA256Digests,
-		got.BuilderImageSHA256Digests)
+		builderImageDigest)
 
 	if !strings.Contains(gotJustifications, wantJustifications) {
 		t.Fatalf("got %q, want justification containing %q,", gotJustifications, wantJustifications)
