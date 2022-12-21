@@ -43,9 +43,9 @@ func NewClient(ctx context.Context) (*GCSClient, error) {
 	return &gcsClient, nil
 }
 
-// ListBlobs returns all the objects paths in a Google Cloud Storage bucket
+// ListBlobPaths returns all the objects paths in a Google Cloud Storage bucket
 // under a given relative path.
-func (client *GCSClient) ListBlobs(ctx context.Context, bucketName string, relativePath string) ([]string, error) {
+func (client *GCSClient) ListBlobPaths(ctx context.Context, bucketName string, relativePath string) ([]string, error) {
 	query := &storage.Query{Prefix: relativePath}
 	objects := client.Client.Bucket(bucketName).Objects(ctx, query)
 	var blobs []string
@@ -62,45 +62,41 @@ func (client *GCSClient) ListBlobs(ctx context.Context, bucketName string, relat
 	return blobs, nil
 }
 
-// GetLogs returns all the log-files paths in a Google Cloud Storage bucket
+// ListLogFilePaths returns all the log-files paths in a Google Cloud Storage bucket
 // under a given relative path.
-func (client *GCSClient) GetLogs(ctx context.Context, bucketName string, relativePath string) ([]string, error) {
-	blobs, err := client.ListBlobs(ctx, bucketName, relativePath)
-	if err != nil {
-		return nil, fmt.Errorf("could not get list of blobs: %v", err)
-	}
-	logFiles := make([]string, 0, len(blobs))
-	for _, blob := range blobs {
-		if strings.Contains(blob, ".log") {
-			logFiles = append(logFiles, blob)
+func (client *GCSClient) ListLogFilePaths(ctx context.Context, bucketName string, relativePath string) ([]string, error) {
+	query := &storage.Query{Prefix: relativePath}
+	objects := client.Client.Bucket(bucketName).Objects(ctx, query)
+	var logFilePaths []string
+	for {
+		attrs, err := objects.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("could not fetch object from bucket: %v", err)
+		}
+		if strings.Contains(attrs.Name, ".log") {
+			logFilePaths = append(logFilePaths, attrs.Name)
 		}
 	}
-	if len(logFiles) == 0 {
+	if len(logFilePaths) == 0 {
 		return nil, fmt.Errorf("could not find log files in %s under %s", bucketName, relativePath)
 	}
-	return logFiles, nil
-}
-
-// GetBlobReader gets the file reader of a blob in a Google Cloud Storage bucket.
-func (client *GCSClient) GetBlobReader(ctx context.Context, bucketName string, blobName string) (*storage.Reader, error) {
-	reader, err := client.Client.Bucket(bucketName).Object(blobName).NewReader(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("could not create a new reader for blob %q: %v", blobName, err)
-	}
-	defer reader.Close()
-	return reader, nil
+	return logFilePaths, nil
 }
 
 // GetBlobData gets the data in a blob in a Google Cloud Storage bucket.
-func (client *GCSClient) GetBlobData(ctx context.Context, bucketName string, blobName string) ([]byte, error) {
-	reader, err := client.GetBlobReader(ctx, bucketName, blobName)
+func (client *GCSClient) GetBlobData(ctx context.Context, bucketName string, blobPath string) ([]byte, error) {
+	reader, err := client.Client.Bucket(bucketName).Object(blobPath).NewReader(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not create a new reader for blob %q: %v", blobPath, err)
 	}
+	defer reader.Close()
 	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"could not read data from blob %q reader: %v", blobName, err)
+			"could not read data from blob %q reader: %v", blobPath, err)
 	}
 	return fileBytes, nil
 }
@@ -108,13 +104,13 @@ func (client *GCSClient) GetBlobData(ctx context.Context, bucketName string, blo
 // GetLogsData gets the data in log-files in a Google Cloud Storage bucket
 // under a relative path.
 func (client *GCSClient) GetLogsData(ctx context.Context, bucketName string, relativePath string) ([][]byte, error) {
-	logFiles, err := client.GetLogs(ctx, bucketName, relativePath)
+	logFilePaths, err := client.ListLogFilePaths(ctx, bucketName, relativePath)
 	if err != nil {
 		return nil, fmt.Errorf("could not get log files: %v", err)
 	}
-	listFileBytes := make([][]byte, 0, len(logFiles))
-	for _, logFile := range logFiles {
-		fileBytes, err := client.GetBlobData(ctx, bucketName, logFile)
+	listFileBytes := make([][]byte, 0, len(logFilePaths))
+	for _, logFilePath := range logFilePaths {
+		fileBytes, err := client.GetBlobData(ctx, bucketName, logFilePath)
 		if err != nil {
 			return nil, err
 		}

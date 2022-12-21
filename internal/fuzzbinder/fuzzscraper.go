@@ -300,7 +300,7 @@ func GetFuzzTargets(ctx context.Context, client *gcsutil.GCSClient, fuzzParamete
 	// Relative path in the OSS-Fuzz CoverageBucket where the names
 	// of the fuzz-targets are mentioned.
 	relativePath := fmt.Sprintf("%s/fuzzer_stats/%s", fuzzParameters.ProjectName, fuzzParameters.Date)
-	blobs, err := client.ListBlobs(ctx, CoverageBucket, relativePath)
+	blobs, err := client.ListBlobPaths(ctx, CoverageBucket, relativePath)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not get blobs in %s in %s bucket: %v", relativePath, CoverageBucket, err)

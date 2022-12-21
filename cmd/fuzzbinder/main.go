@@ -66,22 +66,21 @@ func main() {
 		log.Fatalf("could not get absolute path for storing the fuzzing claim: %v", err)
 	}
 
-  // Get and validate the validity of the fuzzing claim.
-  validValidity, err := fuzzbinder.GetValidFuzzClaimValidity(currentTime, notBefore, notAfter)
-  if err != nil {
-    log.Fatalf("could not get the fuzzing claim validity: %v", err)
-  }
+	// Get and validate the validity of the fuzzing claim.
+	validValidity, err := fuzzbinder.GetValidFuzzClaimValidity(currentTime, notBefore, notAfter)
+	if err != nil {
+		log.Fatalf("could not get the fuzzing claim validity: %v", err)
+	}
 
-  ctx := context.Background()
+	ctx := context.Background()
+	// Create new GCS client
+	client, err := gcsutil.NewClient(ctx)
+	if err != nil {
+		log.Fatalf("could not create GCS client for FuzzBinder: %v", err)
+	}
 
-  // Create new GCS client
-  client, err := gcsutil.NewClient(ctx)
-  if err != nil {
-    log.Fatalf("could not create GCS client for FuzzBinder: %v", err)
-  }
-
-  // Generate the fuzzing claim.
-  statement, err := fuzzbinder.GenerateFuzzClaim(ctx, client, fuzzParameters, *validValidity)
+	// Generate the fuzzing claim.
+	statement, err := fuzzbinder.GenerateFuzzClaim(ctx, client, fuzzParameters, *validValidity)
 	if err != nil {
 		log.Fatalf("could not generate the fuzzing claim: %v", err)
 	}
