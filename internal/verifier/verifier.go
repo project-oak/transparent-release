@@ -136,7 +136,7 @@ type ProvenanceMetadataVerifier struct {
 // ProvenanceMetadataVerifier instance.
 // TODO(#69): Check metadata against the expected values.
 func (verifier *ProvenanceMetadataVerifier) Verify() (VerificationResult, error) {
-	provenanceIR := FromSLSAv02(verifier.Got)
+	provenanceIR := common.FromSLSAv02(verifier.Got)
 
 	provenanceVerifier := ProvenanceIRVerifier{
 		Got:  provenanceIR,
@@ -146,47 +146,10 @@ func (verifier *ProvenanceMetadataVerifier) Verify() (VerificationResult, error)
 	return provenanceVerifier.Verify()
 }
 
-// ProvenanceIR is an internal intermediate representation of data from provenances for verification.
-// We use the ProvenanceIR to map different provenance formats. We allow fields to be empty ([]).
-type ProvenanceIR struct {
-	BinarySHA256Digests       []string
-	BuildCmds                 [][]string
-	BuilderImageSHA256Digests []string
-}
-
-// FromSLSAv02 maps data from a validated SLSA v0.2 provenance to ProvenanceIR.
-func FromSLSAv02(provenance *slsa.ValidatedProvenance) ProvenanceIR {
-	return ProvenanceIR{
-		// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
-		BinarySHA256Digests: []string{provenance.GetBinarySHA256Digest()}}
-}
-
-// FromAmber maps data from a validated Amber provenance to ProvenanceIR.
-func FromAmber(provenance *amber.ValidatedProvenance) (ProvenanceIR, error) {
-	var provenanceIR ProvenanceIR
-
-	// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
-	provenanceIR.BinarySHA256Digests = []string{provenance.GetBinarySHA256Digest()}
-
-	buildCmd, err := provenance.GetBuildCmd()
-	if err != nil {
-		return provenanceIR, fmt.Errorf("could not get build cmd from *amber.ValidatedProvenance: %v", err)
-	}
-	provenanceIR.BuildCmds = [][]string{buildCmd}
-
-	builderImageDigest, err := provenance.GetBuilderImageDigest()
-	if err != nil {
-		return provenanceIR, fmt.Errorf("could get builder image digest from *amber.ValidatedProvenance: %v", err)
-	}
-	provenanceIR.BuilderImageSHA256Digests = []string{builderImageDigest}
-
-	return provenanceIR, nil
-}
-
 // ProvenanceIRVerifier verifies a provenance against a given reference, by verifying
 // all non-empty fields in got using fields in the reference values. Empty fields will not be verified.
 type ProvenanceIRVerifier struct {
-	Got  ProvenanceIR
+	Got  *common.ProvenanceIR
 	Want common.ReferenceValues
 }
 
@@ -198,31 +161,23 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 
 	// Verify BinarySHA256 Digest.
 	if verifier.Want.BinarySHA256Digests != nil {
-		if len(verifier.Got.BinarySHA256Digests) != 1 {
-			return combinedResult, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
-		}
-		nextResult, err := verifier.Got.verifyBinarySHA256Digest(verifier.Want)
+		nextResult, err := verifyBinarySHA256Digest(verifier.Want, verifier.Got)
 		if err != nil {
-			return combinedResult, fmt.Errorf("provenance must have exactly one binary SHA256 digest value, got (%v)", verifier.Got.BinarySHA256Digests)
+			return combinedResult, fmt.Errorf("failed to verify binary SHA256 digest: %v", err)
 		}
 		combinedResult.Combine(nextResult)
 	}
 
 	if verifier.Want.WantBuildCmds {
-		nextResult, err := verifier.Got.verifyHasBuildCmd()
-
-		if err != nil {
-			return combinedResult, fmt.Errorf("verify build cmds failed: %v", err)
-		}
+		nextResult := verifyHasBuildCmd(verifier.Got)
 		combinedResult.Combine(nextResult)
 	}
 
 	// Verify BuilderImageDigest.
 	if verifier.Want.BuilderImageSHA256Digests != nil {
-		nextResult, err := verifier.Got.verifyBuilderImageDigest(verifier.Want)
-
+		nextResult, err := verifyBuilderImageDigest(verifier.Want, verifier.Got)
 		if err != nil {
-			return combinedResult, fmt.Errorf("verify builder image digests failed: %v", err)
+			return combinedResult, fmt.Errorf("failed to verify builder image digests: %v", err)
 		}
 		combinedResult.Combine(nextResult)
 	}
@@ -231,11 +186,13 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 }
 
 // verifyBinarySHA256Digest verifies that the binary SHA256 in this provenance is contained in the given reference binary SHA256 digests (in want).
-func (got *ProvenanceIR) verifyBinarySHA256Digest(want common.ReferenceValues) (VerificationResult, error) {
+func verifyBinarySHA256Digest(want common.ReferenceValues, got *common.ProvenanceIR) (VerificationResult, error) {
 	result := NewVerificationResult()
 
-	if len(got.BinarySHA256Digests) != 1 {
-		return result, fmt.Errorf("got not exactly one actual binary SHA256 digest (%v)", got.BinarySHA256Digests)
+	gotBinarySHA256Digest, err := got.GetBinarySHA256Digest()
+
+	if err != nil {
+		return result, err
 	}
 
 	if want.BinarySHA256Digests == nil {
@@ -243,9 +200,9 @@ func (got *ProvenanceIR) verifyBinarySHA256Digest(want common.ReferenceValues) (
 	}
 
 	foundDigestInReferences := false
-	for _, want := range want.BinarySHA256Digests {
+	for _, wantBinarySHA256Digest := range want.BinarySHA256Digests {
 		// We checked before that got has exactly one binary SHA256 digest.
-		if want == got.BinarySHA256Digests[0] {
+		if wantBinarySHA256Digest == gotBinarySHA256Digest {
 			foundDigestInReferences = true
 		}
 	}
@@ -253,39 +210,34 @@ func (got *ProvenanceIR) verifyBinarySHA256Digest(want common.ReferenceValues) (
 	if !foundDigestInReferences {
 		result.SetFailed(fmt.Sprintf("the reference binary SHA256 digests (%v) do not contain the actual binary SHA256 digest (%v)",
 			want.BinarySHA256Digests,
-			got.BinarySHA256Digests))
+			gotBinarySHA256Digest))
 	}
 
 	return result, nil
 }
 
 // verifyHasBuildCmd verifies that the build cmd is not empty.
-func (got *ProvenanceIR) verifyHasBuildCmd() (VerificationResult, error) {
+func verifyHasBuildCmd(got *common.ProvenanceIR) VerificationResult {
 	result := NewVerificationResult()
-
-	if len(got.BuildCmds) > 1 {
-		return result, fmt.Errorf("got multiple build cmds (%s)", got.BuildCmds)
-	}
-
-	if len(got.BuildCmds) == 0 || len(got.BuildCmds[0]) == 0 {
+	if _, err := got.GetBuildCmd(); err != nil {
 		result.SetFailed("no build cmd found")
 	}
-
-	return result, nil
+	return result
 }
 
 // verifyBuilderImageDigest verifies that the given builder image digest matches a builder image digest in the reference values.
-func (got *ProvenanceIR) verifyBuilderImageDigest(want common.ReferenceValues) (VerificationResult, error) {
+func verifyBuilderImageDigest(want common.ReferenceValues, got *common.ProvenanceIR) (VerificationResult, error) {
 	result := NewVerificationResult()
 
-	if len(got.BuilderImageSHA256Digests) > 1 {
-		return result, fmt.Errorf("got multiple builder image digests (%s)", got.BuilderImageSHA256Digests)
+	gotBuilderImageDigest, err := got.GetBuilderImageSHA256Digest()
+
+	if err != nil {
+		return result, err
 	}
 
 	foundInReferences := false
-
-	for _, want := range want.BuilderImageSHA256Digests {
-		if want == got.BuilderImageSHA256Digests[0] {
+	for _, wantBuilderImageSHA256Digest := range want.BuilderImageSHA256Digests {
+		if wantBuilderImageSHA256Digest == gotBuilderImageDigest {
 			foundInReferences = true
 		}
 	}
@@ -293,7 +245,7 @@ func (got *ProvenanceIR) verifyBuilderImageDigest(want common.ReferenceValues) (
 	if !foundInReferences {
 		result.SetFailed(fmt.Sprintf("the reference builder image digests (%v) do not contain the actual builder image digest (%v)",
 			want.BuilderImageSHA256Digests,
-			got.BuilderImageSHA256Digests))
+			gotBuilderImageDigest))
 	}
 
 	return result, nil
