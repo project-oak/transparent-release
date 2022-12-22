@@ -28,7 +28,7 @@ import (
 	"strings"
 
 	toml "github.com/pelletier/go-toml"
-	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
+	slsav02 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 
 	"github.com/project-oak/transparent-release/pkg/amber"
 	"github.com/project-oak/transparent-release/pkg/intoto"
@@ -142,8 +142,7 @@ func (p *ProvenanceIR) GetBuilderImageSHA256Digest() (string, error) {
 func FromAmber(provenance *amber.ValidatedProvenance) (*ProvenanceIR, error) {
 	// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
 	binarySHA256Digest := provenance.GetBinarySHA256Digest()
-	// We know this is an Amber provenance.
-	buildType := amber.AmberBuildTypeV1
+	buildType := provenance.GetBuildType()
 
 	buildCmd, err := provenance.GetBuildCmd()
 	if err != nil {
@@ -164,12 +163,10 @@ func FromAmber(provenance *amber.ValidatedProvenance) (*ProvenanceIR, error) {
 }
 
 // FromSLSAv02 maps data from a validated SLSA v0.2 provenance to ProvenanceIR.
-func FromSLSAv02(provenance *slsa.ValidatedProvenance) *ProvenanceIR {
+func FromSLSAv02(provenance *slsav02.ValidatedProvenance) *ProvenanceIR {
 	// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
 	binarySHA256Digest := provenance.GetBinarySHA256Digest()
-	// TODO(mschett): Find out good naming conventions: for SLSA formats: SLSAv02 vs SLSAv01?
-	// TODO(mschett): What happens when *slsa.ValidatedProvenance is updated?
-	buildType := "https://github.com/slsa-framework/slsa-github-generator/generic@v1"
+	buildType := provenance.GetBuildType()
 	provenanceIR := NewProvenanceIR(binarySHA256Digest,
 		WithBuildType(buildType))
 	return provenanceIR
@@ -204,7 +201,7 @@ func LoadBuildConfigFromFile(path string) (*BuildConfig, error) {
 // LoadBuildConfigFromProvenance loads build configuration from a SLSA Provenance object.
 func LoadBuildConfigFromProvenance(provenance *amber.ValidatedProvenance) (*BuildConfig, error) {
 	statement := provenance.GetProvenance()
-	predicate := statement.Predicate.(slsa.ProvenancePredicate)
+	predicate := statement.Predicate.(slsav02.ProvenancePredicate)
 	if len(predicate.Materials) != 2 {
 		return nil, fmt.Errorf("the provenance must have exactly two Materials, got %d", len(predicate.Materials))
 	}
@@ -361,13 +358,13 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*intoto.Statement, error) {
 		return nil, fmt.Errorf("malformed builder image URI: %v", err)
 	}
 
-	predicate := slsa.ProvenancePredicate{
+	predicate := slsav02.ProvenancePredicate{
 		BuildType: amber.AmberBuildTypeV1,
 		BuildConfig: amber.BuildConfig{
 			Command:    b.Command,
 			OutputPath: b.OutputPath,
 		},
-		Materials: []slsa.ProvenanceMaterial{
+		Materials: []slsav02.ProvenanceMaterial{
 			// Builder image
 			{
 				URI:    b.BuilderImage,
@@ -383,7 +380,7 @@ func (b *BuildConfig) GenerateProvenanceStatement() (*intoto.Statement, error) {
 
 	statementHeader := intoto.StatementHeader{
 		Type:          intoto.StatementInTotoV01,
-		PredicateType: slsa.PredicateSLSAProvenance,
+		PredicateType: slsav02.PredicateSLSAProvenance,
 		Subject:       []intoto.Subject{subject},
 	}
 

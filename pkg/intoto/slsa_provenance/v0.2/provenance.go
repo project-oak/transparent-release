@@ -184,6 +184,11 @@ func (p *ValidatedProvenance) GetBinaryName() string {
 	return p.provenance.Subject[0].Name
 }
 
+// GetBuildType returns the build type of the provenance.
+func (p *ValidatedProvenance) GetBuildType() string {
+	return p.provenance.Predicate.(ProvenancePredicate).BuildType
+}
+
 // GetProvenance returns a partial copy of the provenance statement wrapped in this instance.
 // The partial copy guarantees that the validity condition will not be violated.
 func (p *ValidatedProvenance) GetProvenance() intoto.Statement {
