@@ -25,6 +25,15 @@ const (
 	layout           = "2006-01-02 15:04:05 -0700 MST"
 )
 
+func TestFormatDate(t *testing.T) {
+	fuzzParameters := FuzzParameters{Date: "20221220"}
+	want := "2022-12-20"
+	got := formatDate(&fuzzParameters)
+	if got != want {
+		t.Errorf("unexpected date format : got %q want %q", got, want)
+	}
+}
+
 func TestValidateFuzzingDateValidDate(t *testing.T) {
 	referenceTime, err := time.Parse(layout, referenceTimeStr)
 	if err != nil {

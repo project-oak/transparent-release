@@ -17,6 +17,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"log"
@@ -25,6 +26,7 @@ import (
 	"time"
 
 	"github.com/project-oak/transparent-release/internal/fuzzbinder"
+	"github.com/project-oak/transparent-release/internal/gcsutil"
 )
 
 func main() {
@@ -70,8 +72,14 @@ func main() {
 		log.Fatalf("could not get the fuzzing claim validity: %v", err)
 	}
 
+	// Create new GCS client
+	client, err := gcsutil.NewClientWithContext(context.Background())
+	if err != nil {
+		log.Fatalf("could not create GCS client for FuzzBinder: %v", err)
+	}
+
 	// Generate the fuzzing claim.
-	statement, err := fuzzbinder.GenerateFuzzClaim(fuzzParameters, *validValidity)
+	statement, err := fuzzbinder.GenerateFuzzClaim(client, fuzzParameters, *validValidity)
 	if err != nil {
 		log.Fatalf("could not generate the fuzzing claim: %v", err)
 	}

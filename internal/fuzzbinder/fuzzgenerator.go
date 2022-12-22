@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/project-oak/transparent-release/internal/gcsutil"
 	"github.com/project-oak/transparent-release/pkg/amber"
 	"github.com/project-oak/transparent-release/pkg/intoto"
 )
@@ -29,7 +30,7 @@ import (
 // TODO(#171): Split generateFuzzClaimSpec into smaller functions.
 // generateFuzzClaimSpec generates a fuzzing claim specification using the
 // fuzzing reports of OSS-Fuzz.
-func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *FuzzParameters, fuzzTargets []string) (*FuzzClaimSpec, error) {
+func generateFuzzClaimSpec(client *gcsutil.Client, revisionDigest intoto.DigestSet, fuzzParameters *FuzzParameters, fuzzTargets []string) (*FuzzClaimSpec, error) {
 	var projectCrashes Crash
 	var projectFuzzEffort FuzzEffort
 	fuzzersCrashes := make(map[string]*Crash)
@@ -37,17 +38,17 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 	fuzzersCoverage := make(map[string]*Coverage)
 	//Get fuzzing statistics.
 	for _, fuzzTarget := range fuzzTargets {
-		coverage, err := GetCoverage(fuzzParameters, fuzzTarget, "perTarget")
+		coverage, err := GetCoverage(client, fuzzParameters, fuzzTarget, "perTarget")
 		if err != nil {
 			return nil, fmt.Errorf(
 				"could not get %s coverage to generate the fuzzing ClaimSpec: %v", fuzzTarget, err)
 		}
-		fuzzEffort, err := GetFuzzEffort(revisionDigest, fuzzParameters, fuzzTarget)
+		fuzzEffort, err := GetFuzzEffort(client, revisionDigest, fuzzParameters, fuzzTarget)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"could not get %s fuzzing efforts to generate the fuzzing ClaimSpec: %v", fuzzTarget, err)
 		}
-		crash, err := GetCrashes(revisionDigest, fuzzParameters, fuzzTarget)
+		crash, err := GetCrashes(client, revisionDigest, fuzzParameters, fuzzTarget)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"could not get %s crashes to generate the fuzzing ClaimSpec: %v", fuzzTarget, err)
@@ -57,31 +58,31 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 		fuzzersFuzzEffort[fuzzTarget] = fuzzEffort
 		fuzzersCoverage[fuzzTarget] = coverage
 
-		projectCrashes.Detected = projectCrashes.Detected || crash.Detected
-		projectFuzzEffort.FuzzTimeSeconds += fuzzEffort.FuzzTimeSeconds
-		projectFuzzEffort.NumberFuzzTests += fuzzEffort.NumberFuzzTests
+		projectCrashes.detected = projectCrashes.detected || crash.detected
+		projectFuzzEffort.fuzzTimeSeconds += fuzzEffort.fuzzTimeSeconds
+		projectFuzzEffort.numberFuzzTests += fuzzEffort.numberFuzzTests
 	}
-	projectCoverage, err := GetCoverage(fuzzParameters, "", "perProject")
+	projectCoverage, err := GetCoverage(client, fuzzParameters, "", "perProject")
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not get the project coverage to generate the fuzzing ClaimSpec: %v", err)
 	}
 	// Generate fuzzing claim specification.
 	perProject := &FuzzStats{
-		BranchCoverage:  projectCoverage.BranchCoverage,
-		LineCoverage:    projectCoverage.LineCoverage,
-		DetectedCrashes: projectCrashes.Detected,
-		FuzzTimeSeconds: projectFuzzEffort.FuzzTimeSeconds,
-		NumberFuzzTests: projectFuzzEffort.NumberFuzzTests,
+		BranchCoverage:  projectCoverage.branchCoverage,
+		LineCoverage:    projectCoverage.lineCoverage,
+		DetectedCrashes: projectCrashes.detected,
+		FuzzTimeSeconds: projectFuzzEffort.fuzzTimeSeconds,
+		NumberFuzzTests: projectFuzzEffort.numberFuzzTests,
 	}
 	perTarget := make([]FuzzSpecPerTarget, 0, len(fuzzTargets))
 	for _, fuzzTagret := range fuzzTargets {
 		targetStats := FuzzStats{
-			BranchCoverage:  fuzzersCoverage[fuzzTagret].BranchCoverage,
-			LineCoverage:    fuzzersCoverage[fuzzTagret].LineCoverage,
-			DetectedCrashes: fuzzersCrashes[fuzzTagret].Detected,
-			FuzzTimeSeconds: fuzzersFuzzEffort[fuzzTagret].FuzzTimeSeconds,
-			NumberFuzzTests: fuzzersFuzzEffort[fuzzTagret].NumberFuzzTests,
+			BranchCoverage:  fuzzersCoverage[fuzzTagret].branchCoverage,
+			LineCoverage:    fuzzersCoverage[fuzzTagret].lineCoverage,
+			DetectedCrashes: fuzzersCrashes[fuzzTagret].detected,
+			FuzzTimeSeconds: fuzzersFuzzEffort[fuzzTagret].fuzzTimeSeconds,
+			NumberFuzzTests: fuzzersFuzzEffort[fuzzTagret].numberFuzzTests,
 		}
 		targetSpec := FuzzSpecPerTarget{
 			Name: fuzzTagret,
@@ -101,23 +102,25 @@ func generateFuzzClaimSpec(revisionDigest intoto.DigestSet, fuzzParameters *Fuzz
 // GenerateFuzzClaim generates a fuzzing claim (an instance of intoto.Statement,
 // with AmberClaimV1 as the PredicateType and FuzzClaimV1 as the ClaimType) using the
 // fuzzing reports of OSS-Fuzz and ClusterFuzz.
-func GenerateFuzzClaim(fuzzParameters *FuzzParameters, validity amber.ClaimValidity) (*intoto.Statement, error) {
-	revisionDigest, err := GetCoverageRevision(fuzzParameters)
+
+func GenerateFuzzClaim(client *gcsutil.Client, fuzzParameters *FuzzParameters, validity amber.ClaimValidity) (*intoto.Statement, error) {
+	revisionDigest, err := GetCoverageRevision(client, fuzzParameters)
+
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not get the revision digest to generate the fuzzing claim: %v", err)
 	}
-	fuzzTargets, err := GetFuzzTargets(fuzzParameters)
+	fuzzTargets, err := GetFuzzTargets(client, fuzzParameters)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not get the fuzzing targets to generate the fuzzing claim: %v", err)
 	}
-	fuzzClaimSpec, err := generateFuzzClaimSpec(revisionDigest, fuzzParameters, fuzzTargets)
+	fuzzClaimSpec, err := generateFuzzClaimSpec(client, revisionDigest, fuzzParameters, fuzzTargets)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not get the fuzzing ClaimSpec to generate the fuzzing claim: %v", err)
 	}
-	evidences, err := GetEvidences(fuzzParameters, fuzzTargets)
+	evidences, err := GetEvidences(client, fuzzParameters, fuzzTargets)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not get evidences to generate the fuzzing claim: %v", err)

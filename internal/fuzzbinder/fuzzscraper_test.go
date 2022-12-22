@@ -14,6 +14,7 @@
 package fuzzbinder
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -58,8 +59,49 @@ func TestParseCoverageSummary(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	testutil.AssertNonEmpty(t, "parsed branch coverage", coverage.BranchCoverage)
-	testutil.AssertNonEmpty(t, "parsed line coverage", coverage.LineCoverage)
+	testutil.AssertNonEmpty(t, "parsed branch coverage", coverage.branchCoverage)
+	testutil.AssertNonEmpty(t, "parsed line coverage", coverage.lineCoverage)
+}
+
+func TestGetLogDirInfo(t *testing.T) {
+	fuzzTarget := "apply_policy"
+	fuzzParameters := FuzzParameters{
+		ProjectName: "oak",
+		FuzzEngine:  "libFuzzer",
+		Sanitizer:   "asan",
+		Date:        "20221206",
+	}
+	wantLogsBucket := "oak-logs.clusterfuzz-external.appspot.com"
+	wantRelativePath := "libFuzzer_oak_apply_policy/libfuzzer_asan_oak/2022-12-06"
+	gotLogsBucket, gotRelativePath := getLogDirInfo(&fuzzParameters, fuzzTarget)
+	if gotLogsBucket != wantLogsBucket {
+		t.Errorf("invalid logsBucket: got %q want %q", gotLogsBucket, wantLogsBucket)
+	}
+	if gotRelativePath != wantRelativePath {
+		t.Errorf("invalid relativePath: got %q want %q", gotRelativePath, wantRelativePath)
+	}
+}
+
+func TestCheckHash(t *testing.T) {
+	revisionDigest := intoto.DigestSet{
+		"sha1": hash,
+	}
+	path := filepath.Join(testdataPath, logFilePath)
+	reader, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	fileBytes, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	isGoodHash, err := checkHash(revisionDigest, fileBytes)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	if !*isGoodHash {
+		t.Errorf("invalid hash check: got %t want %t", *isGoodHash, !*isGoodHash)
+	}
 }
 
 func TestGetFuzzEffortFromFile(t *testing.T) {
@@ -71,15 +113,19 @@ func TestGetFuzzEffortFromFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	fuzzEffort, err := getFuzzEffortFromFile(revisionDigest, reader)
+	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	if !(fuzzEffort.NumberFuzzTests > 0) {
-		t.Errorf("unexpected numFuzzTests: got %v, want non-zero value", fuzzEffort.NumberFuzzTests)
+	fuzzEffort, err := getFuzzEffortFromFile(revisionDigest, fileBytes)
+	if err != nil {
+		t.Fatalf("%v", err)
 	}
-	if !(fuzzEffort.FuzzTimeSeconds > 0.0) {
-		t.Errorf("unexpected fuzzTimeSeconds: got %v, want non-zero value", fuzzEffort.FuzzTimeSeconds)
+	if !(fuzzEffort.numberFuzzTests > 0) {
+		t.Errorf("unexpected numFuzzTests: got %v, want non-zero value", fuzzEffort.numberFuzzTests)
+	}
+	if !(fuzzEffort.fuzzTimeSeconds > 0.0) {
+		t.Errorf("unexpected fuzzTimeSeconds: got %v, want non-zero value", fuzzEffort.fuzzTimeSeconds)
 	}
 }
 
@@ -92,23 +138,50 @@ func TestCrashDetected(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err := crashDetected(revisionDigest, reader)
+	fileBytes, err := io.ReadAll(reader)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	if got.Detected {
-		t.Errorf("unexpected crash detection: got %v, want false", got.Detected)
+	got, err := crashDetectedInFile(revisionDigest, fileBytes)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	if got.detected {
+		t.Errorf("unexpected crash detection: got %v, want false", got.detected)
 	}
 	path = filepath.Join(testdataPath, logFileWithCrashPath)
 	reader, err = os.Open(path)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err = crashDetected(revisionDigest, reader)
+	fileBytes, err = io.ReadAll(reader)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	if !got.Detected {
-		t.Errorf("unexpected crash detection: got %v, want true", got.Detected)
+	got, err = crashDetectedInFile(revisionDigest, fileBytes)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	if !got.detected {
+		t.Errorf("unexpected crash detection: got %v, want true", got.detected)
+	}
+}
+
+func TestGetGCSFileDigest(t *testing.T) {
+	path := filepath.Join(testdataPath, logFilePath)
+	reader, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	fileBytes, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	want := intoto.DigestSet{
+		"sha256": "8ea7d9bbacb35add616272afcccc44cc2fc297deebde0ca57aac8ccfaabbdd97",
+	}
+	got := *getGCSFileDigest(fileBytes)
+	if got["sha256"] != want["sha256"] {
+		t.Errorf("invalid file digest: got %v want %v", got, want)
 	}
 }
