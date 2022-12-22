@@ -323,7 +323,7 @@ func GetFuzzTargets(client *gcsutil.Client, fuzzParameters *FuzzParameters) ([]s
 func addClaimEvidence(client *gcsutil.Client, evidences []amber.ClaimEvidence, blobName string, role string) ([]amber.ClaimEvidence, error) {
 	fileBytes, err := client.GetBlobData(CoverageBucket, blobName)
 	if err != nil {
-		return nil, fmt.Errorf("could not get date in evidence file: %v", err)
+		return nil, fmt.Errorf("could not get data in evidence file: %v", err)
 	}
 	digest := getGCSFileDigest(fileBytes)
 	evidence := amber.ClaimEvidence{
