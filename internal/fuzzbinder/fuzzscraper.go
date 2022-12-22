@@ -120,18 +120,31 @@ type FuzzParameters struct {
 	Date string
 }
 
-// getRevisionFromFile extracts and returns the revision of the source code from an OSS-Fuzz coverage
-// report, given the content of the source-map file (a file in the OSS-Fuzz coverage bucket that
-// links coverage build dates to the revisions of the source code used for the builds) and the fuzzing parameters.
+// getRevisionFromFile extracts and returns the revision of the source code used
+// for coverage build, given the content of a srcmap file and the fuzzing parameters.
+// A srcmap file is in:
+//
+//	gs://oss-fuzz-coverage{projectName}/srcmap/{date}.json
+//
+// It links coverage build dates to the revisions of the source code used for the builds.
+// In OSS-Fuzz this file structure is defined in
+//
+//	https://github.com/google/oss-fuzz/blob/master/infra/base-images/base-builder/srcmap
+//
+// as ".\"$GIT_DIR\" = { type: \"git\", url: \"$GIT_URL\", rev: \"$GIT_REV\" }" for
+// source code in Git for example.
 func getRevisionFromFile(fileBytes []byte, fuzzParameters *FuzzParameters) (intoto.DigestSet, error) {
-	var payload map[string](map[string]string)
-	err := json.Unmarshal(fileBytes, &payload)
+	// structure to unmarshal srcmap files with
+	// ".\"$GIT_DIR\" = { type: \"git\", url: \"$GIT_URL\", rev: \"$GIT_REV\" }" structure.
+	var srcmap map[string](map[string]string)
+	err := json.Unmarshal(fileBytes, &srcmap)
 	if err != nil {
-		return nil, fmt.Errorf("could not unmarshal srcmap fileBytes into a %T: %v", payload, err)
+		return nil, fmt.Errorf("could not unmarshal srcmap fileBytes into a %T: %v", srcmap, err)
 	}
-	// Get the revisionHash using the source-map file structure defined by OSS-Fuzz.
+	// Get $GIT_REV from ".\"$GIT_DIR\" = { type: \"git\", url: \"$GIT_URL\", rev: \"$GIT_REV\" }" structure.
+	gitDir := fmt.Sprintf("/src/%s", fuzzParameters.ProjectName)
 	revisionDigest := intoto.DigestSet{
-		"sha1": payload[fmt.Sprintf("/src/%s", fuzzParameters.ProjectName)]["rev"],
+		"sha1": srcmap[gitDir]["rev"],
 	}
 	return revisionDigest, nil
 }
