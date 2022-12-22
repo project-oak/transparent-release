@@ -85,7 +85,7 @@ type CoverageSummary struct {
 // OSS-Fuzz using llvm-cov for a given project
 // The full structure is defined by llvm-cov in this file
 //
-//	https://github.com/llvm/llvm-project/blob/main/llvm/tools/llvm-cov/CoverageExporterJson.cp
+//	https://github.com/llvm/llvm-project/blob/main/llvm/tools/llvm-cov/CoverageExporterJson.cpp
 //
 // In this structure, we are only interested in aggregated coverage
 // statistics in `Totals` and the file names in `Files`.
@@ -99,7 +99,7 @@ type CoverageSummaryData struct {
 // the coverage summary.
 // The full structure is defined by llvm-cov in this file
 //
-//	https://github.com/llvm/llvm-project/blob/main/llvm/tools/llvm-cov/CoverageExporterJson.cp
+//	https://github.com/llvm/llvm-project/blob/main/llvm/tools/llvm-cov/CoverageExporterJson.cpp
 type FilesCoverage struct {
 	FileName string `json:"filename"`
 }
