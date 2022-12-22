@@ -78,6 +78,7 @@ type ReferenceValues struct {
 // all fields except for `binarySHA256Digest` are optional.
 type ProvenanceIR struct {
 	binarySHA256Digest       string
+	buildType                string
 	buildCmd                 []string
 	builderImageSHA256Digest string
 }
@@ -96,6 +97,13 @@ func NewProvenanceIR(binarySHA256Digest string, options ...func(p *ProvenanceIR)
 func WithBuildCmd(buildCmd []string) func(p *ProvenanceIR) {
 	return func(p *ProvenanceIR) {
 		p.buildCmd = buildCmd
+	}
+}
+
+// WithBuildType adds a build type when creating a new ProvenanceIR.
+func WithBuildType(buildType string) func(p *ProvenanceIR) {
+	return func(p *ProvenanceIR) {
+		p.buildType = buildType
 	}
 }
 
@@ -134,6 +142,8 @@ func (p *ProvenanceIR) GetBuilderImageSHA256Digest() (string, error) {
 func FromAmber(provenance *amber.ValidatedProvenance) (*ProvenanceIR, error) {
 	// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
 	binarySHA256Digest := provenance.GetBinarySHA256Digest()
+	// We know this is an Amber provenance.
+	buildType := "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json"
 
 	buildCmd, err := provenance.GetBuildCmd()
 	if err != nil {
@@ -146,6 +156,7 @@ func FromAmber(provenance *amber.ValidatedProvenance) (*ProvenanceIR, error) {
 	}
 
 	provenanceIR := NewProvenanceIR(binarySHA256Digest,
+		WithBuildType(buildType),
 		WithBuildCmd(buildCmd),
 		WithBuilderImageSHA256Digest(builderImageDigest))
 
@@ -156,7 +167,12 @@ func FromAmber(provenance *amber.ValidatedProvenance) (*ProvenanceIR, error) {
 func FromSLSAv02(provenance *slsa.ValidatedProvenance) *ProvenanceIR {
 	// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
 	binarySHA256Digest := provenance.GetBinarySHA256Digest()
-	return NewProvenanceIR(binarySHA256Digest)
+	// TODO(mschett): Find out good naming conventions: for SLSA formats: SLSAv02 vs SLSAv01?
+	// TODO(mschett): What happens when *slsa.ValidatedProvenance is updated?
+	buildType := "https://github.com/slsa-framework/slsa-github-generator/generic@v1"
+	provenanceIR := NewProvenanceIR(binarySHA256Digest,
+		WithBuildType(buildType))
+	return provenanceIR
 }
 
 // Cleanup removes the generated temp files. But it might not be able to remove
