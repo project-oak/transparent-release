@@ -90,8 +90,20 @@ type CoverageSummary struct {
 // In this structure, we are only interested in aggregated coverage
 // statistics in `Totals` and the file names in `Files`.
 type CoverageData struct {
-	Totals map[string](map[string]float64) `json:"totals,omitempty"`
-	Files  []CoverageFile                  `json:"files,omitempty"`
+	Totals CoverageTotals `json:"totals,omitempty"`
+	Files  []CoverageFile `json:"files,omitempty"`
+}
+
+// CoverageTotals contains the aggregated coverage statistics.
+// The full structure is defined in this file
+//
+//	https://github.com/google/oss-fuzz/blob/15a6a6d495571a1a4b09f5e07005da378b0e2f7d/infra/base-images/base-runner/gocoverage/gocovsum/gocovsum.go#L16
+type CoverageTotals struct {
+	Functions      map[string]float64 `json:"functions,omitempty"`
+	Lines          map[string]float64 `json:"lines,omitempty"`
+	Regions        map[string]float64 `json:"regions,omitempty"`
+	Instantiations map[string]float64 `json:"instantiations,omitempty"`
+	Branches       map[string]float64 `json:"branches,omitempty"`
 }
 
 // CoverageFile contains the names of the files
@@ -181,8 +193,8 @@ func parseCoverageSummary(fileBytes []byte) (*Coverage, error) {
 	}
 	// Return branch coverage and line coverage using the coverage summary structure.
 	coverage := Coverage{
-		branchCoverage: formatCoverage(summary.Data[0].Totals["branches"]),
-		lineCoverage:   formatCoverage(summary.Data[0].Totals["lines"]),
+		branchCoverage: formatCoverage(summary.Data[0].Totals.Branches),
+		lineCoverage:   formatCoverage(summary.Data[0].Totals.Lines),
 	}
 	return &coverage, nil
 }
