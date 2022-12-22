@@ -88,7 +88,7 @@ type CoverageSummary struct {
 //	https://github.com/google/oss-fuzz/blob/15a6a6d495571a1a4b09f5e07005da378b0e2f7d/infra/base-images/base-runner/gocoverage/gocovsum/gocovsum.go#L36
 //
 // In this structure, we are only interested in aggregated coverage
-// statistics in `Totals` and the file names in `Files`.
+// statistics in `Totals` and the filenames in `Files`.
 type CoverageData struct {
 	Totals CoverageTotals `json:"totals,omitempty"`
 	Files  []CoverageFile `json:"files,omitempty"`
@@ -99,16 +99,11 @@ type CoverageData struct {
 //
 //	https://github.com/google/oss-fuzz/blob/15a6a6d495571a1a4b09f5e07005da378b0e2f7d/infra/base-images/base-runner/gocoverage/gocovsum/gocovsum.go#L16
 type CoverageTotals struct {
-	Functions      map[string]float64 `json:"functions,omitempty"`
-	Lines          map[string]float64 `json:"lines,omitempty"`
-	Regions        map[string]float64 `json:"regions,omitempty"`
-	Instantiations map[string]float64 `json:"instantiations,omitempty"`
-	Branches       map[string]float64 `json:"branches,omitempty"`
+	Lines    map[string]float64 `json:"lines,omitempty"`
+	Branches map[string]float64 `json:"branches,omitempty"`
 }
 
-// CoverageFile contains the names of the files
-// for which coverage was computed in order to generate
-// the coverage summary.
+// CoverageFile contains the coverage data for the source code files
 // The full structure is defined in this file
 //
 //	https://github.com/google/oss-fuzz/blob/15a6a6d495571a1a4b09f5e07005da378b0e2f7d/infra/base-images/base-runner/gocoverage/gocovsum/gocovsum.go#L31
@@ -166,11 +161,11 @@ type FuzzParameters struct {
 //
 //	https://github.com/google/oss-fuzz/blob/master/infra/base-images/base-builder/srcmap
 //
-// as ".\"$GIT_DIR\" = { type: \"git\", url: \"$GIT_URL\", rev: \"$GIT_REV\" }" for
-// source code in Git for example.
+// For example, this structure: ".\"$GIT_DIR\" = { type: \"git\", url: \"$GIT_URL\", rev: \"$GIT_REV\" }"
+// is used for source code in GitHub.
 func getRevisionFromFile(fileBytes []byte, fuzzParameters *FuzzParameters) (intoto.DigestSet, error) {
-	// structure to unmarshal srcmap files with
-	// ".\"$GIT_DIR\" = { type: \"git\", url: \"$GIT_URL\", rev: \"$GIT_REV\" }" structure.
+	// Since the structure of a srcmap file is ".\"$GIT_DIR\" = { type: \"git\", url: \"$GIT_URL\", rev: \"$GIT_REV\" }"
+	// a 'map[string](map[string]string)' can be used to represent it.
 	var srcmap map[string](map[string]string)
 	err := json.Unmarshal(fileBytes, &srcmap)
 	if err != nil {
@@ -209,9 +204,7 @@ func parseCoverageSummary(fileBytes []byte) (*Coverage, error) {
 //
 //	{fuzzEngine}_{projectName}_{fuzz-target}/{fuzzengine}_{sanitizer}_{projectName}/{date}/{time}.log
 //
-// For example
-//
-//	libFuzzer_oak_apply_policy/libfuzzer_asan_oak/2022-12-05/12:43:47:680110.log
+// For example: libFuzzer_oak_apply_policy/libfuzzer_asan_oak/2022-12-05/12:43:47:680110.log
 func getLogDirInfo(fuzzParameters *FuzzParameters, fuzzTarget string) (string, string) {
 	// logsBucket is the ClusterFuzz Google Cloud Storage bucket name
 	// containing the fuzzers logs for a given project.
@@ -298,7 +291,7 @@ func getFuzzEffortFromFile(revisionDigest intoto.DigestSet, fileBytes []byte) (*
 // crashDetectedInFile detects crashes in log files that are related to a
 // given revision.
 // When a crash is detected, we observe that: a test case is created and
-// 'fuzzer-testcases/crash-' is used in the logs.
+// 'fuzzer-testcases/crash-' is printed in the logs.
 //
 // Examples of crash data are available here:
 //
@@ -497,6 +490,9 @@ func GetCrashes(client *gcsutil.Client, revisionDigest intoto.DigestSet, fuzzPar
 }
 
 // extractFuzzTargetPath gets the fuzz-target path from a coverage report summary file.
+// The paths to the source code files used for fuzzing are listed in the filenames in
+// the `CoverageSummary`, including the fuzz-target files from which the path to the
+// fuzz-target can be extracted.
 func extractFuzzTargetPath(fileBytes []byte, fuzzParameters FuzzParameters, fuzzTarget string) (*string, error) {
 	var summary CoverageSummary
 	err := json.Unmarshal(fileBytes, &summary)
@@ -505,6 +501,7 @@ func extractFuzzTargetPath(fileBytes []byte, fuzzParameters FuzzParameters, fuzz
 	}
 	for _, fileSummary := range summary.Data[0].Files {
 		if strings.Contains(fileSummary.Filename, fuzzTarget) {
+			// Extract the path of the fuzz-target, if the filename contains that fuzz-target in it.
 			pathFuzzTarget := strings.Split(fileSummary.Filename, fuzzParameters.ProjectName+"/")[1]
 			return &pathFuzzTarget, nil
 		}
