@@ -69,9 +69,16 @@ type CoverageSummary struct {
 	Data []CoverageSummaryData `json:"data"`
 }
 
-// CoverageSummaryData contains the data of the coverage report summary.
+// CoverageSummaryData contains the data of the coverage report summary
+// per file and aggregated.
 type CoverageSummaryData struct {
 	Totals map[string](map[string]float64) `json:"totals"`
+	Files  []FilesCoverage                 `json:"files"`
+}
+
+// FilesCoverage contains the coverage data per file.
+type FilesCoverage struct {
+	FileName string `json:"filename"`
 }
 
 // Coverage contains coverage statistics.
@@ -116,7 +123,7 @@ type FuzzParameters struct {
 // getRevisionFromFile extracts and returns the revision of the source code from an OSS-Fuzz coverage
 // report, given the content of the source-map file (a file in the OSS-Fuzz coverage bucket that
 // links coverage build dates to the revisions of the source code used for the builds) and the fuzzing parameters.
-func getRevisionFromFile(fuzzParameters *FuzzParameters, fileBytes []byte) (intoto.DigestSet, error) {
+func getRevisionFromFile(fileBytes []byte, fuzzParameters *FuzzParameters) (intoto.DigestSet, error) {
 	var payload map[string](map[string]string)
 	err := json.Unmarshal(fileBytes, &payload)
 	if err != nil {
@@ -168,7 +175,7 @@ func getFuzzStatsFromScanner(lineScanner *bufio.Scanner) (*FuzzEffort, error) {
 			timeFuzzStr := strings.Split(lineScanner.Text(), " ")[2]
 			timeFuzzSecondsTemp, err := strconv.ParseFloat(timeFuzzStr, 32)
 			if err != nil {
-				return nil, fmt.Errorf("could not convert %s to float: %v", timeFuzzStr, err)
+				return nil, fmt.Errorf("could not convert %q to float: %v", timeFuzzStr, err)
 			}
 			fuzzEffort.fuzzTimeSeconds = timeFuzzSecondsTemp
 		}
@@ -177,7 +184,7 @@ func getFuzzStatsFromScanner(lineScanner *bufio.Scanner) (*FuzzEffort, error) {
 			numTestsStr := strings.Split(lineScanner.Text(), " ")[1]
 			numTestsTemp, err := strconv.Atoi(numTestsStr)
 			if err != nil {
-				return nil, fmt.Errorf("could not convert %s to int: %v", numTestsStr, err)
+				return nil, fmt.Errorf("could not convert %q to int: %v", numTestsStr, err)
 			}
 			fuzzEffort.numberFuzzTests = numTestsTemp
 		}
@@ -189,7 +196,7 @@ func getFuzzStatsFromScanner(lineScanner *bufio.Scanner) (*FuzzEffort, error) {
 }
 
 // checkHash checks if a log file has a good revision hash.
-func checkHash(revisionDigest intoto.DigestSet, fileBytes []byte) (*bool, error) {
+func checkHash(fileBytes []byte, revisionDigest intoto.DigestSet) (*bool, error) {
 	isGoodHash, err := regexp.Match(revisionDigest["sha1"], fileBytes)
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -200,7 +207,7 @@ func checkHash(revisionDigest intoto.DigestSet, fileBytes []byte) (*bool, error)
 
 // getFuzzEffortFromFile gets the fuzzingEffort from a single fuzzer log file.
 func getFuzzEffortFromFile(revisionDigest intoto.DigestSet, fileBytes []byte) (*FuzzEffort, error) {
-	isGoodHash, err := checkHash(revisionDigest, fileBytes)
+	isGoodHash, err := checkHash(fileBytes, revisionDigest)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not check revision hash for fuzzing effort: %v", err)
@@ -220,8 +227,8 @@ func getFuzzEffortFromFile(revisionDigest intoto.DigestSet, fileBytes []byte) (*
 
 // crashDetectedInFile detects crashes in log files that are related to a
 // given revision.
-func crashDetectedInFile(revisionDigest intoto.DigestSet, fileBytes []byte) (*Crash, error) {
-	isGoodHash, err := checkHash(revisionDigest, fileBytes)
+func crashDetectedInFile(fileBytes []byte, revisionDigest intoto.DigestSet) (*Crash, error) {
+	isGoodHash, err := checkHash(fileBytes, revisionDigest)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not check revision hash for crash detection: %v", err)
@@ -262,9 +269,9 @@ func GetCoverageRevision(client *gcsutil.Client, fuzzParameters *FuzzParameters)
 	fileBytes, err := client.GetBlobData(CoverageBucket, fileName)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"could not read %s to extract revision hash: %v", fileName, err)
+			"could not read %q to extract revision hash: %v", fileName, err)
 	}
-	revisionDigest, err := getRevisionFromFile(fuzzParameters, fileBytes)
+	revisionDigest, err := getRevisionFromFile(fileBytes, fuzzParameters)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not get revision hash from coverage summary: %v", err)
@@ -286,12 +293,12 @@ func GetCoverage(client *gcsutil.Client, fuzzParameters *FuzzParameters, fuzzTar
 	fileBytes, err := client.GetBlobData(CoverageBucket, fileName)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"could not read data from %s reader to extract coverage: %v", fileName, err)
+			"could not read data from %q reader to extract coverage: %v", fileName, err)
 	}
 	coverage, err := parseCoverageSummary(fileBytes)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"could not parse coverage summary %s to get coverage: %v", fileName, err)
+			"could not parse coverage summary %q to get coverage: %v", fileName, err)
 	}
 	return coverage, nil
 }
@@ -305,10 +312,10 @@ func GetFuzzTargets(client *gcsutil.Client, fuzzParameters *FuzzParameters) ([]s
 	blobs, err := client.ListBlobPaths(CoverageBucket, relativePath)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"could not get blobs in %s in %s bucket: %v", relativePath, CoverageBucket, err)
+			"could not get blobs in %q in %q bucket: %v", relativePath, CoverageBucket, err)
 	}
 	if len(blobs) == 0 {
-		return nil, fmt.Errorf("could not find fuzz-targets in %s under %s", CoverageBucket, relativePath)
+		return nil, fmt.Errorf("could not find fuzz-targets in %q under %q", CoverageBucket, relativePath)
 	}
 	fuzzTargets := make([]string, 0, len(blobs))
 	for _, blob := range blobs {
@@ -398,7 +405,7 @@ func GetCrashes(client *gcsutil.Client, revisionDigest intoto.DigestSet, fuzzPar
 			"could not get logs data to detect crashes: %v", err)
 	}
 	for _, fileBytes := range listFileBytes {
-		crash, err := crashDetectedInFile(revisionDigest, fileBytes)
+		crash, err := crashDetectedInFile(fileBytes, revisionDigest)
 		if err != nil {
 			return nil, fmt.Errorf(
 				"could not analyze log data for crashes: %v", err)
@@ -411,4 +418,36 @@ func GetCrashes(client *gcsutil.Client, revisionDigest intoto.DigestSet, fuzzPar
 		detected: false,
 	}
 	return &noCrash, nil
+}
+
+// parseSummaryForFuzzTargetPath gets the fuzz-target path from a coverage report summary file.
+func parseSummaryForFuzzTargetPath(fileBytes []byte, fuzzParameters FuzzParameters, fuzzTarget string) (*string, error) {
+	var summary CoverageSummary
+	err := json.Unmarshal(fileBytes, &summary)
+	if err != nil {
+		return nil, fmt.Errorf("could not unmarshal fileBytes into a %T: %v", summary, err)
+	}
+	for _, fileSummary := range summary.Data[0].Files {
+		if strings.Contains(fileSummary.FileName, fuzzTarget) {
+			pathFuzzTarget := strings.Split(fileSummary.FileName, "src/")[1]
+			return &pathFuzzTarget, nil
+		}
+	}
+	return nil, fmt.Errorf("could not find fuzz-target path in the coverage summary")
+}
+
+// GetFuzzTargetsPath gets the path of a fuzz-target in the project's GitHub repository.
+func GetFuzzTargetsPath(client *gcsutil.Client, fuzzParameters FuzzParameters, fuzzTarget string) (*string, error) {
+	fileName := fmt.Sprintf("%s/fuzzer_stats/%s/%s.json", fuzzParameters.ProjectName, fuzzParameters.Date, fuzzTarget)
+	fileBytes, err := client.GetBlobData(CoverageBucket, fileName)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"could not read data from %q reader to extract fuzz-target path: %v", fileName, err)
+	}
+	path, err := parseSummaryForFuzzTargetPath(fileBytes, fuzzParameters, fuzzTarget)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"could not extract fuzz-target path: %v", err)
+	}
+	return path, nil
 }
