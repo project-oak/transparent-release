@@ -167,16 +167,19 @@ func TestGetGCSFileDigest(t *testing.T) {
 
 func TestParseSummaryForFuzzTargetPath(t *testing.T) {
 	fuzzTarget := "apply_policy"
+	fuzzParameters := FuzzParameters{
+		ProjectName: "oak",
+	}
 	path := filepath.Join(testdataPath, coverageSummaryPath)
 	fileBytes, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("could not get data from coverage summary test file: %v", err)
 	}
-	got, err := parseSummaryForFuzzTargetPath(fileBytes, fuzzTarget)
+	got, err := parseSummaryForFuzzTargetPath(fileBytes, fuzzParameters, fuzzTarget)
 	if err != nil {
 		t.Fatalf("could not get fuzz-target path from coverage summary test file: %v", err)
 	}
-	want := "oak/fuzz/fuzz_targets/apply_policy.rs"
+	want := "fuzz/fuzz_targets/apply_policy.rs"
 	if *got != want {
 		t.Errorf("invalid fuzz-target path: got %q want %q", *got, want)
 	}
