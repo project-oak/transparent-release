@@ -46,7 +46,7 @@ func TestExampleProvenance(t *testing.T) {
 	testutil.AssertEq(t, "subjectName", validatedProvenance.GetBinaryName(), "oak_functions_loader")
 	testutil.AssertNonEmpty(t, "builderId", predicate.Builder.ID)
 
-	buildCmd, err := validatedProvenance.GetBuildCmd()
+	buildCmd, err := GetBuildCmd(validatedProvenance)
 	if err != nil {
 		t.Fatalf("Failed to parse buildConfig: %v", err)
 	}

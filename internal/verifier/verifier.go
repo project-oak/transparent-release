@@ -21,8 +21,7 @@ import (
 	"os"
 
 	"github.com/project-oak/transparent-release/internal/common"
-	"github.com/project-oak/transparent-release/pkg/amber"
-	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
+	"github.com/project-oak/transparent-release/pkg/types"
 )
 
 // VerificationResult holds the result of Verify.
@@ -64,7 +63,7 @@ type ProvenanceVerifier interface {
 // specified in the provenance and checking that the hash of the binary is the
 // same as the digest in the subject of the provenance file.
 type ReproducibleProvenanceVerifier struct {
-	Provenance *amber.ValidatedProvenance
+	Provenance *types.ValidatedProvenance
 	GitRootDir string
 }
 
@@ -127,7 +126,7 @@ func chdir(dir string) {
 // ProvenanceMetadataVerifier verifies provenances by comparing the
 // content of the provenance predicate against a given set of expected values.
 type ProvenanceMetadataVerifier struct {
-	Got  *slsa.ValidatedProvenance
+	Got  *types.ValidatedProvenance
 	Want common.ReferenceValues
 	// TODO(#69): Add metadata fields.
 }

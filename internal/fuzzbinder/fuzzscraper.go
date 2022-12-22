@@ -441,9 +441,9 @@ func GetEvidences(client *gcsutil.Client, fuzzParameters *FuzzParameters, fuzzTa
 	return evidences, nil
 }
 
-// TODO(#172): Rename functions that take a lot of computation.
 // GetFuzzEffort gets the the fuzzing efforts for a given revision
 // of a source code on a given day.
+// TODO(#172): Rename functions that take a lot of computation.
 func GetFuzzEffort(client *gcsutil.Client, revisionDigest intoto.DigestSet, fuzzParameters *FuzzParameters, fuzzTarget string) (*FuzzEffort, error) {
 	bucketName, relativePath := getLogDirInfo(fuzzParameters, fuzzTarget)
 	listFileBytes, err := client.GetLogsData(bucketName, relativePath)

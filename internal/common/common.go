@@ -32,6 +32,7 @@ import (
 
 	"github.com/project-oak/transparent-release/pkg/amber"
 	"github.com/project-oak/transparent-release/pkg/intoto"
+	"github.com/project-oak/transparent-release/pkg/types"
 )
 
 // BuildConfig is a struct wrapping arguments for building a binary from source.
@@ -139,17 +140,17 @@ func (p *ProvenanceIR) GetBuilderImageSHA256Digest() (string, error) {
 }
 
 // FromAmber maps data from a validated Amber provenance to ProvenanceIR.
-func FromAmber(provenance *amber.ValidatedProvenance) (*ProvenanceIR, error) {
+func FromAmber(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 	// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
 	binarySHA256Digest := provenance.GetBinarySHA256Digest()
 	buildType := provenance.GetBuildType()
 
-	buildCmd, err := provenance.GetBuildCmd()
+	buildCmd, err := amber.GetBuildCmd(provenance)
 	if err != nil {
 		return nil, fmt.Errorf("could not get build cmd from *amber.ValidatedProvenance: %v", err)
 	}
 
-	builderImageDigest, err := provenance.GetBuilderImageDigest()
+	builderImageDigest, err := amber.GetBuilderImageDigest(provenance)
 	if err != nil {
 		return nil, fmt.Errorf("could get builder image digest from *amber.ValidatedProvenance: %v", err)
 	}
@@ -163,7 +164,7 @@ func FromAmber(provenance *amber.ValidatedProvenance) (*ProvenanceIR, error) {
 }
 
 // FromSLSAv02 maps data from a validated SLSA v0.2 provenance to ProvenanceIR.
-func FromSLSAv02(provenance *slsav02.ValidatedProvenance) *ProvenanceIR {
+func FromSLSAv02(provenance *types.ValidatedProvenance) *ProvenanceIR {
 	// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
 	binarySHA256Digest := provenance.GetBinarySHA256Digest()
 	buildType := provenance.GetBuildType()
@@ -199,7 +200,7 @@ func LoadBuildConfigFromFile(path string) (*BuildConfig, error) {
 }
 
 // LoadBuildConfigFromProvenance loads build configuration from a SLSA Provenance object.
-func LoadBuildConfigFromProvenance(provenance *amber.ValidatedProvenance) (*BuildConfig, error) {
+func LoadBuildConfigFromProvenance(provenance *types.ValidatedProvenance) (*BuildConfig, error) {
 	statement := provenance.GetProvenance()
 	predicate := statement.Predicate.(slsav02.ProvenancePredicate)
 	if len(predicate.Materials) != 2 {
@@ -221,7 +222,10 @@ func LoadBuildConfigFromProvenance(provenance *amber.ValidatedProvenance) (*Buil
 		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %s", commitHash)
 	}
 
-	buildConfig := predicate.BuildConfig.(amber.BuildConfig)
+	buildConfig, err := amber.ParseBuildConfig(predicate)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse BuildConfig: %v", err)
+	}
 	command := buildConfig.Command
 	if command[0] == "" {
 		return nil, fmt.Errorf("the provenance's buildConfig must specify a command, got %s", command)

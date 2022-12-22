@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v02
+package types
 
 import (
 	"fmt"
@@ -20,10 +20,11 @@ import (
 	"testing"
 
 	"github.com/project-oak/transparent-release/internal/testutil"
+	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 )
 
 const (
-	provenanceExamplePath    = "../../../../schema/provenance/v1/example.json"
+	provenanceExamplePath    = "../../schema/provenance/v1/example.json"
 	wantSHA1HexDigitLength   = 40
 	wantSHA256HexDigitLength = 64
 )
@@ -41,7 +42,7 @@ func TestParseProvenanceData(t *testing.T) {
 	}
 	provenance := validatedProvenance.GetProvenance()
 
-	predicate := provenance.Predicate.(ProvenancePredicate)
+	predicate := provenance.Predicate.(slsa.ProvenancePredicate)
 
 	// Check that the provenance parses correctly
 	testutil.AssertEq(t, "repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")
