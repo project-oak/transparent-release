@@ -420,8 +420,8 @@ func GetCrashes(client *gcsutil.Client, revisionDigest intoto.DigestSet, fuzzPar
 	return &noCrash, nil
 }
 
-// parseSummaryForFuzzTargetPath gets the fuzz-target path from a coverage report summary file.
-func parseSummaryForFuzzTargetPath(fileBytes []byte, fuzzParameters FuzzParameters, fuzzTarget string) (*string, error) {
+// extractFuzzTargetPath gets the fuzz-target path from a coverage report summary file.
+func extractFuzzTargetPath(fileBytes []byte, fuzzParameters FuzzParameters, fuzzTarget string) (*string, error) {
 	var summary CoverageSummary
 	err := json.Unmarshal(fileBytes, &summary)
 	if err != nil {
@@ -444,7 +444,7 @@ func GetFuzzTargetsPath(client *gcsutil.Client, fuzzParameters FuzzParameters, f
 		return nil, fmt.Errorf(
 			"could not read data from %q reader to extract fuzz-target path: %v", fileName, err)
 	}
-	path, err := parseSummaryForFuzzTargetPath(fileBytes, fuzzParameters, fuzzTarget)
+	path, err := extractFuzzTargetPath(fileBytes, fuzzParameters, fuzzTarget)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"could not extract fuzz-target path: %v", err)

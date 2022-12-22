@@ -165,7 +165,7 @@ func TestGetGCSFileDigest(t *testing.T) {
 	}
 }
 
-func TestParseSummaryForFuzzTargetPath(t *testing.T) {
+func TestExtractFuzzTargetPath(t *testing.T) {
 	fuzzTarget := "apply_policy"
 	fuzzParameters := FuzzParameters{
 		ProjectName: "oak",
@@ -175,7 +175,7 @@ func TestParseSummaryForFuzzTargetPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get data from coverage summary test file: %v", err)
 	}
-	got, err := parseSummaryForFuzzTargetPath(fileBytes, fuzzParameters, fuzzTarget)
+	got, err := extractFuzzTargetPath(fileBytes, fuzzParameters, fuzzTarget)
 	if err != nil {
 		t.Fatalf("could not get fuzz-target path from coverage summary test file: %v", err)
 	}
