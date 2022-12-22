@@ -170,11 +170,11 @@ func TestParseSummaryForFuzzTargetPath(t *testing.T) {
 	path := filepath.Join(testdataPath, coverageSummaryPath)
 	fileBytes, err := os.ReadFile(path)
 	if err != nil {
-		t.Fatalf("%v", err)
+		t.Fatalf("could not get data from coverage summary test file: %v", err)
 	}
 	got, err := parseSummaryForFuzzTargetPath(fileBytes, fuzzTarget)
 	if err != nil {
-		t.Fatalf("%v", err)
+		t.Fatalf("could not get fuzz-target path from coverage summary test file: %v", err)
 	}
 	want := "oak/fuzz/fuzz_targets/apply_policy.rs"
 	if *got != want {
