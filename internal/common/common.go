@@ -143,7 +143,7 @@ func FromAmber(provenance *amber.ValidatedProvenance) (*ProvenanceIR, error) {
 	// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
 	binarySHA256Digest := provenance.GetBinarySHA256Digest()
 	// We know this is an Amber provenance.
-	buildType := "https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json"
+	buildType := amber.AmberBuildTypeV1
 
 	buildCmd, err := provenance.GetBuildCmd()
 	if err != nil {
