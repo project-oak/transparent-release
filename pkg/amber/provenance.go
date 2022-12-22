@@ -81,6 +81,11 @@ func (p *ValidatedProvenance) GetBinarySHA256Digest() string {
 	return p.provenance.Subject[0].Digest["sha256"]
 }
 
+// GetBuildType returns the build type of the provenance.
+func (p *ValidatedProvenance) GetBuildType() string {
+	return p.provenance.Predicate.(slsa.ProvenancePredicate).BuildType
+}
+
 // GetBinaryName returns the name of the subject.
 func (p *ValidatedProvenance) GetBinaryName() string {
 	return p.provenance.Subject[0].Name
