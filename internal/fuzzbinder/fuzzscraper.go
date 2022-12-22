@@ -294,8 +294,15 @@ func getFuzzEffortFromFile(revisionDigest intoto.DigestSet, fileBytes []byte) (*
 	return &noFuzzEffort, nil
 }
 
+// TODO(#195): Check that crash detection is generalizable for all types of crashes
 // crashDetectedInFile detects crashes in log files that are related to a
 // given revision.
+// When a crash is detected, we observe that: a test case is created and
+// 'fuzzer-testcases/crash-' is used in the logs.
+//
+// Examples of crash data are available here:
+//
+//	https://github.com/google/clusterfuzz/tree/master/src/clusterfuzz/_internal/tests/core/crash_analysis/stack_parsing/stack_analyzer_data
 func crashDetectedInFile(fileBytes []byte, revisionDigest intoto.DigestSet) (*Crash, error) {
 	isGoodHash, err := checkHash(fileBytes, revisionDigest)
 	if err != nil {
