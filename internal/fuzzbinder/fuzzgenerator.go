@@ -58,9 +58,9 @@ func generateFuzzClaimSpec(client *gcsutil.Client, revisionDigest intoto.DigestS
 		fuzzersFuzzEffort[fuzzTarget] = fuzzEffort
 		fuzzersCoverage[fuzzTarget] = coverage
 
-		projectCrashes.Detected = projectCrashes.Detected || crash.Detected
-		projectFuzzEffort.FuzzTimeSeconds += fuzzEffort.FuzzTimeSeconds
-		projectFuzzEffort.NumberFuzzTests += fuzzEffort.NumberFuzzTests
+		projectCrashes.detected = projectCrashes.detected || crash.detected
+		projectFuzzEffort.fuzzTimeSeconds += fuzzEffort.fuzzTimeSeconds
+		projectFuzzEffort.numberFuzzTests += fuzzEffort.numberFuzzTests
 	}
 	projectCoverage, err := GetCoverage(client, fuzzParameters, "", "perProject")
 	if err != nil {
@@ -69,20 +69,20 @@ func generateFuzzClaimSpec(client *gcsutil.Client, revisionDigest intoto.DigestS
 	}
 	// Generate fuzzing claim specification.
 	perProject := &FuzzStats{
-		BranchCoverage:  projectCoverage.BranchCoverage,
-		LineCoverage:    projectCoverage.LineCoverage,
-		DetectedCrashes: projectCrashes.Detected,
-		FuzzTimeSeconds: projectFuzzEffort.FuzzTimeSeconds,
-		NumberFuzzTests: projectFuzzEffort.NumberFuzzTests,
+		BranchCoverage:  projectCoverage.branchCoverage,
+		LineCoverage:    projectCoverage.lineCoverage,
+		DetectedCrashes: projectCrashes.detected,
+		FuzzTimeSeconds: projectFuzzEffort.fuzzTimeSeconds,
+		NumberFuzzTests: projectFuzzEffort.numberFuzzTests,
 	}
 	perTarget := make([]FuzzSpecPerTarget, 0, len(fuzzTargets))
 	for _, fuzzTagret := range fuzzTargets {
 		targetStats := FuzzStats{
-			BranchCoverage:  fuzzersCoverage[fuzzTagret].BranchCoverage,
-			LineCoverage:    fuzzersCoverage[fuzzTagret].LineCoverage,
-			DetectedCrashes: fuzzersCrashes[fuzzTagret].Detected,
-			FuzzTimeSeconds: fuzzersFuzzEffort[fuzzTagret].FuzzTimeSeconds,
-			NumberFuzzTests: fuzzersFuzzEffort[fuzzTagret].NumberFuzzTests,
+			BranchCoverage:  fuzzersCoverage[fuzzTagret].branchCoverage,
+			LineCoverage:    fuzzersCoverage[fuzzTagret].lineCoverage,
+			DetectedCrashes: fuzzersCrashes[fuzzTagret].detected,
+			FuzzTimeSeconds: fuzzersFuzzEffort[fuzzTagret].fuzzTimeSeconds,
+			NumberFuzzTests: fuzzersFuzzEffort[fuzzTagret].numberFuzzTests,
 		}
 		targetSpec := FuzzSpecPerTarget{
 			Name: fuzzTagret,

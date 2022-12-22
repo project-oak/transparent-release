@@ -59,8 +59,8 @@ func TestParseCoverageSummary(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	testutil.AssertNonEmpty(t, "parsed branch coverage", coverage.BranchCoverage)
-	testutil.AssertNonEmpty(t, "parsed line coverage", coverage.LineCoverage)
+	testutil.AssertNonEmpty(t, "parsed branch coverage", coverage.branchCoverage)
+	testutil.AssertNonEmpty(t, "parsed line coverage", coverage.lineCoverage)
 }
 
 func TestGetLogDirInfo(t *testing.T) {
@@ -121,11 +121,11 @@ func TestGetFuzzEffortFromFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	if !(fuzzEffort.NumberFuzzTests > 0) {
-		t.Errorf("unexpected numFuzzTests: got %v, want non-zero value", fuzzEffort.NumberFuzzTests)
+	if !(fuzzEffort.numberFuzzTests > 0) {
+		t.Errorf("unexpected numFuzzTests: got %v, want non-zero value", fuzzEffort.numberFuzzTests)
 	}
-	if !(fuzzEffort.FuzzTimeSeconds > 0.0) {
-		t.Errorf("unexpected fuzzTimeSeconds: got %v, want non-zero value", fuzzEffort.FuzzTimeSeconds)
+	if !(fuzzEffort.fuzzTimeSeconds > 0.0) {
+		t.Errorf("unexpected fuzzTimeSeconds: got %v, want non-zero value", fuzzEffort.fuzzTimeSeconds)
 	}
 }
 
@@ -146,8 +146,8 @@ func TestCrashDetected(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	if got.Detected {
-		t.Errorf("unexpected crash detection: got %v, want false", got.Detected)
+	if got.detected {
+		t.Errorf("unexpected crash detection: got %v, want false", got.detected)
 	}
 	path = filepath.Join(testdataPath, logFileWithCrashPath)
 	reader, err = os.Open(path)
@@ -162,8 +162,8 @@ func TestCrashDetected(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	if !got.Detected {
-		t.Errorf("unexpected crash detection: got %v, want true", got.Detected)
+	if !got.detected {
+		t.Errorf("unexpected crash detection: got %v, want true", got.detected)
 	}
 }
 

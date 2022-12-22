@@ -43,8 +43,8 @@ type ContextInStruct context.Context
 //
 // Client contains a Google Cloud Storage client and a context.Context.
 type Client struct {
-	StorageClient *storage.Client
-	Context       ContextInStruct
+	storageClient *storage.Client
+	context       ContextInStruct
 }
 
 // NewClientWithContext creates and returns a new Client.
@@ -56,8 +56,8 @@ func NewClientWithContext(ctx context.Context) (*Client, error) {
 	}
 	defer storageClient.Close()
 	client := Client{
-		StorageClient: storageClient,
-		Context:       ctx,
+		storageClient: storageClient,
+		context:       ctx,
 	}
 	return &client, nil
 }
@@ -66,7 +66,7 @@ func NewClientWithContext(ctx context.Context) (*Client, error) {
 // under a given relative path.
 func (c *Client) ListBlobPaths(bucketName string, relativePath string) ([]string, error) {
 	query := &storage.Query{Prefix: relativePath}
-	objects := c.StorageClient.Bucket(bucketName).Objects(c.Context, query)
+	objects := c.storageClient.Bucket(bucketName).Objects(c.context, query)
 	var blobPaths []string
 	for {
 		attrs, err := objects.Next()
@@ -85,7 +85,7 @@ func (c *Client) ListBlobPaths(bucketName string, relativePath string) ([]string
 // under a given relative path.
 func (c *Client) ListLogFilePaths(bucketName string, relativePath string) ([]string, error) {
 	query := &storage.Query{Prefix: relativePath}
-	objects := c.StorageClient.Bucket(bucketName).Objects(c.Context, query)
+	objects := c.storageClient.Bucket(bucketName).Objects(c.context, query)
 	var logFilePaths []string
 	for {
 		attrs, err := objects.Next()
@@ -107,7 +107,7 @@ func (c *Client) ListLogFilePaths(bucketName string, relativePath string) ([]str
 
 // GetBlobData gets the data in a blob in a Google Cloud Storage bucket.
 func (c *Client) GetBlobData(bucketName string, blobPath string) ([]byte, error) {
-	reader, err := c.StorageClient.Bucket(bucketName).Object(blobPath).NewReader(c.Context)
+	reader, err := c.storageClient.Bucket(bucketName).Object(blobPath).NewReader(c.context)
 	if err != nil {
 		return nil, fmt.Errorf("could not create a new reader for blob %q: %v", blobPath, err)
 	}

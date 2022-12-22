@@ -77,22 +77,22 @@ type CoverageSummaryData struct {
 // Coverage contains coverage statistics.
 type Coverage struct {
 	// LineCoverage specifies line coverage.
-	LineCoverage string
+	lineCoverage string
 	// BranchCoverage specifies branch coverage.
-	BranchCoverage string
+	branchCoverage string
 }
 
 // FuzzEffort contains the fuzzing effort statistics.
 type FuzzEffort struct {
 	// FuzzTimeSeconds specifies the fuzzing time in seconds.
-	FuzzTimeSeconds float64
+	fuzzTimeSeconds float64
 	// NumberFuzzTests specifies the number of executed fuzzing tests.
-	NumberFuzzTests int
+	numberFuzzTests int
 }
 
 // Crash indicates if a crash has been detected.
 type Crash struct {
-	Detected bool
+	detected bool
 }
 
 // FuzzParameters contains the fuzzing parameters
@@ -138,8 +138,8 @@ func parseCoverageSummary(fileBytes []byte) (*Coverage, error) {
 	}
 	// Return branch coverage and line coverage using the coverage summary structure.
 	coverage := Coverage{
-		BranchCoverage: formatCoverage(summary.Data[0].Totals["branches"]),
-		LineCoverage:   formatCoverage(summary.Data[0].Totals["lines"]),
+		branchCoverage: formatCoverage(summary.Data[0].Totals["branches"]),
+		lineCoverage:   formatCoverage(summary.Data[0].Totals["lines"]),
 	}
 	return &coverage, nil
 }
@@ -170,7 +170,7 @@ func getFuzzStatsFromScanner(lineScanner *bufio.Scanner) (*FuzzEffort, error) {
 			if err != nil {
 				return nil, fmt.Errorf("could not convert %s to float: %v", timeFuzzStr, err)
 			}
-			fuzzEffort.FuzzTimeSeconds = timeFuzzSecondsTemp
+			fuzzEffort.fuzzTimeSeconds = timeFuzzSecondsTemp
 		}
 		// Get the number of fuzzing tests.
 		if strings.Contains(lineScanner.Text(), "stat::number_of_executed_units") {
@@ -179,9 +179,9 @@ func getFuzzStatsFromScanner(lineScanner *bufio.Scanner) (*FuzzEffort, error) {
 			if err != nil {
 				return nil, fmt.Errorf("could not convert %s to int: %v", numTestsStr, err)
 			}
-			fuzzEffort.NumberFuzzTests = numTestsTemp
+			fuzzEffort.numberFuzzTests = numTestsTemp
 		}
-		if (fuzzEffort.FuzzTimeSeconds > 0) && (fuzzEffort.NumberFuzzTests > 0) {
+		if (fuzzEffort.fuzzTimeSeconds > 0) && (fuzzEffort.numberFuzzTests > 0) {
 			break
 		}
 	}
@@ -232,7 +232,7 @@ func crashDetectedInFile(revisionDigest intoto.DigestSet, fileBytes []byte) (*Cr
 			"could not check if log file contains crashes: %v", err)
 	}
 	crash := Crash{
-		Detected: isDetected && *isGoodHash,
+		detected: isDetected && *isGoodHash,
 	}
 	return &crash, nil
 }
@@ -382,8 +382,8 @@ func GetFuzzEffort(client *gcsutil.Client, revisionDigest intoto.DigestSet, fuzz
 			return nil, fmt.Errorf(
 				"could not get fuzzing efforts from log data: %v", err)
 		}
-		fuzzEffort.NumberFuzzTests += fuzzEffortFile.NumberFuzzTests
-		fuzzEffort.FuzzTimeSeconds += fuzzEffortFile.FuzzTimeSeconds
+		fuzzEffort.numberFuzzTests += fuzzEffortFile.numberFuzzTests
+		fuzzEffort.fuzzTimeSeconds += fuzzEffortFile.fuzzTimeSeconds
 	}
 	return &fuzzEffort, nil
 }
@@ -403,12 +403,12 @@ func GetCrashes(client *gcsutil.Client, revisionDigest intoto.DigestSet, fuzzPar
 			return nil, fmt.Errorf(
 				"could not analyze log data for crashes: %v", err)
 		}
-		if crash.Detected {
+		if crash.detected {
 			return crash, nil
 		}
 	}
 	noCrash := Crash{
-		Detected: false,
+		detected: false,
 	}
 	return &noCrash, nil
 }
