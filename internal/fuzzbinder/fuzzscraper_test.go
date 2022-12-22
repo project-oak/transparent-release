@@ -14,7 +14,6 @@
 package fuzzbinder
 
 import (
-	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -37,11 +36,11 @@ func TestGetRevisionFromFile(t *testing.T) {
 		ProjectName: projectName,
 	}
 	path := filepath.Join(testdataPath, revisionFilePath)
-	content, err := os.ReadFile(path)
+	fileBytes, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	got, err := getRevisionFromFile(&fuzzParameter, content)
+	got, err := getRevisionFromFile(fileBytes, &fuzzParameter)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
@@ -87,15 +86,11 @@ func TestCheckHash(t *testing.T) {
 		"sha1": hash,
 	}
 	path := filepath.Join(testdataPath, logFilePath)
-	reader, err := os.Open(path)
+	fileBytes, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	fileBytes, err := io.ReadAll(reader)
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
-	isGoodHash, err := checkHash(revisionDigest, fileBytes)
+	isGoodHash, err := checkHash(fileBytes, revisionDigest)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
@@ -109,11 +104,7 @@ func TestGetFuzzEffortFromFile(t *testing.T) {
 		"sha1": hash,
 	}
 	path := filepath.Join(testdataPath, logFilePath)
-	reader, err := os.Open(path)
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
-	fileBytes, err := io.ReadAll(reader)
+	fileBytes, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
@@ -134,15 +125,11 @@ func TestCrashDetected(t *testing.T) {
 		"sha1": hash,
 	}
 	path := filepath.Join(testdataPath, logFilePath)
-	reader, err := os.Open(path)
+	fileBytes, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	fileBytes, err := io.ReadAll(reader)
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
-	got, err := crashDetectedInFile(revisionDigest, fileBytes)
+	got, err := crashDetectedInFile(fileBytes, revisionDigest)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
@@ -150,15 +137,11 @@ func TestCrashDetected(t *testing.T) {
 		t.Errorf("unexpected crash detection: got %v, want false", got.detected)
 	}
 	path = filepath.Join(testdataPath, logFileWithCrashPath)
-	reader, err = os.Open(path)
+	fileBytes, err = os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	fileBytes, err = io.ReadAll(reader)
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
-	got, err = crashDetectedInFile(revisionDigest, fileBytes)
+	got, err = crashDetectedInFile(fileBytes, revisionDigest)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
@@ -169,11 +152,7 @@ func TestCrashDetected(t *testing.T) {
 
 func TestGetGCSFileDigest(t *testing.T) {
 	path := filepath.Join(testdataPath, logFilePath)
-	reader, err := os.Open(path)
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
-	fileBytes, err := io.ReadAll(reader)
+	fileBytes, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
@@ -183,5 +162,25 @@ func TestGetGCSFileDigest(t *testing.T) {
 	got := *getGCSFileDigest(fileBytes)
 	if got["sha256"] != want["sha256"] {
 		t.Errorf("invalid file digest: got %v want %v", got, want)
+	}
+}
+
+func TestParseSummaryForFuzzTargetPath(t *testing.T) {
+	fuzzTarget := "apply_policy"
+	fuzParameters := FuzzParameters{
+		ProjectName: "oak",
+	}
+	path := filepath.Join(testdataPath, coverageSummaryPath)
+	fileBytes, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	got, err := parseSummaryForFuzzTargetPath(fileBytes, fuzParameters, fuzzTarget)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	want := "oak/fuzz/fuzz_targets/apply_policy.rs"
+	if *got != want {
+		t.Errorf("invalid fuzz-target path: got %q want %q", *got, want)
 	}
 }
