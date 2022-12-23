@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v02
+package types
 
 import (
 	"fmt"
@@ -20,28 +20,32 @@ import (
 	"testing"
 
 	"github.com/project-oak/transparent-release/internal/testutil"
+	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 )
 
 const (
-	provenanceExamplePath    = "../../../../schema/provenance/v1/example.json"
+	provenanceExamplePath    = "../../schema/provenance/v1/example.json"
 	wantSHA1HexDigitLength   = 40
 	wantSHA256HexDigitLength = 64
 )
 
-func TestParseProvenanceData(t *testing.T) {
+func TestParseStatementData(t *testing.T) {
 	// Parses the provenance and validates it against the schema.
 	statementBytes, err := os.ReadFile(provenanceExamplePath)
 	if err != nil {
 		t.Fatalf("Could not read the provenance file: %v", err)
 	}
 
-	validatedProvenance, err := ParseProvenanceData(statementBytes)
+	validatedProvenance, err := ParseStatementData(statementBytes)
 	if err != nil {
 		t.Fatalf("Failed to parse example provenance: %v", err)
 	}
 	provenance := validatedProvenance.GetProvenance()
 
-	predicate := provenance.Predicate.(ProvenancePredicate)
+	predicate, err := slsa.ParseSLSAv02Predicate(provenance.Predicate)
+	if err != nil {
+		t.Fatalf("Could not parse provenance predicate: %v", err)
+	}
 
 	// Check that the provenance parses correctly
 	testutil.AssertEq(t, "repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")

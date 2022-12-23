@@ -30,7 +30,7 @@ import (
 	"github.com/project-oak/transparent-release/internal/verifier"
 	"github.com/project-oak/transparent-release/pkg/amber"
 	"github.com/project-oak/transparent-release/pkg/intoto"
-	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
+	"github.com/project-oak/transparent-release/pkg/types"
 )
 
 // GenerateEndorsement generates an endorsement statement for the given validity duration, using
@@ -59,14 +59,14 @@ func loadAndVerifyProvenances(referenceValues common.ReferenceValues, provenance
 	}
 
 	// load provenances from URIs
-	provenances := make([]slsa.ValidatedProvenance, 0, len(provenanceURIs))
+	provenances := make([]types.ValidatedProvenance, 0, len(provenanceURIs))
 	provenancesData := make([]amber.ProvenanceData, 0, len(provenanceURIs))
 	for _, uri := range provenanceURIs {
 		provenanceBytes, err := getProvenanceBytes(uri)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't load the provenance file from %s: %v", uri, err)
 		}
-		provenance, err := slsa.ParseProvenanceData(provenanceBytes)
+		provenance, err := types.ParseStatementData(provenanceBytes)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't parse bytes from %s into a provenance statement: %v", uri, err)
 		}
@@ -101,7 +101,7 @@ func loadAndVerifyProvenances(referenceValues common.ReferenceValues, provenance
 
 // verifyProvenances verifies the given list of provenances. An error is returned if not.
 // TODO(b/222440937): Document any additional checks.
-func verifyProvenances(referenceValues common.ReferenceValues, provenances []slsa.ValidatedProvenance) (verifier.VerificationResult, error) {
+func verifyProvenances(referenceValues common.ReferenceValues, provenances []types.ValidatedProvenance) (verifier.VerificationResult, error) {
 	combinedResult := verifier.NewVerificationResult()
 	for index := range provenances {
 		provenanceVerifier := verifier.ProvenanceMetadataVerifier{
@@ -126,7 +126,8 @@ func verifyProvenances(referenceValues common.ReferenceValues, provenances []sls
 // verifyConsistency verifies that all provenances have the same binary name and
 // binary digest.
 // TODO(b/222440937): Perform any additional verification among provenances to ensure their consistency.
-func verifyConsistency(provenances []slsa.ValidatedProvenance) verifier.VerificationResult {
+// TODO(#165) Replace input type ValidatedProvenance with ProvenanceIR. Use common.FromProvenance before calling this function.
+func verifyConsistency(provenances []types.ValidatedProvenance) verifier.VerificationResult {
 	result := verifier.NewVerificationResult()
 	// verify that all provenances have the same binary digest and name.
 	binaryDigest := provenances[0].GetBinarySHA256Digest()

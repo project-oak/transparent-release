@@ -29,6 +29,9 @@ import (
 const (
 	// PredicateSLSAProvenance represents a build provenance for an artifact.
 	PredicateSLSAProvenance = "https://slsa.dev/provenance/v0.2"
+
+	// GenericSLSABuildType is the build type used by the generic SLSA github generator.
+	GenericSLSABuildType = "https://github.com/slsa-framework/slsa-github-generator/generic@v1"
 )
 
 // ProvenanceBuilder idenfifies the entity that executed the build steps.
@@ -167,74 +170,18 @@ type ProvenanceComplete struct {
 	Materials bool `json:"materials"`
 }
 
-// ValidatedProvenance wraps an intoto.Statement representing a valid SLSA provenance statement.
-// A provenance statement is valid if it contains a single subject, with a SHA256 hash.
-type ValidatedProvenance struct {
-	// The field is private so that invalid instances cannot be created.
-	provenance intoto.Statement
-}
-
-// GetBinarySHA256Digest returns the SHA256 digest of the subject.
-func (p *ValidatedProvenance) GetBinarySHA256Digest() string {
-	return p.provenance.Subject[0].Digest["sha256"]
-}
-
-// GetBinaryName returns the name of the subject.
-func (p *ValidatedProvenance) GetBinaryName() string {
-	return p.provenance.Subject[0].Name
-}
-
-// GetBuildType returns the build type of the provenance.
-func (p *ValidatedProvenance) GetBuildType() string {
-	return p.provenance.Predicate.(ProvenancePredicate).BuildType
-}
-
-// GetProvenance returns a partial copy of the provenance statement wrapped in this instance.
-// The partial copy guarantees that the validity condition will not be violated.
-func (p *ValidatedProvenance) GetProvenance() intoto.Statement {
-	subject := intoto.Subject{
-		Name:   p.provenance.Subject[0].Name,
-		Digest: intoto.DigestSet{"sha256": p.provenance.Subject[0].Digest["sha256"]},
-	}
-
-	statementHeader := intoto.StatementHeader{
-		Type:          p.provenance.Type,
-		PredicateType: p.provenance.PredicateType,
-		Subject:       []intoto.Subject{subject},
-	}
-
-	return intoto.Statement{
-		StatementHeader: statementHeader,
-		Predicate:       p.provenance.Predicate,
-	}
-}
-
-// ParseProvenanceData validates that the given bytes represent a valid SLSA provenance.
-// Returns an error if the bytes do not represent a valid JSON-encoded provenance statement.
-// Otherwise returns an instance of ValidatedProvenance.
-func ParseProvenanceData(statementBytes []byte) (*ValidatedProvenance, error) {
-	var statement intoto.Statement
-	if err := json.Unmarshal(statementBytes, &statement); err != nil {
-		return nil, fmt.Errorf("could not unmarshal the provenance file:\n%v", err)
-	}
-
-	if len(statement.Subject) != 1 || statement.Subject[0].Digest["sha256"] == "" {
-		return nil, fmt.Errorf("the provenance must have exactly one subject with a sha256 digest")
-	}
-
-	// statement.Predicate is now just a map, we have to parse it into an instance of slsa.ProvenancePredicate
-	predicateBytes, err := json.Marshal(statement.Predicate)
+// ParseSLSAv02Predicate parses the given object as a ProvenancePredicate,
+// or returns an error if the conversion is unsuccessful.
+func ParseSLSAv02Predicate(predicate interface{}) (*ProvenancePredicate, error) {
+	predicateBytes, err := json.Marshal(predicate)
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal Predicate map into JSON bytes: %v", err)
 	}
 
-	var predicate ProvenancePredicate
-	if err = json.Unmarshal(predicateBytes, &predicate); err != nil {
-		return nil, fmt.Errorf("could not unmarshal JSON bytes into a slsa.ProvenancePredicate: %v", err)
+	var pp ProvenancePredicate
+	if err = json.Unmarshal(predicateBytes, &pp); err != nil {
+		return nil, fmt.Errorf("could not unmarshal JSON bytes into a ProvenancePredicate: %v", err)
 	}
 
-	// Replace maps with objects
-	statement.Predicate = predicate
-
-	return &ValidatedProvenance{provenance: statement}, nil
+	return &pp, nil
 }
