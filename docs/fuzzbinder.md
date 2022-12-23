@@ -100,6 +100,7 @@ In this section, a customization of the [Claim Format](claim-transparency.md#the
     ]
   }
 }
+}
 ```
 
 The semantics of each field of the general Claim Format are described in the [Claim Format documentation](claim-transparency.md#fields). In the next paragraph, a description of the customized fields (defined in FuzzClaim format) is provided.
