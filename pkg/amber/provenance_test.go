@@ -36,7 +36,10 @@ func TestExampleProvenance(t *testing.T) {
 	}
 	provenance := validatedProvenance.GetProvenance()
 
-	predicate := provenance.Predicate.(slsa.ProvenancePredicate)
+	predicate, err := slsa.ParseSLSAv02Predicate(provenance.Predicate)
+	if err != nil {
+		t.Fatalf("Could not parse provenance predicate: %v", err)
+	}
 
 	// Check that the provenance parses correctly
 	testutil.AssertEq(t, "repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")
@@ -46,10 +49,33 @@ func TestExampleProvenance(t *testing.T) {
 	testutil.AssertEq(t, "subjectName", validatedProvenance.GetBinaryName(), "oak_functions_loader")
 	testutil.AssertNonEmpty(t, "builderId", predicate.Builder.ID)
 
-	buildCmd, err := validatedProvenance.GetBuildCmd()
+	buildCmd, err := GetBuildCmd(*predicate)
 	if err != nil {
 		t.Fatalf("Failed to parse buildConfig: %v", err)
 	}
 	testutil.AssertNonEmpty(t, "command[0]", buildCmd[0])
 	testutil.AssertNonEmpty(t, "command[1]", buildCmd[1])
+}
+
+func TestGetBuilderImageDigest(t *testing.T) {
+	// Parses the provenance and validates it against the schema.
+	validatedProvenance, err := ParseProvenanceFile(provenanceExamplePath)
+	if err != nil {
+		t.Fatalf("Failed to parse example provenance: %v", err)
+	}
+
+	predicate, err := slsa.ParseSLSAv02Predicate(validatedProvenance.GetProvenance().Predicate)
+	if err != nil {
+		t.Fatalf("Could not parse provenance predicate: %v", err)
+	}
+
+	got, err := GetBuilderImageDigest(*predicate)
+	if err != nil {
+		t.Fatalf("could not get builder image digest: %v", err)
+	}
+	want := predicate.Materials[0].Digest["sha256"]
+
+	if got != want {
+		t.Errorf("invalid BuilderImageDigest, got %q, want %q", got, want)
+	}
 }
