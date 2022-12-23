@@ -184,6 +184,85 @@ func TestVerifyBuilderImageDigest_DigestNotFound(t *testing.T) {
 	}
 }
 
+func TestVerifyRepoURI_FoundURI(t *testing.T) {
+	got := common.NewProvenanceIR(binarySHA256Digest,
+		common.WithRepoURIs([]string{
+			"git+https://github.com/project-oak/transparent-release@refs/heads/main",
+			"https://github.com/project-oak/transparent-release",
+		}))
+	want := common.ReferenceValues{
+		RepoURI: "github.com/project-oak/transparent-release",
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: want,
+	}
+
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
+	if result.IsVerified == false {
+		t.Fatalf("%v", result.Justifications)
+	}
+
+	testutil.AssertEq(t, "found repo uri in all references", result.IsVerified, true)
+}
+
+func TestVerifyRepoURI_WrongURI(t *testing.T) {
+	wrongURI := "git+https://github.com/project-oak/oak@refs/heads/main"
+	got := common.NewProvenanceIR(binarySHA256Digest,
+		common.WithRepoURIs([]string{
+			wrongURI,
+			"https://github.com/project-oak/transparent-release",
+		}))
+	want := common.ReferenceValues{
+		RepoURI: "github.com/project-oak/transparent-release",
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: want,
+	}
+
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
+	testutil.AssertEq(t, "wrong repo uri in reference", result.IsVerified, false)
+
+	gotJustifications := fmt.Sprintf("%s", result.Justifications)
+	wantJustifications := fmt.Sprintf("the URI from the provenance (%v) does not contain the repo URI (%v)",
+		wrongURI,
+		want.RepoURI,
+	)
+
+	if !strings.Contains(gotJustifications, wantJustifications) {
+		t.Fatalf("got %q, want justification containing %q,", gotJustifications, wantJustifications)
+	}
+}
+
+func TestVerifyRepoURI_NoReferences(t *testing.T) {
+	// We have no repo URIs in the provenance.
+	got := common.NewProvenanceIR(binarySHA256Digest,
+		common.WithRepoURIs([]string{}))
+	want := common.ReferenceValues{
+		RepoURI: "github.com/project-oak/transparent-release",
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: want,
+	}
+
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
+	testutil.AssertEq(t, "no references to any repo URI to match against", result.IsVerified, true)
+}
+
 func TestAmberProvenanceMetadataVerifier(t *testing.T) {
 	path := filepath.Join(testdataPath, validProvenancePath)
 	provenance, err := amber.ParseProvenanceFile(path)

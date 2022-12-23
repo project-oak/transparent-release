@@ -72,6 +72,8 @@ type ReferenceValues struct {
 	WantBuildCmds bool `toml:"want_build_cmds"`
 	// The digests of the builder images the product team trusts to build the binary.
 	BuilderImageSHA256Digests []string `toml:"builder_image_sha256_digests"`
+	// The URI of the repo holding the resources the binary is built from.
+	RepoURI string `toml:"repo_uri"`
 }
 
 // ProvenanceIR is an internal intermediate representation of data from provenances.
@@ -82,6 +84,7 @@ type ProvenanceIR struct {
 	buildType                string
 	buildCmd                 []string
 	builderImageSHA256Digest string
+	repoURIs                 []string
 }
 
 // NewProvenanceIR creates a new proveance with given optional fields.
@@ -108,6 +111,13 @@ func WithBuildType(buildType string) func(p *ProvenanceIR) {
 	}
 }
 
+// WithBuildCmd adds repo URIs referenced in the provenance when creating a new ProvenanceIR.
+func WithRepoURIs(repoURIs []string) func(p *ProvenanceIR) {
+	return func(p *ProvenanceIR) {
+		p.repoURIs = repoURIs
+	}
+}
+
 // WithBuilderImageSHA256Digest adds a builder image sha256 digest when creating a new ProvenanceIR.
 func WithBuilderImageSHA256Digest(builderImageSHA256Digest string) func(p *ProvenanceIR) {
 	return func(p *ProvenanceIR) {
@@ -129,6 +139,11 @@ func (p *ProvenanceIR) GetBuildCmd() ([]string, error) {
 		return nil, fmt.Errorf("provenance does not have a build cmd")
 	}
 	return p.buildCmd, nil
+}
+
+// GetRepoURIs gets references to a repo in the provenance. There is no guarantee to get all the references to any repo.
+func (p *ProvenanceIR) GetRepoURIs() []string {
+	return p.repoURIs
 }
 
 // GetBuilderImageSHA256Digest gets the builder image sha256 digest. Returns an error if the builder image sha256 digest is empty.
@@ -183,10 +198,15 @@ func fromAmber(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 		return nil, fmt.Errorf("could get builder image digest from *amber.ValidatedProvenance: %v", err)
 	}
 
+	repoURIs := []string{}
+	repoURIs = append(repoURIs, provenance.GetConfigSourceURI())
+	repoURIs = append(repoURIs, provenance.GetMaterialsGitURI()...)
+
 	provenanceIR := NewProvenanceIR(binarySHA256Digest,
 		WithBuildType(buildType),
 		WithBuildCmd(buildCmd),
-		WithBuilderImageSHA256Digest(builderImageDigest))
+		WithBuilderImageSHA256Digest(builderImageDigest),
+		WithRepoURIs(repoURIs))
 
 	return provenanceIR, nil
 }
