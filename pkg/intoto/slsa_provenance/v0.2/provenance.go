@@ -19,6 +19,8 @@
 package v02
 
 import (
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/project-oak/transparent-release/pkg/intoto"
@@ -163,4 +165,19 @@ type ProvenanceComplete struct {
 	// Materials if true, means the builder claims that materials is complete, usually through some
 	// controls to prevent network access. Sometimes called “hermetic”.
 	Materials bool `json:"materials"`
+}
+
+// AsSLSAv02Predicate parses the given object as a ProvenancePredicate, or returns an error if the conversion is unsuccessful.
+func AsSLSAv02Predicate(predicate interface{}) (*ProvenancePredicate, error) {
+	predicateBytes, err := json.Marshal(predicate)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal Predicate map into JSON bytes: %v", err)
+	}
+
+	var pp ProvenancePredicate
+	if err = json.Unmarshal(predicateBytes, &pp); err != nil {
+		return nil, fmt.Errorf("could not unmarshal JSON bytes into a ProvenancePredicate: %v", err)
+	}
+
+	return &pp, nil
 }

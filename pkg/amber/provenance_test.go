@@ -36,7 +36,10 @@ func TestExampleProvenance(t *testing.T) {
 	}
 	provenance := validatedProvenance.GetProvenance()
 
-	predicate := provenance.Predicate.(slsa.ProvenancePredicate)
+	predicate, err := slsa.AsSLSAv02Predicate(provenance.Predicate)
+	if err != nil {
+		t.Fatalf("Could not parse provenance predicate: %v", err)
+	}
 
 	// Check that the provenance parses correctly
 	testutil.AssertEq(t, "repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")

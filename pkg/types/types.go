@@ -21,7 +21,6 @@ import (
 	"fmt"
 
 	"github.com/project-oak/transparent-release/pkg/intoto"
-	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 )
 
 // ValidatedProvenance wraps an intoto.Statement representing a valid SLSA provenance statement.
@@ -48,9 +47,9 @@ func (p *ValidatedProvenance) GetBinaryName() string {
 	return p.provenance.Subject[0].Name
 }
 
-// GetBuildType returns the build type of the provenance.
-func (p *ValidatedProvenance) GetBuildType() string {
-	return p.provenance.Predicate.(slsa.ProvenancePredicate).BuildType
+// PredicateType returns the predicate type of the provenance.
+func (p *ValidatedProvenance) PredicateType() string {
+	return p.provenance.PredicateType
 }
 
 // GetProvenance returns a partial copy of the provenance statement wrapped in this instance.
@@ -85,20 +84,6 @@ func ParseProvenanceData(statementBytes []byte) (*ValidatedProvenance, error) {
 	if len(statement.Subject) != 1 || statement.Subject[0].Digest["sha256"] == "" {
 		return nil, fmt.Errorf("the provenance must have exactly one subject with a sha256 digest")
 	}
-
-	// statement.Predicate is now just a map, we have to parse it into an instance of slsa.ProvenancePredicate
-	predicateBytes, err := json.Marshal(statement.Predicate)
-	if err != nil {
-		return nil, fmt.Errorf("could not marshal Predicate map into JSON bytes: %v", err)
-	}
-
-	var predicate slsa.ProvenancePredicate
-	if err = json.Unmarshal(predicateBytes, &predicate); err != nil {
-		return nil, fmt.Errorf("could not unmarshal JSON bytes into a slsa.ProvenancePredicate: %v", err)
-	}
-
-	// Replace maps with objects
-	statement.Predicate = predicate
 
 	return &ValidatedProvenance{provenance: statement}, nil
 }

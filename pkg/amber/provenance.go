@@ -101,17 +101,25 @@ func ParseBuildConfig(predicate slsa.ProvenancePredicate) (BuildConfig, error) {
 
 // GetBuildCmd returns the build command.
 func GetBuildCmd(p *types.ValidatedProvenance) ([]string, error) {
-	buildConfig, err := ParseBuildConfig(p.GetProvenance().Predicate.(slsa.ProvenancePredicate))
+	predicate, err := slsa.AsSLSAv02Predicate(p.GetProvenance().Predicate)
 	if err != nil {
-		return nil, fmt.Errorf("could not parse BuildConfig")
+		return nil, fmt.Errorf("could not parse provenance predicate: %v", err)
+	}
+	buildConfig, err := ParseBuildConfig(*predicate)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse BuildConfig: %v", err)
 	}
 	return buildConfig.Command, nil
 }
 
 // GetBuilderImageDigest returns the digest for the Builder Image.
 func GetBuilderImageDigest(p *types.ValidatedProvenance) (string, error) {
-	materials := p.GetProvenance().Predicate.([]slsa.ProvenanceMaterial)
-	for _, material := range materials {
+	predicate, err := slsa.AsSLSAv02Predicate(p.GetProvenance().Predicate)
+	if err != nil {
+		return "", fmt.Errorf("could not parse provenance predicate: %v", err)
+	}
+
+	for _, material := range predicate.Materials {
 		// This is a crude way to estimate if one of the materials is the builder image.
 		// However, even if we get a "wrong" digest as the builder image, the reference values should
 		// not contain this wrong digest, so worst case verifying the provenance fails, when it should not.
@@ -120,5 +128,5 @@ func GetBuilderImageDigest(p *types.ValidatedProvenance) (string, error) {
 			return digest, nil
 		}
 	}
-	return "", fmt.Errorf("could not find the builder image in %v", materials)
+	return "", fmt.Errorf("could not find the builder image in %v", predicate.Materials)
 }
