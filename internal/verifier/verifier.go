@@ -261,7 +261,7 @@ func verifyBuilderImageDigest(want common.ReferenceValues, got *common.Provenanc
 	return result, nil
 }
 
-// verifyRepoURIs verifies that the references to URIs in the provenance point to the repo URI given in the references.
+// verifyRepoURIs verifies that the references to URIs in the provenance point to the repo URI given in the reference values.
 func verifyRepoURIs(want common.ReferenceValues, got *common.ProvenanceIR) VerificationResult {
 	result := NewVerificationResult()
 

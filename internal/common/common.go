@@ -111,7 +111,7 @@ func WithBuildType(buildType string) func(p *ProvenanceIR) {
 	}
 }
 
-// WithBuildCmd adds repo URIs referenced in the provenance when creating a new ProvenanceIR.
+// WithRepoURIs adds repo URIs referenced in the provenance when creating a new ProvenanceIR.
 func WithRepoURIs(repoURIs []string) func(p *ProvenanceIR) {
 	return func(p *ProvenanceIR) {
 		p.repoURIs = repoURIs
