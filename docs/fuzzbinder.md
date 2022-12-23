@@ -175,33 +175,7 @@ The purpose of the FuzzClaim specification is not to judge the security of the r
 
 FuzzBinder also allows the trusted party who will sign the FuzzClaim (a person, a team, or a trusted tool) to decide whether to sign and publish the claim based on the generated FuzzClaim specifications. In particular, it is up to the trusted party to decide to publish FuzzClaims when certain crashes are detected and to define thresholds for line/branch coverage and fuzzing efforts (These decisions can be part of their security policy as part of their release-readiness criteria, if any).
 
-### Claims evidence (FuzzEvidence)
-
-The evidence is the collection of the fuzzing reports that are used to generate a given FuzzClaim on a given date and help to reproduce the claim in the future if a verification is needed. In FuzzBinder the evidence roles are:
-
-- **“srcmap”**: refers to the role of the evidence files that help to map a given date to a revision of the source code (a commit hash). In FuzzBinder, we decided to use files in `gs://oss-fuzz-coverage/{projectName}/srcmap/{date}.json` for this purpose since they guarantee that each date will be linked to exactly one revision of the source code.
-
-  Indeed, coverage reports are generated for one revision of the source code per day. However, if we use fuzzers logs, it is possible that multiple revisions of the source code are fuzzed on a given day for each fuzzer. Therefore, finding a revision of the source code that has been fuzzed by all fuzzers on a given day will require more computational effort if we use the fuzzers logs. Moreover, it is possible to have multiple revisions in this case, which will introduce more randomness compared to the first solution where the coverage reports are used.
-
-- **“project coverage”**: refers to the role of the evidence files that are used to extract the line and branch coverage for the project (all fuzz-targets combined). In FuzzBinder, we decided to use files in `gs://oss-fuzz-coverage/{projectName}/reports/{date}/linux/summary.json` for this purpose. Indeed, these files contain fine-grained and aggregated coverage metrics.
-- **“fuzzTarget coverage”**: refers to the role of the evidence files that are used to extract the line and branch coverage for a given fuzz-target. In FuzzBinder, we decided to use files in `gs://oss-fuzz-coverage/{projectName}/fuzzer_stats/{date}/{fuzz-target}.json` for this purpose. Indeed, these files contain fine-grained and aggregated coverage metrics computed per fuzz-target.
-- Note that it is not necessary to add the fuzz-targets code in the evidence since it can be found on Github using the commit hash (**subject[*].digest.sha1**) and the fuzz-targets paths (**predicate.claimSpec.perTarget[*].path**).
-- Note that the URI of the evidence (used in the current implementation of FuzzBinder on GitHub) is based on the Google Cloud Storage paths mentioned above (`gs://…`). Therefore, the used fuzz-target and date (which are important for reproducing the claims) are included in the URI of the evidence. If the URI of the evidence is modified in the future, the date (which corresponds to the data of the generation of the fuzzing reports) and the fuzz-target need to be added to evidence objects.
-- Note that the logs that are used for the crash detection and the fuzzing effort computation are not included in the evidence since storing them is costly (hundreds of log files are generated per day). Therefore, the evidence for the crash detection and the fuzzing effort is the FuzzBinder code itself which is open-source. Indeed, it is possible to check the dataflow in Fuzzbinder and make sure that all the log files of a given revision of the source code on a given date are analyzed to detect crashes and compute the fuzzing effort.
-
-As mentioned above, the used evidence files are currently stored in Google cloud Storage by OSS-Fuzz. However, they are deleted after a given time period. Therefore, storing them permanently is needed to assure that they can be verified in the future. Since [Ent](https://github.com/google/ent) is a permanent content-addressable store, it will be used for this purpose.
-To avoid tampering with the evidence while copying it to [Ent](https://github.com/google/ent), FuzzBinder makes the copies of the evidence that is used to compute the FuzzClaim specification from the original GCS bucket of OSS-Fuzz to [Ent](https://github.com/google/ent) and generates the claims. If the original evidence is not available in the GCS bucket of OSS-Fuzz, FuzzBinder does not generate the claims.
-
-### Tool
-
-In this section, design decisions regarding the code are mentioned.
-
-- FuzzBinder makes use of fuzzing reports of [Cluster-fuzz](https://google.github.io/clusterfuzz/) and [OSS-Fuzz](https://github.com/google/oss-fuzz). For consistency, it does not use [Fuzz-introspector](https://github.com/AdaLogics/fuzz-introspector) reports because it does not support all the programming languages supported by [Cluster-fuzz](https://google.github.io/clusterfuzz/) and [OSS-Fuzz](https://github.com/google/oss-fuzz).
-- FuzzBinder is a standalone command-line in Go as part of the Transparent Release repository.
-- FuzzBinder is open-source so that open source projects can use it and integrate it into their build and release pipelines.
-- FuzzBinder will be wrapped in a [GitHub workflow](https://docs.github.com/en/actions/using-workflows/about-workflows). It makes use of role-accounts to access the fuzzing data of each project (that uses FuzzBinder) from Github, and an [in-toto run action](https://github.com/marketplace/actions/in-toto-run) to sign the FuzzClaims and publish them in [Rekor](https://github.com/sigstore/rekor).
-
-#### Scraper module (FuzzScraper)
+### Scraper module (FuzzScraper)
 
 - Note that OSS-Fuzz fuzzing reports are generated for every last commit of a given day (according to the current configuration). Therefore, not all the revisions of the source code will be fuzzed.
 - Note that the coverage reports in OSS-Fuzz and ClusterFuzz GCS buckets are organized by date. Therefore, FuzzBinder needs to link the date to the revision of the code that was used to generate them in order to generate fuzzing claims for revisions of the source code.
@@ -220,18 +194,45 @@ _Note that in some cases, the data extraction is not direct and some computation
 | Extract and compute the fuzzing effort (perTarget and/or per Project) per day. | `gs://{projectName}-logs.clusterfuzz-external.appspot.com/{fuzzEngine}_{projectName}_{fuzz-target}/{fuzzengine}_{sanitizer}_{projectName}/{date}/{time}.log` | Compute total fuzzing time in seconds and the number of executed tests of a given date.             | 15 days               |
 | Detected crashes (perTarget and/or per Project) per day.                       | `gs://{projectName}-logs.clusterfuzz-external.appspot.com/{fuzzEngine}_{projectName}_{fuzz-target}/{fuzzengine}_{sanitizer}_{projectName}/{date}/{time}.log` | Detect the new crashes on a given day.                                                              | 15 days               |
 
-### Threat model
+### Claims evidence (FuzzEvidence)
+
+The evidence is the collection of the fuzzing reports that are used to generate a given FuzzClaim on a given date and help to reproduce the claim in the future if a verification is needed. In FuzzBinder the evidence roles are:
+
+- **“srcmap”**: refers to the role of the evidence files that help to map a given date to a revision of the source code (a commit hash). In FuzzBinder, we decided to use files in `gs://oss-fuzz-coverage/{projectName}/srcmap/{date}.json` for this purpose since they guarantee that each date will be linked to exactly one revision of the source code.
+
+  Indeed, coverage reports are generated for one revision of the source code per day. However, if we use fuzzers logs, it is possible that multiple revisions of the source code are fuzzed on a given day for each fuzzer. Therefore, finding a revision of the source code that has been fuzzed by all fuzzers on a given day will require more computational effort if we use the fuzzers logs. Moreover, it is possible to have multiple revisions in this case, which will introduce more randomness compared to the first solution where the coverage reports are used.
+
+- **“project coverage”**: refers to the role of the evidence files that are used to extract the line and branch coverage for the project (all fuzz-targets combined). In FuzzBinder, we decided to use files in `gs://oss-fuzz-coverage/{projectName}/reports/{date}/linux/summary.json` for this purpose. Indeed, these files contain fine-grained and aggregated coverage metrics.
+- **“fuzzTarget coverage”**: refers to the role of the evidence files that are used to extract the line and branch coverage for a given fuzz-target. In FuzzBinder, we decided to use files in `gs://oss-fuzz-coverage/{projectName}/fuzzer_stats/{date}/{fuzz-target}.json` for this purpose. Indeed, these files contain fine-grained and aggregated coverage metrics computed per fuzz-target.
+- Note that it is not necessary to add the fuzz-targets code in the evidence since it can be found on Github using the commit hash (**subject[*].digest.sha1**) and the fuzz-targets paths (**predicate.claimSpec.perTarget[*].path**).
+- Note that the URI of the evidence (used in the current implementation of FuzzBinder on GitHub) is based on the Google Cloud Storage paths mentioned above (`gs://…`). Therefore, the used fuzz-target and date (which are important for reproducing the claims) are included in the URI of the evidence. If the URI of the evidence is modified in the future, the date (which corresponds to the data of the generation of the fuzzing reports) and the fuzz-target need to be added to evidence objects.
+- Note that the logs that are used for the crash detection and the fuzzing effort computation are not included in the evidence since storing them is costly (hundreds of log files are generated per day). Therefore, the evidence for the crash detection and the fuzzing effort is the FuzzBinder code itself which is open-source. Indeed, it is possible to check the dataflow in Fuzzbinder and make sure that all the log files of a given revision of the source code on a given date are analyzed to detect crashes and compute the fuzzing effort.
+
+As mentioned above, the used evidence files are currently stored in Google cloud Storage by OSS-Fuzz. However, they are deleted after a given time period. Therefore, storing them permanently is needed to assure that they can be verified in the future. Since [Ent](https://github.com/google/ent) is a permanent content-addressable store, it will be used for this purpose.
+To avoid tampering with the evidence while copying it to [Ent](https://github.com/google/ent), FuzzBinder makes the copies of the evidence that is used to compute the FuzzClaim specification from the original GCS bucket of OSS-Fuzz to [Ent](https://github.com/google/ent) and generates the claims. If the original evidence is not available in the GCS bucket of OSS-Fuzz, FuzzBinder does not generate the claims.
+
+## Tool
+
+In this section, design decisions regarding the code are mentioned.
+
+- FuzzBinder makes use of fuzzing reports of [Cluster-fuzz](https://google.github.io/clusterfuzz/) and [OSS-Fuzz](https://github.com/google/oss-fuzz). For consistency, it does not use [Fuzz-introspector](https://github.com/AdaLogics/fuzz-introspector) reports because it does not support all the programming languages supported by [Cluster-fuzz](https://google.github.io/clusterfuzz/) and [OSS-Fuzz](https://github.com/google/oss-fuzz).
+- FuzzBinder is a standalone command-line in Go as part of the Transparent Release repository.
+- FuzzBinder is open-source so that open source projects can use it and integrate it into their build and release pipelines.
+- FuzzBinder will be wrapped in a [GitHub workflow](https://docs.github.com/en/actions/using-workflows/about-workflows). It makes use of role-accounts to access the fuzzing data of each project (that uses FuzzBinder) from Github, and an [in-toto run action](https://github.com/marketplace/actions/in-toto-run) to sign the FuzzClaims and publish them in [Rekor](https://github.com/sigstore/rekor).
+
+
+## Threat model
 
 |                            | Untrusted                                                    | Trusted-but-verifiable                                              | Trusted                                        |
 | :------------------------- | :----------------------------------------------------------- | :------------------------------------------------------------------ | :--------------------------------------------- |
 | For FuzzBinder             | End users and The authors of the revision of the source code | Ent storage                                                         | OSS-fuzz, ClusterFuzz and Google Cloud Storage |
 | For the user of FuzzBinder | End users                                                    | FuzzBinder, The authors of the revision of the code and Ent storage | OSS-fuzz, ClusterFuzz and Google Cloud Storage |
 
-### How-To guide
+## How-To guide
 
 A how-to use FuzzBinder guide is available [here](../cmd/fuzzbinder/README.md).
 
-### Glossary
+## Glossary
 
 - **Fuzzing**: an automated testing technique that allows vulnerability detection by generating malformed inputs to trigger unwanted behaviors and find bugs in binaires.
 - **Function coverage**: the percentage of functions which have been executed at least once. A function is considered to be executed if any of its instantiations are executed. [[source](https://clang.llvm.org/docs/SourceBasedCodeCoverage.html#:~:text=Region%20coverage%20is%20the%20percentage,%7C%7C%20y%20%26%26%20z%E2%80%9D)]
