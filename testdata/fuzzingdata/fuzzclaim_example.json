@@ -20,7 +20,7 @@
       "perTarget": [
         {
           "name": "apply_policy",
-          "path": "oak/fuzz/fuzz_targets/apply_policy.rs",
+          "path": "fuzz/fuzz_targets/apply_policy.rs",
           "fuzzStats": {
             "lineCoverage": "3.89% (215/5524)",
             "branchCoverage": "0.00% (0/0)",
@@ -31,7 +31,7 @@
         },
         {
           "name": "failing",
-          "path": "oak/fuzz/fuzz_targets/failing.rs",
+          "path": "fuzz/fuzz_targets/failing.rs",
           "fuzzStats": {
             "lineCoverage": "24.88% (511/2054)",
             "branchCoverage": "0.00% (0/0)",

@@ -76,18 +76,22 @@ func generateFuzzClaimSpec(client *gcsutil.Client, revisionDigest intoto.DigestS
 		NumberFuzzTests: projectFuzzEffort.numberFuzzTests,
 	}
 	perTarget := make([]FuzzSpecPerTarget, 0, len(fuzzTargets))
-	for _, fuzzTagret := range fuzzTargets {
+	for _, fuzzTarget := range fuzzTargets {
 		targetStats := FuzzStats{
-			BranchCoverage:  fuzzersCoverage[fuzzTagret].branchCoverage,
-			LineCoverage:    fuzzersCoverage[fuzzTagret].lineCoverage,
-			DetectedCrashes: fuzzersCrashes[fuzzTagret].detected,
-			FuzzTimeSeconds: fuzzersFuzzEffort[fuzzTagret].fuzzTimeSeconds,
-			NumberFuzzTests: fuzzersFuzzEffort[fuzzTagret].numberFuzzTests,
+			BranchCoverage:  fuzzersCoverage[fuzzTarget].branchCoverage,
+			LineCoverage:    fuzzersCoverage[fuzzTarget].lineCoverage,
+			DetectedCrashes: fuzzersCrashes[fuzzTarget].detected,
+			FuzzTimeSeconds: fuzzersFuzzEffort[fuzzTarget].fuzzTimeSeconds,
+			NumberFuzzTests: fuzzersFuzzEffort[fuzzTarget].numberFuzzTests,
+		}
+		fuzzTargetPath, err := GetFuzzTargetsPath(client, *fuzzParameters, fuzzTarget)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"could not get fuzz-target path in %q: %v", fuzzParameters.ProjectGitRepo, err)
 		}
 		targetSpec := FuzzSpecPerTarget{
-			Name: fuzzTagret,
-			// TODO(##177): Add fuzz-target path extraction to FuzzBinder.
-			Path:      fmt.Sprintf("%s/fuzz/fuzz_targets/%s.rs", fuzzParameters.ProjectName, fuzzTagret),
+			Name:      fuzzTarget,
+			Path:      *fuzzTargetPath,
 			FuzzStats: &targetStats,
 		}
 		perTarget = append(perTarget, targetSpec)
