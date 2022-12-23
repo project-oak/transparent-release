@@ -23,9 +23,9 @@ In this section, a customization of the [Claim Format](claim-transparency.md#the
   "_type": "https://in-toto.io/Statement/v0.1",
   "subject": [
     {
-    "name": "https://github.com/project-oak/oak",
-    "digest": {
-      "sha1": "012a5206e5ab35d2778832638519441dd27664da"
+      "name": "https://github.com/project-oak/oak",
+      "digest": {
+        "sha1": "012a5206e5ab35d2778832638519441dd27664da"
       }
     }
   ],
@@ -38,59 +38,65 @@ In this section, a customization of the [Claim Format](claim-transparency.md#the
       "notBefore": "2022-06-08T10:20:50.32Z",
       "notAfter": "2022-06-09T10:20:50.32Z"
     },
-    "claimSpec":  {
-       "perTarget":[
-      {
-        "name": "<some-fuzz-target>",
-        "path": "fuzz/fuzz_targets/<some-fuzz-target>.rs",
-        "fuzzStats": {
-           "lineCoverage": "3.68% (5223/142079)",
-           "branchCoverage": "3.61% (729/20172)",
-           "detectedCrashes": false,
-           "fuzzTimeSeconds": 9865.54,
-           "numberFuzzTests": 463398,
-         }
-      }, {
-        "name": "<some-other-fuzz-target>",
-        "path": "fuzz/fuzz_targets/<some-other-fuzz-target>.rs",
-        "fuzzStats": {
-           "lineCoverage": "2.63% (3743/142079)",
-           "branchCoverage": "23.06% (4653/20172)",
-           "detectedCrashes": false,
-           "fuzzTimeSeconds": 4525.45,
-           "numberFuzzTests": 856398,
-         }
-      },
-    ],
-       "perProject":{
+    "claimSpec": {
+      "perTarget": [
+        {
+          "name": "<some-fuzz-target>",
+          "path": "fuzz/fuzz_targets/<some-fuzz-target>.rs",
+          "fuzzStats": {
+            "lineCoverage": "3.68% (5223/142079)",
+            "branchCoverage": "3.61% (729/20172)",
+            "detectedCrashes": false,
+            "fuzzTimeSeconds": 9865.54,
+            "numberFuzzTests": 463398
+          }
+        },
+        {
+          "name": "<some-other-fuzz-target>",
+          "path": "fuzz/fuzz_targets/<some-other-fuzz-target>.rs",
+          "fuzzStats": {
+            "lineCoverage": "2.63% (3743/142079)",
+            "branchCoverage": "23.06% (4653/20172)",
+            "detectedCrashes": false,
+            "fuzzTimeSeconds": 4525.45,
+            "numberFuzzTests": 856398
+          }
+        }
+      ],
+      "perProject": {
         "lineCoverage": "4.59% (6523/142079)",
         "branchCoverage": "3.61% (729/20172)",
         "detectedCrashes": false,
         "fuzzTimeSeconds": 14390.99,
         "numberFuzzTests": 1319796,
         "sanitizers": ["asan"],
-        "fuzzEngines": ["libFuzzer"],
-   }
-        "evidence": [
-        {
+        "fuzzEngines": ["libFuzzer"]
+      }
+    },
+    "evidence": [
+      {
         "role": "project coverage",
         "uri": "<ent file uri>",
         "digest": {
           "sha256": "<sha256 of the project coverage summary.json>"
         }
-      }, {
+      },
+      {
         "role": "fuzzTarget coverage",
         "uri": "<ent file uri>",
         "digest": {
           "sha256": "<sha256 of <some-fuzz-target> coverage summary.json>"
         }
-      }, , {
+      },
+      ,
+      {
         "role": "fuzzTarget coverage",
         "uri": "<ent file uri>",
         "digest": {
           "sha256": "<sha256 of <some-other-fuzz-target> coverage summary.json>"
         }
-      },{
+      },
+      {
         "role": "srcmap",
         "uri": "<ent file uri>",
         "digest": {
@@ -99,7 +105,6 @@ In this section, a customization of the [Claim Format](claim-transparency.md#the
       }
     ]
   }
-}
 }
 ```
 
