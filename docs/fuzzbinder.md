@@ -95,7 +95,7 @@ In this section, a customization of the [Claim Format](claim-transparency.md#the
         "uri": "<ent file uri>",
         "digest": {
           "sha256": "<sha256 of the srcmap file linking the date to the revision of the
-          source code>"
+          source code>",
         }
       }
     ]
