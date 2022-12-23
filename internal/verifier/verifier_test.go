@@ -125,7 +125,7 @@ func TestVerifyHasBuildCmd_EmptyBuildCmds(t *testing.T) {
 
 	verifier := ProvenanceIRVerifier{
 		Got:  got,
-		Want: want,
+		Want: &want,
 	}
 
 	// We don't expect any verification to happen.
@@ -146,7 +146,7 @@ func TestVerifyBuilderImageDigest_DigestFound(t *testing.T) {
 
 	verifier := ProvenanceIRVerifier{
 		Got:  got,
-		Want: want,
+		Want: &want,
 	}
 
 	result, err := verifier.Verify()
@@ -165,7 +165,7 @@ func TestVerifyBuilderImageDigest_DigestNotFound(t *testing.T) {
 
 	verifier := ProvenanceIRVerifier{
 		Got:  got,
-		Want: want,
+		Want: &want,
 	}
 
 	result, err := verifier.Verify()
@@ -196,7 +196,7 @@ func TestVerifyRepoURI_FoundURI(t *testing.T) {
 
 	verifier := ProvenanceIRVerifier{
 		Got:  got,
-		Want: want,
+		Want: &want,
 	}
 
 	result, err := verifier.Verify()
@@ -223,7 +223,7 @@ func TestVerifyRepoURI_WrongURI(t *testing.T) {
 
 	verifier := ProvenanceIRVerifier{
 		Got:  got,
-		Want: want,
+		Want: &want,
 	}
 
 	result, err := verifier.Verify()
@@ -253,7 +253,7 @@ func TestVerifyRepoURI_NoReferences(t *testing.T) {
 
 	verifier := ProvenanceIRVerifier{
 		Got:  got,
-		Want: want,
+		Want: &want,
 	}
 
 	result, err := verifier.Verify()
