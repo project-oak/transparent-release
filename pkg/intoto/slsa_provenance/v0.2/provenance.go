@@ -29,6 +29,9 @@ import (
 const (
 	// PredicateSLSAProvenance represents a build provenance for an artifact.
 	PredicateSLSAProvenance = "https://slsa.dev/provenance/v0.2"
+
+	// GenericSLSABuildType is the build type used by the generic SLSA github generator.
+	GenericSLSABuildType = "https://github.com/slsa-framework/slsa-github-generator/generic@v1"
 )
 
 // ProvenanceBuilder idenfifies the entity that executed the build steps.
@@ -167,8 +170,9 @@ type ProvenanceComplete struct {
 	Materials bool `json:"materials"`
 }
 
-// AsSLSAv02Predicate parses the given object as a ProvenancePredicate, or returns an error if the conversion is unsuccessful.
-func AsSLSAv02Predicate(predicate interface{}) (*ProvenancePredicate, error) {
+// ParseSLSAv02Predicate parses the given object as a ProvenancePredicate,
+// or returns an error if the conversion is unsuccessful.
+func ParseSLSAv02Predicate(predicate interface{}) (*ProvenancePredicate, error) {
 	predicateBytes, err := json.Marshal(predicate)
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal Predicate map into JSON bytes: %v", err)

@@ -36,7 +36,7 @@ func TestExampleProvenance(t *testing.T) {
 	}
 	provenance := validatedProvenance.GetProvenance()
 
-	predicate, err := slsa.AsSLSAv02Predicate(provenance.Predicate)
+	predicate, err := slsa.ParseSLSAv02Predicate(provenance.Predicate)
 	if err != nil {
 		t.Fatalf("Could not parse provenance predicate: %v", err)
 	}
@@ -49,7 +49,7 @@ func TestExampleProvenance(t *testing.T) {
 	testutil.AssertEq(t, "subjectName", validatedProvenance.GetBinaryName(), "oak_functions_loader")
 	testutil.AssertNonEmpty(t, "builderId", predicate.Builder.ID)
 
-	buildCmd, err := GetBuildCmd(validatedProvenance)
+	buildCmd, err := GetBuildCmd(*predicate)
 	if err != nil {
 		t.Fatalf("Failed to parse buildConfig: %v", err)
 	}

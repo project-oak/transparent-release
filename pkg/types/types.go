@@ -72,10 +72,10 @@ func (p *ValidatedProvenance) GetProvenance() intoto.Statement {
 	}
 }
 
-// ParseProvenanceData validates that the given bytes represent a valid SLSA provenance.
-// Returns an error if the bytes do not represent a valid JSON-encoded provenance statement.
-// Otherwise returns an instance of ValidatedProvenance.
-func ParseProvenanceData(statementBytes []byte) (*ValidatedProvenance, error) {
+// ParseStatementData validates that the given bytes represent a valid intoto
+// Statement containing a single subject and its SHA256 digest. Returns an
+// instance of ValidatedProvenance, or an error if the above checks fail.
+func ParseStatementData(statementBytes []byte) (*ValidatedProvenance, error) {
 	var statement intoto.Statement
 	if err := json.Unmarshal(statementBytes, &statement); err != nil {
 		return nil, fmt.Errorf("could not unmarshal the provenance file:\n%v", err)

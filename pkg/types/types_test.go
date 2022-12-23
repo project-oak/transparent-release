@@ -29,20 +29,20 @@ const (
 	wantSHA256HexDigitLength = 64
 )
 
-func TestParseProvenanceData(t *testing.T) {
+func TestParseStatementData(t *testing.T) {
 	// Parses the provenance and validates it against the schema.
 	statementBytes, err := os.ReadFile(provenanceExamplePath)
 	if err != nil {
 		t.Fatalf("Could not read the provenance file: %v", err)
 	}
 
-	validatedProvenance, err := ParseProvenanceData(statementBytes)
+	validatedProvenance, err := ParseStatementData(statementBytes)
 	if err != nil {
 		t.Fatalf("Failed to parse example provenance: %v", err)
 	}
 	provenance := validatedProvenance.GetProvenance()
 
-	predicate, err := slsa.AsSLSAv02Predicate(provenance.Predicate)
+	predicate, err := slsa.ParseSLSAv02Predicate(provenance.Predicate)
 	if err != nil {
 		t.Fatalf("Could not parse provenance predicate: %v", err)
 	}

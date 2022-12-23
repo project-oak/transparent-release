@@ -66,7 +66,7 @@ func loadAndVerifyProvenances(referenceValues common.ReferenceValues, provenance
 		if err != nil {
 			return nil, fmt.Errorf("couldn't load the provenance file from %s: %v", uri, err)
 		}
-		provenance, err := types.ParseProvenanceData(provenanceBytes)
+		provenance, err := types.ParseStatementData(provenanceBytes)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't parse bytes from %s into a provenance statement: %v", uri, err)
 		}
@@ -126,7 +126,7 @@ func verifyProvenances(referenceValues common.ReferenceValues, provenances []typ
 // verifyConsistency verifies that all provenances have the same binary name and
 // binary digest.
 // TODO(b/222440937): Perform any additional verification among provenances to ensure their consistency.
-// TODO(#166) Replace input type ValidatedProvenance with ProvenanceIR. Use common.FromProvenance before calling this function.
+// TODO(#165) Replace input type ValidatedProvenance with ProvenanceIR. Use common.FromProvenance before calling this function.
 func verifyConsistency(provenances []types.ValidatedProvenance) verifier.VerificationResult {
 	result := verifier.NewVerificationResult()
 	// verify that all provenances have the same binary digest and name.

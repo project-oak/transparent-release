@@ -70,7 +70,7 @@ func validateSLSAProvenanceJSON(provenanceFile []byte) error {
 	return nil
 }
 
-// ParseProvenanceFile reads a JSON file from a given path, and calls ParseProvenanceData on the
+// ParseProvenanceFile reads a JSON file from a given path, and calls ParseStatementData on the
 // content of the file, if the read is successful.
 // Returns an error if the file is not a valid provenance statement.
 func ParseProvenanceFile(path string) (*types.ValidatedProvenance, error) {
@@ -83,7 +83,7 @@ func ParseProvenanceFile(path string) (*types.ValidatedProvenance, error) {
 		return nil, err
 	}
 
-	return types.ParseProvenanceData(statementBytes)
+	return types.ParseStatementData(statementBytes)
 }
 
 // ParseBuildConfig parses the map in predicate.BuildConfig into an instance of BuildConfig.
@@ -99,26 +99,17 @@ func ParseBuildConfig(predicate slsa.ProvenancePredicate) (BuildConfig, error) {
 	return buildConfig, nil
 }
 
-// GetBuildCmd returns the build command.
-func GetBuildCmd(p *types.ValidatedProvenance) ([]string, error) {
-	predicate, err := slsa.AsSLSAv02Predicate(p.GetProvenance().Predicate)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse provenance predicate: %v", err)
-	}
-	buildConfig, err := ParseBuildConfig(*predicate)
+// GetBuildCmd extracts and returns the build command from the given ProvenancePredicate.
+func GetBuildCmd(predicate slsa.ProvenancePredicate) ([]string, error) {
+	buildConfig, err := ParseBuildConfig(predicate)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse BuildConfig: %v", err)
 	}
 	return buildConfig.Command, nil
 }
 
-// GetBuilderImageDigest returns the digest for the Builder Image.
-func GetBuilderImageDigest(p *types.ValidatedProvenance) (string, error) {
-	predicate, err := slsa.AsSLSAv02Predicate(p.GetProvenance().Predicate)
-	if err != nil {
-		return "", fmt.Errorf("could not parse provenance predicate: %v", err)
-	}
-
+// GetBuilderImageDigest extracts and returns the digest for the Builder Image.
+func GetBuilderImageDigest(predicate slsa.ProvenancePredicate) (string, error) {
 	for _, material := range predicate.Materials {
 		// This is a crude way to estimate if one of the materials is the builder image.
 		// However, even if we get a "wrong" digest as the builder image, the reference values should
