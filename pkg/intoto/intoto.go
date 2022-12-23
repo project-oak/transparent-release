@@ -21,6 +21,8 @@ package intoto
 // StatementInTotoV01 is the statement type for the generalized link format
 // containing statements. This is constant for all predicate types.
 const StatementInTotoV01 = "https://in-toto.io/Statement/v0.1"
+
+// SLSAV02PredicateType is the predicate type for all SLSA v02 provenances.
 const SLSAV02PredicateType = "https://slsa.dev/provenance/v0.2"
 
 // DigestSet contains a set of digests. It is represented as a map from
