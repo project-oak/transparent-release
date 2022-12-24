@@ -14,18 +14,17 @@ A novel type of statements that can be included in the
 fuzzing claims) that are intended to help reason about the security of the binary. This is particularly
 valuable for projects where fuzzing criteria are included in the release-readiness criteria.
 
-The reason behind using fuzzing is that it is an automated testing technique for vulnerability detection
-using generated malformed inputs to trigger unwanted behaviors and find bugs in binaires. Therefore,
-fuzzing statistics and metrics that can be automatically generated are good candidates to reason about
-the security of a binary given that enough fuzzing effort is spent.
+Fuzzing is an automated testing technique for vulnerability detection using generated 
+malformed inputs to trigger unwanted behaviors and find bugs in binaries. Therefore, fuzzing statistics 
+and metrics can be automatically generated, and are good candidates to reason about the security of a 
+binary given that enough fuzzing effort is spent.
 
-[OSS-Fuzz](https://github.com/google/oss-fuzz) is a continuous fuzzing platform for open source software
-that uses [ClusterFuzz](https://github.com/google/clusterfuzz) which is a scalable fuzzing
-infrastructure, and is used for about 650 open source projects. This platform is useful in this context
-since it generates a lot of metadata per project per day per fuzzer (~2MB) to give insights to the
-developers on how to improve the fuzz-targets of their open source projects to detect more bugs. This
-automatically generated metadata is indeed useful to extract fuzzing statistics and metrics that can be
-included in the fuzzing claims.
+[OSS-Fuzz](https://github.com/google/oss-fuzz) is a continuous fuzzing platform for open source software 
+that uses [ClusterFuzz](https://github.com/google/clusterfuzz), a scalable fuzzing infrastructure. It is 
+used to fuzz about 650 open source projects. This platform is useful in this context since it generates 
+~2MB of metadata per project per day per fuzzer to give insights to the developers on how to improve the 
+fuzz-targets of their open source projects to detect more bugs. Indeed, this automatically generated 
+metadata is useful for extracting statistics and fuzzing metrics that can be included in fuzzing claims.
 
 ## Design
 
@@ -130,7 +129,7 @@ customized fields (defined in FuzzClaim format) is provided.
 
 - **\_type** (string (_TypeURI_), required): as defined by Statement in the
   [in-toto standard](https://github.com/in-toto/attestation/blob/main/spec/README.md#statement).
-- **subject ** (array of objects, required): as defined in the
+- **subject** (array of objects, required): as defined in the
   [Claim Format](claim-transparency.md#fields).
 - **predicateType** (string (_TypeURI_), required): as defined by Statement in the
   [in-toto standard](https://github.com/in-toto/attestation/blob/main/spec/README.md#statement).
@@ -138,9 +137,9 @@ customized fields (defined in FuzzClaim format) is provided.
   [Claim Format](claim-transparency.md#fields).
 - **issuedOn** (string (_Timestamp_), required): as defined in the
   [Claim Format](claim-transparency.md#fields).
-- **validity** (object, required): as defined in the [Claim Format].
-- **claimSpec** (object, required): Gives a detailed description of the fuzzing claims and the needed
-- metrics and statistics to characterize the security of the fuzzed revision of the source code.
+- **validity** (object, required): as defined in the [Claim Format](claim-transparency.md#fields).
+- **claimSpec** (object, required): Gives a detailed description of the fuzzing claims, and the needed
+  metrics and statistics to characterize the security of the fuzzed revision of the source code.
 - **claimSpec.perTarget** (array of objects, required): an array of the fuzzing metrics and statistics
   for each fuzz-target.
   - **perTarget[*].name** (string, required): name of the fuzz-target.
@@ -156,10 +155,12 @@ customized fields (defined in FuzzClaim format) is provided.
     seconds.
   - **fuzzEffort[*].fuzzStats.numberFuzzTests** (number, optional): specifies the number of executed
     fuzzing tests.
-- claimSpec.perProject (object, required): an object of the fuzzing metrics and statistics for all the fuzz-targets aggregated.
+- claimSpec.perProject (object, required): an object of the fuzzing metrics and statistics for 
+  all the fuzz-targets aggregated.
   - **perProject.lineCoverage** (string, required): specifies line coverage by all fuzz-targets.
   - **perProject.branchCoverage** (string, required): specifies branch coverage by all fuzz-targets.
-  - **perProject.detectedCrashes** (number, required): the number of detected crashes using all fuzz-targets.
+  - **perProject.detectedCrashes** (number, required): specifies the number of detected crashes using
+    all fuzz-targets.
   - **perProject.fuzzTimeSeconds** (number, optional): specifies the fuzzing time in seconds.
   - **perProject.numberFuzzTests** (number, optional): specifies the number of executed fuzzing tests.
   - **fuzzEffort.sanitizers** (array of strings, required): specifies the list of the used sanitizers
@@ -167,11 +168,11 @@ customized fields (defined in FuzzClaim format) is provided.
   - **fuzzEffort.fuzzEngines** (array of strings, required): specifies the list of used fuzzing engines
     (as defined in the project configuration in OSS-Fuzz repository).
 - **evidence** (array of objects, required): as defined by the [Claim Format](claim-transparency.md#fields).
-  It is the collection of the fuzzing reports that are used to generate a given FuzzClaim at issuedOn.
+  It is the collection of the fuzzing reports that are used to generate a FuzzClaim.
 
 ### FuzzClaim specification
 
-In this section, the metrics/statistics that will be included in the “claimSpec” section of the FuzzClaim
+In this section, the metrics/statistics that will be included in the `claimSpec` section of the FuzzClaim
 are mentioned along with the reasons for including them.
 The computation of the metrics/statistics mentioned in this section will be based on the cumulative sum
 over all the fuzzing sessions of the same revision of the source code on a given day to reduce the
@@ -181,12 +182,11 @@ variance of the results (due to the stochastic nature of fuzzers).
 
 Note that bugs and crashes have different meanings in OSS-Fuzz terminology. Indeed, bugs are unique and
 deterministic while crashes can be deduplicated.
-Note that in the fuzzing literature, bugs or crashes represent an unwanted behavior. It does not
-necessarily indicate that this unwanted behavior is necessarily exploitable. However, reducing the
-unwanted behaviors helps prevent future risks.
+
 The metric that will be used in the fuzzing claims to characterize crashes is **whether a crash is detected**.
-It is also interesting to add the number of bugs in the future. However, the detection of bugs requires
-more computational effort because it requires the analysis of several crashes.
+
+It is also interesting to add the number of bugs in the future. However, the detection of bugs needs more 
+computational effort because it requires the analysis of several crashes.
 
 #### Coverage
 
@@ -195,18 +195,18 @@ Note that the design ideas in this section make use of the recommendations (base
 
 Even though the goal of fuzzing is to find new bugs or crashes, the number of bugs and crashes is not a
 fine-grained metric to accurately judge the security of the revision of the source code, especially when
-there are no bugs (i.e. the absence of bugs is a necessary but not sufficient condition to endorse the
+there are no bugs (*i.e.* the absence of bugs is a necessary but not sufficient condition to endorse the
 security of a revision of the source code).
 
 Coverage metrics can help assess the security of the revision of the source code because they are rather
 fine-grained and can be easily inspected. These measures are intended to approximate the amount of
-functionality in a program that is actually tested during fuzzing (i.e., they partially assess the
+functionality in a program that is actually tested during fuzzing (*i.e.* they partially assess the
 exploration process performed by fuzzers to detect bugs).
 
 There are many coverage metrics available. For instance,
-[OSS-Fuzz coverage reports](https://google.github.io/oss-fuzz/advanced-topics/code-coverage/) are based
-on [Clang code coverage](https://clang.llvm.org/docs/SourceBasedCodeCoverage.html#:~:text=Region%20coverage%20is%20the%20percentage,%7C%7C%20y%20%26%26%20z%E2%80%9D)
-which tracks [five coverage statistics](https://clang.llvm.org/docs/SourceBasedCodeCoverage.html#interpreting-reports):
+[OSS-Fuzz coverage reports](https://google.github.io/oss-fuzz/advanced-topics/code-coverage/) are based on 
+[Clang code coverage](https://clang.llvm.org/docs/SourceBasedCodeCoverage.html#source-based-code-coverage) which tracks 
+[five coverage statistics](https://clang.llvm.org/docs/SourceBasedCodeCoverage.html#interpreting-reports):
 function coverage, instantiation coverage, line coverage, region coverage,
 and branch coverage. All these statistics refer to a specific part of the target that has been
 executed at least once during the fuzz testing.
@@ -258,10 +258,10 @@ part of their security policy as part of their release-readiness criteria, if an
   in order to generate fuzzing claims for revisions of the source code.
   To link the date to the revision of the source code, two solutions can be considered. The first is to
   extract the revision from the coverage builds metadata and the second is to extract it for the fuzzers
-  build metadata. After considering both solutions, we chose the first one because the second one can
+  builds metadata. After considering both solutions, we chose the first one because the second one can
   lead to inconsistency especially since different fuzzers can use several revisions of the source code
   on a given day
-  [up to 4 builds](https://github.com/google/oss-fuzz/blob/master/docs/getting-started/new_project_guide.md#builds_per_day-optional-build_frequency))
+  [up to 4 builds](https://github.com/google/oss-fuzz/blob/master/docs/getting-started/new_project_guide.md#builds_per_day-optional-build_frequency)
   that can be different across fuzzers, while the coverage
   build uses exactly one revision of the source code that is the same for all fuzzers.
 
