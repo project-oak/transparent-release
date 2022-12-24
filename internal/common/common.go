@@ -199,8 +199,8 @@ func fromAmber(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 	}
 
 	repoURIs := []string{}
-	repoURIs = append(repoURIs, provenance.GetConfigSourceURI())
-	repoURIs = append(repoURIs, provenance.GetMaterialsGitURI()...)
+	repoURIs = append(repoURIs, amber.GetConfigSourceURI(predicate))
+	repoURIs = append(repoURIs, amber.GetMaterialsGitURI(predicate)...)
 
 	provenanceIR := NewProvenanceIR(binarySHA256Digest,
 		WithBuildType(buildType),
