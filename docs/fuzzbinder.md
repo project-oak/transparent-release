@@ -373,7 +373,7 @@ A how-to use FuzzBinder guide is available [here](../cmd/fuzzbinder/README.md).
   or “false”. These conditions may comprise larger boolean expressions linked by boolean logical
   operators. For example, “x = (y == 2) || (z < 10)” is a boolean expression that is composed of two
   individual conditions, each of which evaluates to either true or false, producing four total branch
-  outcomes
+  outcomes. 
   [[source](https://clang.llvm.org/docs/SourceBasedCodeCoverage.html#interpreting-reports)]
 - **Cyclomatic complexity**: a software metric used to indicate the complexity of a program. It is a
   quantitative measure of the number of linearly independent paths through a program's source code.
