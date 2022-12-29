@@ -1,0 +1,56 @@
+{
+    "_type": "https://in-toto.io/Statement/v0.1",
+    "predicateType": "https://slsa.dev/provenance/v1.0",
+    "subject": [
+        {
+            "name": "test.txt-9b5f98310dbbad675834474fa68c37d880687cb9",
+            "digest": {
+                "sha256": "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
+            }
+        }
+    ],
+    "predicate": {
+        "buildDefinition": {
+            "buildType": "https://slsa.dev/container-based-build/v0.1?draft",
+            "externalParameters": {
+                "artifacts": {
+                    "source": {
+                        "uri": "git+https://github.com/project-oak/transparent-release",
+                        "digest": {
+                            "sha1": "9b5f98310dbbad675834474fa68c37d880687cb9"
+                        }
+                    },
+                    "builderImage": {
+                        "uri": "bash@sha256:9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9",
+                        "digest": {
+                            "sha256": "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
+                        }
+                    }
+                },
+                "values": {
+                    "configFile": "testdata/build.toml",
+                    "command": [
+                        "cp",
+                        "testdata/static.txt",
+                        "test.txt"
+                    ],
+                    "outputPath": "test.txt"
+                }
+            },
+            "systemParameters": null,
+            "resolvedDependencies": null
+        },
+        "runDetails": {
+            "builder": {
+                "id":  "..whoever ran the build...",
+                "builderDependencies": [
+                    {
+                        "localName": "builderBinary",
+                        "uri": "git+https://github.com/slsa-framework/slsa-github-generator@refs/tags/v1.2.0",
+                        "digest": { "sha1": "bdd89e60dc5387d8f819bebc702987956bcd4913" }
+                    }
+                ]
+            }
+        }
+    }
+}
