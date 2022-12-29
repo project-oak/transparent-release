@@ -159,7 +159,8 @@ func TestFromProvenance_Amber(t *testing.T) {
 	want := NewProvenanceIR("322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d",
 		WithBuildType("https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json"),
 		WithBuildCmd([]string{"cp", "testdata/static.txt", "test.txt"}),
-		WithBuilderImageSHA256Digest("9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"))
+		WithBuilderImageSHA256Digest("9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"),
+		WithRepoURIs([]string{"https://github.com/project-oak/transparent-release"}))
 
 	got, err := FromProvenance(provenance)
 	if err != nil {
