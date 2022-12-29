@@ -198,6 +198,7 @@ func fromAmber(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 	// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
 	binarySHA256Digest := provenance.GetBinarySHA256Digest()
 	buildType := amber.AmberBuildTypeV1
+	binaryName := provenance.GetBinaryName()
 
 	predicate, err := slsav02.ParseSLSAv02Predicate(provenance.GetProvenance().Predicate)
 	if err != nil {
@@ -219,6 +220,7 @@ func fromAmber(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 
 	provenanceIR := NewProvenanceIR(binarySHA256Digest,
 		WithBuildType(buildType),
+		WithBinaryName(binaryName),
 		WithBuildCmd(buildCmd),
 		WithBuilderImageSHA256Digest(builderImageDigest),
 		WithRepoURIs(repoURIs))
