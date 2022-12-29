@@ -23,7 +23,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/amber"
-	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 	slsav02 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 	"github.com/project-oak/transparent-release/pkg/types"
 )
@@ -125,7 +124,7 @@ func TestGenerateProvenanceStatement(t *testing.T) {
 		t.Fatalf("couldn't generate provenance: %v", err)
 	}
 
-	predicate := prov.Predicate.(slsa.ProvenancePredicate)
+	predicate := prov.Predicate.(slsav02.ProvenancePredicate)
 	buildConfig := predicate.BuildConfig.(amber.BuildConfig)
 
 	// Check that the provenance is generated correctly
