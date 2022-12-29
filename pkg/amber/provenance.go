@@ -86,6 +86,37 @@ func ParseProvenanceFile(path string) (*types.ValidatedProvenance, error) {
 	return types.ParseStatementData(statementBytes)
 }
 
+// FromAmber maps data from a validated Amber provenance to ProvenanceIR.
+func FromAmber(provenance *types.ValidatedProvenance) (*types.ProvenanceIR, error) {
+	// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
+	binarySHA256Digest := provenance.GetBinarySHA256Digest()
+	buildType := AmberBuildTypeV1
+	binaryName := provenance.GetBinaryName()
+
+	predicate, err := slsav02.ParseSLSAv02Predicate(provenance.GetProvenance().Predicate)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse provenance predicate: %v", err)
+	}
+
+	buildCmd, err := GetBuildCmd(*predicate)
+	if err != nil {
+		return nil, fmt.Errorf("could not get build cmd from *amber.ValidatedProvenance: %v", err)
+	}
+
+	builderImageDigest, err := GetBuilderImageDigest(*predicate)
+	if err != nil {
+		return nil, fmt.Errorf("could get builder image digest from *amber.ValidatedProvenance: %v", err)
+	}
+
+	provenanceIR := types.NewProvenanceIR(binarySHA256Digest,
+		types.WithBuildType(buildType),
+		types.WithBinaryName(binaryName),
+		types.WithBuildCmd(buildCmd),
+		types.WithBuilderImageSHA256Digest(builderImageDigest))
+
+	return provenanceIR, nil
+}
+
 // ParseBuildConfig parses the map in predicate.BuildConfig into an instance of BuildConfig.
 func ParseBuildConfig(predicate slsav02.ProvenancePredicate) (BuildConfig, error) {
 	var buildConfig BuildConfig

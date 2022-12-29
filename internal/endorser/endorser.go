@@ -59,7 +59,7 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 	}
 
 	// load provenanceIRs from URIs
-	provenanceIRs := make([]common.ProvenanceIR, 0, len(provenanceURIs))
+	provenanceIRs := make([]types.ProvenanceIR, 0, len(provenanceURIs))
 	provenancesData := make([]amber.ProvenanceData, 0, len(provenanceURIs))
 	for _, uri := range provenanceURIs {
 		provenanceBytes, err := getProvenanceBytes(uri)
@@ -117,7 +117,7 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 
 // verifyProvenances verifies the given list of provenances. An error is returned if not.
 // TODO(b/222440937): Document any additional checks.
-func verifyProvenances(referenceValues *common.ReferenceValues, provenanceIRs []common.ProvenanceIR) (verifier.VerificationResult, error) {
+func verifyProvenances(referenceValues *common.ReferenceValues, provenanceIRs []types.ProvenanceIR) (verifier.VerificationResult, error) {
 	combinedResult := verifier.NewVerificationResult()
 	for index := range provenanceIRs {
 		provenanceVerifier := verifier.ProvenanceIRVerifier{
@@ -143,7 +143,7 @@ func verifyProvenances(referenceValues *common.ReferenceValues, provenanceIRs []
 // binary digest.
 // TODO(b/222440937): Perform any additional verification among provenances to ensure their consistency.
 // TODO(#165) Replace input type ValidatedProvenance with ProvenanceIR. Use common.FromProvenance before calling this function.
-func verifyConsistency(provenanceIRs []common.ProvenanceIR, binaryDigest string, binaryName string) (verifier.VerificationResult, error) {
+func verifyConsistency(provenanceIRs []types.ProvenanceIR, binaryDigest string, binaryName string) (verifier.VerificationResult, error) {
 	result := verifier.NewVerificationResult()
 	// verify that all provenances have the given binary digest and name.
 	for ind := 1; ind < len(provenanceIRs); ind++ {

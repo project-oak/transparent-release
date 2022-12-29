@@ -76,103 +76,9 @@ type ReferenceValues struct {
 	RepoURI string `toml:"repo_uri"`
 }
 
-// ProvenanceIR is an internal intermediate representation of data from provenances.
-// We want to map different provenances of different build types to ProvenanceIR, so
-// all fields except for `binarySHA256Digest` are optional.
-type ProvenanceIR struct {
-	binarySHA256Digest       string
-	buildType                string
-	binaryName               string
-	buildCmd                 []string
-	builderImageSHA256Digest string
-	repoURIs                 []string
-}
-
-// NewProvenanceIR creates a new proveance with given optional fields.
-// Every provenancy needs to a have binary sha256 digest, so this is not optional.
-func NewProvenanceIR(binarySHA256Digest string, options ...func(p *ProvenanceIR)) *ProvenanceIR {
-	provenance := &ProvenanceIR{binarySHA256Digest: binarySHA256Digest}
-	for _, addOption := range options {
-		addOption(provenance)
-	}
-	return provenance
-}
-
-// WithBinaryName adds a binary name when creating a new ProvenanceIR.
-func WithBinaryName(binaryName string) func(p *ProvenanceIR) {
-	return func(p *ProvenanceIR) {
-		p.binaryName = binaryName
-	}
-}
-
-// WithBuildCmd adds a build cmd when creating a new ProvenanceIR.
-func WithBuildCmd(buildCmd []string) func(p *ProvenanceIR) {
-	return func(p *ProvenanceIR) {
-		p.buildCmd = buildCmd
-	}
-}
-
-// WithBuildType adds a build type when creating a new ProvenanceIR.
-func WithBuildType(buildType string) func(p *ProvenanceIR) {
-	return func(p *ProvenanceIR) {
-		p.buildType = buildType
-	}
-}
-
-// WithRepoURIs adds repo URIs referenced in the provenance when creating a new ProvenanceIR.
-func WithRepoURIs(repoURIs []string) func(p *ProvenanceIR) {
-	return func(p *ProvenanceIR) {
-		p.repoURIs = repoURIs
-	}
-}
-
-// WithBuilderImageSHA256Digest adds a builder image sha256 digest when creating a new ProvenanceIR.
-func WithBuilderImageSHA256Digest(builderImageSHA256Digest string) func(p *ProvenanceIR) {
-	return func(p *ProvenanceIR) {
-		p.builderImageSHA256Digest = builderImageSHA256Digest
-	}
-}
-
-// GetBinarySHA256Digest gets the binary sha256 digest. Returns an error if the binary sha256 digest is empty.
-func (p *ProvenanceIR) GetBinarySHA256Digest() (string, error) {
-	if p.binarySHA256Digest == "" {
-		return "", fmt.Errorf("provenance does not have a binary SHA256 digest")
-	}
-	return p.binarySHA256Digest, nil
-}
-
-// GetBinaryName gets the binary name. Returns an error if the binary name is empty.
-func (p *ProvenanceIR) GetBinaryName() (string, error) {
-	if p.binaryName == "" {
-		return "", fmt.Errorf("provenance does not have a binary name")
-	}
-	return p.binaryName, nil
-}
-
-// GetBuildCmd gets the build cmd. Returns an error if the build cmd is empty.
-func (p *ProvenanceIR) GetBuildCmd() ([]string, error) {
-	if len(p.buildCmd) == 0 {
-		return nil, fmt.Errorf("provenance does not have a build cmd")
-	}
-	return p.buildCmd, nil
-}
-
-// GetRepoURIs gets references to a repo in the provenance. There is no guarantee to get all the references to any repo.
-func (p *ProvenanceIR) GetRepoURIs() []string {
-	return p.repoURIs
-}
-
-// GetBuilderImageSHA256Digest gets the builder image sha256 digest. Returns an error if the builder image sha256 digest is empty.
-func (p *ProvenanceIR) GetBuilderImageSHA256Digest() (string, error) {
-	if p.builderImageSHA256Digest == "" {
-		return "", fmt.Errorf("provenance does not have a builder image SHA256 digest")
-	}
-	return p.builderImageSHA256Digest, nil
-}
-
 // FromProvenance validates and converts a provenance of arbitrary type to ProvenanceIR
 // TODO(#165): Remove types.ValidatedProvenance and perform the conversion directly on an intoto.statement.
-func FromProvenance(prov *types.ValidatedProvenance) (*ProvenanceIR, error) {
+func FromProvenance(prov *types.ValidatedProvenance) (*types.ProvenanceIR, error) {
 	predType := prov.PredicateType()
 	switch predType {
 	case intoto.SLSAV02PredicateType:
@@ -182,60 +88,15 @@ func FromProvenance(prov *types.ValidatedProvenance) (*ProvenanceIR, error) {
 		}
 		switch pred.BuildType {
 		case amber.AmberBuildTypeV1:
-			return fromAmber(prov)
+			return amber.FromAmber(prov)
 		case slsav02.GenericSLSABuildType:
-			return fromSLSAv02(prov)
+			return slsav02.FromSLSAv02(prov), nil
 		default:
 			return nil, fmt.Errorf("unsupported buildType (%q) for SLSA0v2 provenance", pred.BuildType)
 		}
 	default:
 		return nil, fmt.Errorf("unsupported predicateType (%q) for provenance", predType)
 	}
-}
-
-// fromAmber maps data from a validated Amber provenance to ProvenanceIR.
-func fromAmber(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
-	// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
-	binarySHA256Digest := provenance.GetBinarySHA256Digest()
-	buildType := amber.AmberBuildTypeV1
-	binaryName := provenance.GetBinaryName()
-
-	predicate, err := slsav02.ParseSLSAv02Predicate(provenance.GetProvenance().Predicate)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse provenance predicate: %v", err)
-	}
-
-	buildCmd, err := amber.GetBuildCmd(*predicate)
-	if err != nil {
-		return nil, fmt.Errorf("could not get build cmd from *amber.ValidatedProvenance: %v", err)
-	}
-
-	builderImageDigest, err := amber.GetBuilderImageDigest(*predicate)
-	if err != nil {
-		return nil, fmt.Errorf("could get builder image digest from *amber.ValidatedProvenance: %v", err)
-	}
-
-	// We collect repo uris from where they appear in the provenance to verify that they point to the same reference repo uri.
-	repoURIs := slsav02.GetMaterialsGitURI(*predicate)
-
-	provenanceIR := NewProvenanceIR(binarySHA256Digest,
-		WithBuildType(buildType),
-		WithBinaryName(binaryName),
-		WithBuildCmd(buildCmd),
-		WithBuilderImageSHA256Digest(builderImageDigest),
-		WithRepoURIs(repoURIs))
-
-	return provenanceIR, nil
-}
-
-// fromSLSAv02 maps data from a validated SLSA v0.2 provenance to ProvenanceIR.
-func fromSLSAv02(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
-	// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
-	binarySHA256Digest := provenance.GetBinarySHA256Digest()
-	buildType := slsav02.GenericSLSABuildType
-	binaryName := provenance.GetBinaryName()
-	provenanceIR := NewProvenanceIR(binarySHA256Digest, WithBinaryName(binaryName), WithBuildType(buildType))
-	return provenanceIR, nil
 }
 
 // Cleanup removes the generated temp files. But it might not be able to remove

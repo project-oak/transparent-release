@@ -87,3 +87,97 @@ func ParseStatementData(statementBytes []byte) (*ValidatedProvenance, error) {
 
 	return &ValidatedProvenance{provenance: statement}, nil
 }
+
+// ProvenanceIR is an internal intermediate representation of data from provenances.
+// We want to map different provenances of different build types to ProvenanceIR, so
+// all fields except for `binarySHA256Digest` are optional.
+type ProvenanceIR struct {
+	binarySHA256Digest       string
+	buildType                string
+	binaryName               string
+	buildCmd                 []string
+	builderImageSHA256Digest string
+	repoURIs                 []string
+}
+
+// NewProvenanceIR creates a new proveance with given optional fields.
+// Every provenancy needs to a have binary sha256 digest, so this is not optional.
+func NewProvenanceIR(binarySHA256Digest string, options ...func(p *ProvenanceIR)) *ProvenanceIR {
+	provenance := &ProvenanceIR{binarySHA256Digest: binarySHA256Digest}
+	for _, addOption := range options {
+		addOption(provenance)
+	}
+	return provenance
+}
+
+// WithBinaryName adds a binary name when creating a new ProvenanceIR.
+func WithBinaryName(binaryName string) func(p *ProvenanceIR) {
+	return func(p *ProvenanceIR) {
+		p.binaryName = binaryName
+	}
+}
+
+// WithBuildCmd adds a build cmd when creating a new ProvenanceIR.
+func WithBuildCmd(buildCmd []string) func(p *ProvenanceIR) {
+	return func(p *ProvenanceIR) {
+		p.buildCmd = buildCmd
+	}
+}
+
+// WithBuildType adds a build type when creating a new ProvenanceIR.
+func WithBuildType(buildType string) func(p *ProvenanceIR) {
+	return func(p *ProvenanceIR) {
+		p.buildType = buildType
+	}
+}
+
+// WithBuilderImageSHA256Digest adds a builder image sha256 digest when creating a new ProvenanceIR.
+func WithBuilderImageSHA256Digest(builderImageSHA256Digest string) func(p *ProvenanceIR) {
+	return func(p *ProvenanceIR) {
+		p.builderImageSHA256Digest = builderImageSHA256Digest
+	}
+}
+
+// WithRepoURIs adds repo URIs referenced in the provenance when creating a new ProvenanceIR.
+func WithRepoURIs(repoURIs []string) func(p *ProvenanceIR) {
+	return func(p *ProvenanceIR) {
+		p.repoURIs = repoURIs
+	}
+}
+
+// GetBinarySHA256Digest gets the binary sha256 digest. Returns an error if the binary sha256 digest is empty.
+func (p *ProvenanceIR) GetBinarySHA256Digest() (string, error) {
+	if p.binarySHA256Digest == "" {
+		return "", fmt.Errorf("provenance does not have a binary SHA256 digest")
+	}
+	return p.binarySHA256Digest, nil
+}
+
+// GetBinaryName gets the binary name. Returns an error if the binary name is empty.
+func (p *ProvenanceIR) GetBinaryName() (string, error) {
+	if p.binaryName == "" {
+		return "", fmt.Errorf("provenance does not have a binary name")
+	}
+	return p.binaryName, nil
+}
+
+// GetBuildCmd gets the build cmd. Returns an error if the build cmd is empty.
+func (p *ProvenanceIR) GetBuildCmd() ([]string, error) {
+	if len(p.buildCmd) == 0 {
+		return nil, fmt.Errorf("provenance does not have a build cmd")
+	}
+	return p.buildCmd, nil
+}
+
+// GetBuilderImageSHA256Digest gets the builder image sha256 digest. Returns an error if the builder image sha256 digest is empty.
+func (p *ProvenanceIR) GetBuilderImageSHA256Digest() (string, error) {
+	if p.builderImageSHA256Digest == "" {
+		return "", fmt.Errorf("provenance does not have a builder image SHA256 digest")
+	}
+	return p.builderImageSHA256Digest, nil
+}
+
+// GetRepoURIs gets references to a repo in the provenance. There is no guarantee to get all the references to any repo.
+func (p *ProvenanceIR) GetRepoURIs() []string {
+	return p.repoURIs
+}

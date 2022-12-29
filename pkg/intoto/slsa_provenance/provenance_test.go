@@ -21,10 +21,11 @@ import (
 
 	"github.com/project-oak/transparent-release/internal/testutil"
 	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
+	"github.com/project-oak/transparent-release/pkg/types"
 )
 
 const (
-	provenanceExamplePath    = "../../schema/provenance/v1/example.json"
+	provenanceExamplePath    = "../../../schema/provenance/v1/example.json"
 	wantSHA1HexDigitLength   = 40
 	wantSHA256HexDigitLength = 64
 )
@@ -36,7 +37,7 @@ func TestParseStatementData(t *testing.T) {
 		t.Fatalf("Could not read the provenance file: %v", err)
 	}
 
-	validatedProvenance, err := ParseStatementData(statementBytes)
+	validatedProvenance, err := types.ParseStatementData(statementBytes)
 	if err != nil {
 		t.Fatalf("Failed to parse example provenance: %v", err)
 	}

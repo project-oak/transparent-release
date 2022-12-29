@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/project-oak/transparent-release/pkg/intoto"
+	"github.com/project-oak/transparent-release/pkg/types"
 )
 
 const (
@@ -199,4 +200,14 @@ func GetMaterialsGitURI(pred ProvenancePredicate) []string {
 		}
 	}
 	return gitURIs
+}
+
+// FromSLSAv02 maps data from a validated SLSA v0.2 provenance to ProvenanceIR.
+func FromSLSAv02(provenance *types.ValidatedProvenance) *types.ProvenanceIR {
+	// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
+	binarySHA256Digest := provenance.GetBinarySHA256Digest()
+	buildType := GenericSLSABuildType
+	binaryName := provenance.GetBinaryName()
+	provenanceIR := types.NewProvenanceIR(binarySHA256Digest, types.WithBinaryName(binaryName), types.WithBuildType(buildType))
+	return provenanceIR
 }

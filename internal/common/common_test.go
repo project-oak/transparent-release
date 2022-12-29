@@ -157,18 +157,18 @@ func TestFromProvenance_Amber(t *testing.T) {
 		t.Fatalf("couldn't parse the provenance file: %v", err)
 	}
 
-	want := NewProvenanceIR("322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d",
-		WithBuildType(amber.AmberBuildTypeV1),
-		WithBuildCmd([]string{"cp", "testdata/static.txt", "test.txt"}),
-		WithBuilderImageSHA256Digest("9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"),
-		WithRepoURIs([]string{"https://github.com/project-oak/transparent-release"}))
+	want := types.NewProvenanceIR("322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d",
+		types.WithBuildType(amber.AmberBuildTypeV1),
+		types.WithBuildCmd([]string{"cp", "testdata/static.txt", "test.txt"}),
+		types.WithBuilderImageSHA256Digest("9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"),
+		types.WithRepoURIs([]string{"https://github.com/project-oak/transparent-release"}))
 
 	got, err := FromProvenance(provenance)
 	if err != nil {
 		t.Fatalf("couldn't map provenance to ProvenanceIR: %v", err)
 	}
 
-	if diff := cmp.Diff(got, want, cmp.AllowUnexported(ProvenanceIR{})); diff != "" {
+	if diff := cmp.Diff(got, want, cmp.AllowUnexported(types.ProvenanceIR{})); diff != "" {
 		t.Errorf("unexpected provenanceIR: %s", diff)
 	}
 }
@@ -184,9 +184,9 @@ func TestFromProvenance_Slsav02(t *testing.T) {
 		t.Fatalf("couldn't parse the provenance file: %v", err)
 	}
 
-	want := NewProvenanceIR("d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc",
-		WithBuildType(slsav02.GenericSLSABuildType),
-		WithRepoURIs([]string{"git+https://github.com/project-oak/oak@refs/heads/main"}))
+	want := types.NewProvenanceIR("d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc",
+		types.WithBuildType(slsav02.GenericSLSABuildType),
+		types.WithRepoURIs([]string{"git+https://github.com/project-oak/oak@refs/heads/main"}))
 
 	got, err := FromProvenance(provenance)
 	if err != nil {
