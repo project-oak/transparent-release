@@ -120,7 +120,6 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 func verifyProvenances(referenceValues *common.ReferenceValues, provenanceIRs []common.ProvenanceIR) (verifier.VerificationResult, error) {
 	combinedResult := verifier.NewVerificationResult()
 	for index := range provenanceIRs {
-
 		provenanceVerifier := verifier.ProvenanceIRVerifier{
 			Got:  &provenanceIRs[index],
 			Want: referenceValues,
@@ -148,7 +147,6 @@ func verifyConsistency(provenanceIRs []common.ProvenanceIR, binaryDigest string,
 	result := verifier.NewVerificationResult()
 	// verify that all provenances have the given binary digest and name.
 	for ind := 1; ind < len(provenanceIRs); ind++ {
-
 		nextBinaryDigest, err := provenanceIRs[ind].GetBinarySHA256Digest()
 		if err != nil {
 			return result, fmt.Errorf("verification of consistency failed: could not get binary digest in provenance #%d", ind)
