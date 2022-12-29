@@ -19,6 +19,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/amber"
 	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
@@ -143,6 +144,28 @@ func TestParseReferenceValues(t *testing.T) {
 	testutil.AssertEq(t, "binary digests[0]", referenceValues.BinarySHA256Digests[0], "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d")
 	testutil.AssertEq(t, "want build cmd", referenceValues.WantBuildCmds, true)
 	testutil.AssertEq(t, "builder image digests[0]", referenceValues.BuilderImageSHA256Digests[0], "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9")
+}
+
+func TestFromProvenance_Amber(t *testing.T) {
+	path := filepath.Join(testdataPath, provenanceExamplePath)
+	provenance, err := amber.ParseProvenanceFile(path)
+	if err != nil {
+		t.Fatalf("couldn't parse the provenance file: %v", err)
+	}
+
+	want := NewProvenanceIR("322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d",
+		WithBuildType("https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json"),
+		WithBuildCmd([]string{"cp", "testdata/static.txt", "test.txt"}),
+		WithBuilderImageSHA256Digest("9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"))
+
+	got, err := FromProvenance(provenance)
+	if err != nil {
+		t.Fatalf("couldn't map provenance to ProvenanceIR: %v", err)
+	}
+
+	if diff := cmp.Diff(got, want, cmp.AllowUnexported(ProvenanceIR{})); diff != "" {
+		t.Errorf("unexpected provenanceIR: %s", diff)
+	}
 }
 
 func checkBuildConfig(got *BuildConfig, t *testing.T) {
