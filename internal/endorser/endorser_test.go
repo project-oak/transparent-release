@@ -39,7 +39,7 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 		NotAfter:  &nextWeek,
 	}
 
-	tempPath, err := copyToTemp("../../testdata/provenance.json")
+	tempPath, err := copyToTemp("../../testdata/amber_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
@@ -66,11 +66,11 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 }
 
 func TestLoadAndVerifyProvenances_MultipleValidEndorsement(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/provenance.json")
+	tempPath1, err := copyToTemp("../../testdata/amber_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
-	tempPath2, err := copyToTemp("../../testdata/provenance.json")
+	tempPath2, err := copyToTemp("../../testdata/amber_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
@@ -96,7 +96,7 @@ func TestGenerateEndorsement_FailingSingleRemoteProvenanceEndorsement(t *testing
 		NotAfter:  &nextWeek,
 	}
 
-	provenances := []string{"https://github.com/project-oak/transparent-release/blob/main/testdata/provenance.json"}
+	provenances := []string{"https://github.com/project-oak/transparent-release/blob/main/testdata/amber_provenance.json"}
 	referenceValues := common.ReferenceValues{
 		BinarySHA256Digests: []string{binaryHash},
 	}
@@ -108,7 +108,7 @@ func TestGenerateEndorsement_FailingSingleRemoteProvenanceEndorsement(t *testing
 }
 
 func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/provenance.json")
+	tempPath1, err := copyToTemp("../../testdata/amber_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
@@ -126,12 +126,12 @@ func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
 }
 
 func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/provenance.json")
+	tempPath1, err := copyToTemp("../../testdata/amber_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
 
-	tempPath2, err := copyToTemp("../../testdata/different_provenance.json")
+	tempPath2, err := copyToTemp("../../testdata/different_amber_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
@@ -149,12 +149,12 @@ func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
 }
 
 func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/provenance.json")
+	tempPath1, err := copyToTemp("../../testdata/amber_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
 
-	tempPath2, err := copyToTemp("../../testdata/different_provenance.json")
+	tempPath2, err := copyToTemp("../../testdata/different_amber_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
@@ -183,7 +183,7 @@ func copyToTemp(path string) (string, error) {
 		return "", err
 	}
 
-	tmpfile, err := os.CreateTemp("", "provenance.json")
+	tmpfile, err := os.CreateTemp("", "amber_provenance.json")
 	if err != nil {
 		return "", fmt.Errorf("couldn't create tempfile: %v", err)
 	}

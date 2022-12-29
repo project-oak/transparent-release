@@ -27,9 +27,9 @@ import (
 
 const (
 	testdataPath              = "../../testdata/"
-	validProvenancePath       = "provenance.json"
-	invalidHashProvenancePath = "invalid_hash_provenance.json"
-	badCommandProvenancePath  = "bad_command_provenance.json"
+	validProvenancePath       = "amber_provenance.json"
+	invalidHashProvenancePath = "invalid_hash_amber_provenance.json"
+	badCommandProvenancePath  = "bad_command_amber_provenance.json"
 	binarySHA256Digest        = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
 )
 

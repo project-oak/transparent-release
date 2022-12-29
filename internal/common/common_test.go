@@ -29,8 +29,7 @@ import (
 
 const (
 	testdataPath             = "../../testdata/"
-	provenanceExamplePath    = "provenance.json"
-	slsav1ProvenancePath     = "slsa_v1_provenance.json"
+	provenanceExamplePath    = "amber_provenance.json"
 	wantTOMLDigest           = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
 	wantBuilderImageID       = "6e5beabe4ace0e3aaa01ce497f5f1ef30fed7c18c596f35621751176b1ab583d"
 	wantSHA1HexDigitLength   = 40
