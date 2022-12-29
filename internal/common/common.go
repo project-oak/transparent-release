@@ -230,7 +230,6 @@ func fromSLSAv02(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 
 	provenanceIR := NewProvenanceIR(binarySHA256Digest,
 		WithBuildType(buildType),
-		// TODO(#202): Add WithBuilderImageSHA256Digest.
 		WithRepoURIs(repoURIs),
 	)
 	return provenanceIR, nil
