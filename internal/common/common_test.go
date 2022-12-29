@@ -24,12 +24,14 @@ import (
 	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/amber"
 	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
+	slsav02 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 	"github.com/project-oak/transparent-release/pkg/types"
 )
 
 const (
 	testdataPath             = "../../testdata/"
 	provenanceExamplePath    = "amber_provenance.json"
+	slsav02ProvenancePath    = "slsa_v02_provenance.json"
 	slsav1ProvenancePath     = "slsa_v1_provenance.json"
 	wantTOMLDigest           = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
 	wantBuilderImageID       = "6e5beabe4ace0e3aaa01ce497f5f1ef30fed7c18c596f35621751176b1ab583d"
@@ -157,9 +159,35 @@ func TestFromProvenance_Amber(t *testing.T) {
 	}
 
 	want := NewProvenanceIR("322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d",
-		WithBuildType("https://github.com/project-oak/transparent-release/schema/amber-slsa-buildtype/v1/provenance.json"),
+		WithBuildType(amber.AmberBuildTypeV1),
 		WithBuildCmd([]string{"cp", "testdata/static.txt", "test.txt"}),
 		WithBuilderImageSHA256Digest("9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"),
+		WithRepoURIs([]string{"https://github.com/project-oak/transparent-release"}))
+
+	got, err := FromProvenance(provenance)
+	if err != nil {
+		t.Fatalf("couldn't map provenance to ProvenanceIR: %v", err)
+	}
+
+	if diff := cmp.Diff(got, want, cmp.AllowUnexported(ProvenanceIR{})); diff != "" {
+		t.Errorf("unexpected provenanceIR: %s", diff)
+	}
+}
+
+func TestFromProvenance_Slsav02(t *testing.T) {
+	path := filepath.Join(testdataPath, slsav02ProvenancePath)
+	statementBytes, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("could not read the provenance file: %v", err)
+	}
+	provenance, err := types.ParseStatementData(statementBytes)
+	if err != nil {
+		t.Fatalf("couldn't parse the provenance file: %v", err)
+	}
+
+	// TODO(mschett): The current example for slsa_v02_provenance.json has a slightly different build type.
+	want := NewProvenanceIR("d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc",
+		WithBuildType(slsav02.GenericSLSABuildType),
 		WithRepoURIs([]string{"https://github.com/project-oak/transparent-release"}))
 
 	got, err := FromProvenance(provenance)
