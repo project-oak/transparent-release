@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/project-oak/transparent-release/internal/common"
 	"github.com/project-oak/transparent-release/pkg/types"
@@ -170,6 +171,7 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 		combinedResult.Combine(nextResult)
 	}
 
+	// Verify HasBuildCmd.
 	if verifier.Want.WantBuildCmds {
 		nextResult := verifyHasBuildCmd(verifier.Got)
 		combinedResult.Combine(nextResult)
@@ -181,6 +183,12 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 		if err != nil {
 			return combinedResult, fmt.Errorf("failed to verify builder image digests: %v", err)
 		}
+		combinedResult.Combine(nextResult)
+	}
+
+	// Verify RepoURIs.
+	if verifier.Want.RepoURI != "" {
+		nextResult := verifyRepoURIs(verifier.Want, verifier.Got)
 		combinedResult.Combine(nextResult)
 	}
 
@@ -251,4 +259,17 @@ func verifyBuilderImageDigest(want common.ReferenceValues, got *common.Provenanc
 	}
 
 	return result, nil
+}
+
+// verifyRepoURIs verifies that the references to URIs in the provenance point to the repo URI given in the reference values.
+func verifyRepoURIs(want common.ReferenceValues, got *common.ProvenanceIR) VerificationResult {
+	result := NewVerificationResult()
+
+	for _, gotRepoURI := range got.GetRepoURIs() {
+		// We want the want.RepoURI be contained in every repo uri from the provenance.
+		if !strings.Contains(gotRepoURI, want.RepoURI) {
+			result.SetFailed(fmt.Sprintf("the URI from the provenance (%v) does not contain the repo URI (%v)", gotRepoURI, want.RepoURI))
+		}
+	}
+	return result
 }

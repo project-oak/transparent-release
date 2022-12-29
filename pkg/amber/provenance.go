@@ -26,7 +26,7 @@ import (
 	"os"
 	"strings"
 
-	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
+	slsav02 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 	"github.com/project-oak/transparent-release/pkg/types"
 	"github.com/xeipuuv/gojsonschema"
 
@@ -87,7 +87,7 @@ func ParseProvenanceFile(path string) (*types.ValidatedProvenance, error) {
 }
 
 // ParseBuildConfig parses the map in predicate.BuildConfig into an instance of BuildConfig.
-func ParseBuildConfig(predicate slsa.ProvenancePredicate) (BuildConfig, error) {
+func ParseBuildConfig(predicate slsav02.ProvenancePredicate) (BuildConfig, error) {
 	var buildConfig BuildConfig
 	buildConfigBytes, err := json.Marshal(predicate.BuildConfig)
 	if err != nil {
@@ -100,7 +100,7 @@ func ParseBuildConfig(predicate slsa.ProvenancePredicate) (BuildConfig, error) {
 }
 
 // GetBuildCmd extracts and returns the build command from the given ProvenancePredicate.
-func GetBuildCmd(predicate slsa.ProvenancePredicate) ([]string, error) {
+func GetBuildCmd(predicate slsav02.ProvenancePredicate) ([]string, error) {
 	buildConfig, err := ParseBuildConfig(predicate)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse BuildConfig: %v", err)
@@ -109,7 +109,7 @@ func GetBuildCmd(predicate slsa.ProvenancePredicate) ([]string, error) {
 }
 
 // GetBuilderImageDigest extracts and returns the digest for the Builder Image.
-func GetBuilderImageDigest(predicate slsa.ProvenancePredicate) (string, error) {
+func GetBuilderImageDigest(predicate slsav02.ProvenancePredicate) (string, error) {
 	for _, material := range predicate.Materials {
 		// This is a crude way to estimate if one of the materials is the builder image.
 		// However, even if we get a "wrong" digest as the builder image, the reference values should

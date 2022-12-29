@@ -21,6 +21,7 @@ package v02
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/project-oak/transparent-release/pkg/intoto"
@@ -184,4 +185,18 @@ func ParseSLSAv02Predicate(predicate interface{}) (*ProvenancePredicate, error) 
 	}
 
 	return &pp, nil
+}
+
+// GetMaterialsGitURI returns references to a Git repo.
+func GetMaterialsGitURI(pred ProvenancePredicate) []string {
+	materials := pred.Materials
+	gitURIs := []string{}
+	for _, material := range materials {
+		// This may be an overestimation and get too many repositiories.
+		// However, even if we get a "wrong" repository, worst case verifying the provenance fails, when it should not.
+		if strings.Contains(material.URI, "git") {
+			gitURIs = append(gitURIs, material.URI)
+		}
+	}
+	return gitURIs
 }

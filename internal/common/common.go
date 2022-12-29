@@ -72,6 +72,8 @@ type ReferenceValues struct {
 	WantBuildCmds bool `toml:"want_build_cmds"`
 	// The digests of the builder images the product team trusts to build the binary.
 	BuilderImageSHA256Digests []string `toml:"builder_image_sha256_digests"`
+	// The URI of the repo holding the resources the binary is built from.
+	RepoURI string `toml:"repo_uri"`
 }
 
 // ProvenanceIR is an internal intermediate representation of data from provenances.
@@ -82,6 +84,7 @@ type ProvenanceIR struct {
 	buildType                string
 	buildCmd                 []string
 	builderImageSHA256Digest string
+	repoURIs                 []string
 }
 
 // NewProvenanceIR creates a new proveance with given optional fields.
@@ -108,6 +111,13 @@ func WithBuildType(buildType string) func(p *ProvenanceIR) {
 	}
 }
 
+// WithRepoURIs adds repo URIs referenced in the provenance when creating a new ProvenanceIR.
+func WithRepoURIs(repoURIs []string) func(p *ProvenanceIR) {
+	return func(p *ProvenanceIR) {
+		p.repoURIs = repoURIs
+	}
+}
+
 // WithBuilderImageSHA256Digest adds a builder image sha256 digest when creating a new ProvenanceIR.
 func WithBuilderImageSHA256Digest(builderImageSHA256Digest string) func(p *ProvenanceIR) {
 	return func(p *ProvenanceIR) {
@@ -129,6 +139,11 @@ func (p *ProvenanceIR) GetBuildCmd() ([]string, error) {
 		return nil, fmt.Errorf("provenance does not have a build cmd")
 	}
 	return p.buildCmd, nil
+}
+
+// GetRepoURIs gets references to a repo in the provenance. There is no guarantee to get all the references to any repo.
+func (p *ProvenanceIR) GetRepoURIs() []string {
+	return p.repoURIs
 }
 
 // GetBuilderImageSHA256Digest gets the builder image sha256 digest. Returns an error if the builder image sha256 digest is empty.
@@ -153,7 +168,7 @@ func FromProvenance(prov *types.ValidatedProvenance) (*ProvenanceIR, error) {
 		case amber.AmberBuildTypeV1:
 			return fromAmber(prov)
 		case slsav02.GenericSLSABuildType:
-			return fromSLSAv02(prov), nil
+			return fromSLSAv02(prov)
 		default:
 			return nil, fmt.Errorf("unsupported buildType (%q) for SLSA0v2 provenance", pred.BuildType)
 		}
@@ -183,22 +198,37 @@ func fromAmber(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 		return nil, fmt.Errorf("could get builder image digest from *amber.ValidatedProvenance: %v", err)
 	}
 
+	// We collect repo uris from where they appear in the provenance to verify that they point to the same reference repo uri.
+	repoURIs := slsav02.GetMaterialsGitURI(*predicate)
+
 	provenanceIR := NewProvenanceIR(binarySHA256Digest,
 		WithBuildType(buildType),
 		WithBuildCmd(buildCmd),
-		WithBuilderImageSHA256Digest(builderImageDigest))
+		WithBuilderImageSHA256Digest(builderImageDigest),
+		WithRepoURIs(repoURIs))
 
 	return provenanceIR, nil
 }
 
 // fromSLSAv02 maps data from a validated SLSA v0.2 provenance to ProvenanceIR.
-func fromSLSAv02(provenance *types.ValidatedProvenance) *ProvenanceIR {
+func fromSLSAv02(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 	// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
 	binarySHA256Digest := provenance.GetBinarySHA256Digest()
 	buildType := slsav02.GenericSLSABuildType
+
+	predicate, err := slsav02.ParseSLSAv02Predicate(provenance.GetProvenance().Predicate)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse provenance predicate: %v", err)
+	}
+
+	// We collect repo uris from where they appear in the provenance to verify that they point to the same reference repo uri.
+	repoURIs := slsav02.GetMaterialsGitURI(*predicate)
+
 	provenanceIR := NewProvenanceIR(binarySHA256Digest,
-		WithBuildType(buildType))
-	return provenanceIR
+		WithBuildType(buildType),
+		WithRepoURIs(repoURIs),
+	)
+	return provenanceIR, nil
 }
 
 // Cleanup removes the generated temp files. But it might not be able to remove
