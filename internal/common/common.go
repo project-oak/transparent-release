@@ -199,9 +199,7 @@ func fromAmber(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 	}
 
 	// We collect repo uris from where they appear in the provenance to verify that they point to the same reference repo uri.
-	repoURIs := []string{}
-	repoURIs = append(repoURIs, slsav02.GetConfigSourceURI(*predicate))
-	repoURIs = append(repoURIs, slsav02.GetMaterialsGitURI(*predicate)...)
+	repoURIs := slsav02.GetMaterialsGitURI(*predicate)
 
 	provenanceIR := NewProvenanceIR(binarySHA256Digest,
 		WithBuildType(buildType),
@@ -224,9 +222,7 @@ func fromSLSAv02(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 	}
 
 	// We collect repo uris from where they appear in the provenance to verify that they point to the same reference repo uri.
-	repoURIs := []string{}
-	repoURIs = append(repoURIs, slsav02.GetConfigSourceURI(*predicate))
-	repoURIs = append(repoURIs, slsav02.GetMaterialsGitURI(*predicate)...)
+	repoURIs := slsav02.GetMaterialsGitURI(*predicate)
 
 	provenanceIR := NewProvenanceIR(binarySHA256Digest,
 		WithBuildType(buildType),

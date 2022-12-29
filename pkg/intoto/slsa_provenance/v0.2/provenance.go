@@ -187,11 +187,6 @@ func ParseSLSAv02Predicate(predicate interface{}) (*ProvenancePredicate, error) 
 	return &pp, nil
 }
 
-// GetConfigSourceURI returns the URI of the configuration.
-func GetConfigSourceURI(pred ProvenancePredicate) string {
-	return pred.Invocation.ConfigSource.URI
-}
-
 // GetMaterialsGitURI returns references to a Git repo.
 func GetMaterialsGitURI(pred ProvenancePredicate) []string {
 	materials := pred.Materials
