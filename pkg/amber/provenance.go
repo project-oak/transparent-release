@@ -70,25 +70,6 @@ func validateSLSAProvenanceJSON(provenanceFile []byte) error {
 	return nil
 }
 
-// GetConfigSourceURI returns the URI of the configuration.
-func GetConfigSourceURI(pred *slsav02.ProvenancePredicate) string {
-	return pred.Invocation.ConfigSource.URI
-}
-
-// GetMaterialsGitURI returns references to a Git repo.
-func GetMaterialsGitURI(pred *slsav02.ProvenancePredicate) []string {
-	materials := pred.Materials
-	gitURIs := []string{}
-	for _, material := range materials {
-		// This may be an overestimation and get too many repositiories.
-		// However, even if we get a "wrong" repository, worst case verifying the provenance fails, when it should not.
-		if strings.Contains(material.URI, "git") {
-			gitURIs = append(gitURIs, material.URI)
-		}
-	}
-	return gitURIs
-}
-
 // ParseProvenanceFile reads a JSON file from a given path, and calls ParseStatementData on the
 // content of the file, if the read is successful.
 // Returns an error if the file is not a valid provenance statement.
