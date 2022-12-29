@@ -124,33 +124,9 @@ func chdir(dir string) {
 	}
 }
 
-// ProvenanceMetadataVerifier verifies provenances by comparing the
-// content of the provenance predicate against a given set of expected values.
-type ProvenanceMetadataVerifier struct {
-	Got  *types.ValidatedProvenance
-	Want *common.ReferenceValues
-	// TODO(#69): Add metadata fields.
-}
-
-// Verify verifies a given provenance file by checking its content against the expected values
-// ProvenanceMetadataVerifier instance.
-// TODO(#69): Check metadata against the expected values.
-func (verifier *ProvenanceMetadataVerifier) Verify() (VerificationResult, error) {
-	provenanceIR, err := common.FromProvenance(verifier.Got)
-	if err != nil {
-		return VerificationResult{}, fmt.Errorf("could not parse provenance into ProvenanceIR: %v", err)
-	}
-
-	provenanceVerifier := ProvenanceIRVerifier{
-		Got:  provenanceIR,
-		Want: verifier.Want,
-	}
-
-	return provenanceVerifier.Verify()
-}
-
 // ProvenanceIRVerifier verifies a provenance against a given reference, by verifying
 // all non-empty fields in got using fields in the reference values. Empty fields will not be verified.
+// TODO(#69): Check metadata against the expected values.
 type ProvenanceIRVerifier struct {
 	Got  *common.ProvenanceIR
 	Want *common.ReferenceValues

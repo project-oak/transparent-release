@@ -104,8 +104,12 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 func verifyProvenances(referenceValues *common.ReferenceValues, provenances []types.ValidatedProvenance) (verifier.VerificationResult, error) {
 	combinedResult := verifier.NewVerificationResult()
 	for index := range provenances {
-		provenanceVerifier := verifier.ProvenanceMetadataVerifier{
-			Got:  &provenances[index],
+		provenanceIR, err := common.FromProvenance(&provenances[index])
+		if err != nil {
+			return combinedResult, fmt.Errorf("could not parse provenance into ProvenanceIR: %v", err)
+		}
+		provenanceVerifier := verifier.ProvenanceIRVerifier{
+			Got:  provenanceIR,
 			Want: referenceValues,
 		}
 		result, err := provenanceVerifier.Verify()
