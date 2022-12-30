@@ -85,7 +85,6 @@ func ParseProvenanceFile(path string) (*types.ProvenanceIR, error) {
 	provenanceIR, err := types.ParseStatementData(statementBytes)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse the provenance bytes: %v", err)
-
 	}
 
 	if err := SetAmberProvenanceData(provenanceIR); err != nil {
