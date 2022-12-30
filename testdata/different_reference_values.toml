@@ -1,0 +1,4 @@
+binary_sha256_digests = ["a_different_digest"]
+want_build_cmds = true
+builder_image_sha256_digests = ["another_different_digest"]
+repo_uri = "some_different_repo"

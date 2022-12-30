@@ -175,6 +175,35 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 	}
 }
 
+func TestLoadAndVerifyProvenances_NotVerified(t *testing.T) {
+	tempPath1, err := copyToTemp("../../testdata/amber_provenance.json")
+	if err != nil {
+		t.Fatalf("Could not load provenance: %v", err)
+	}
+
+	referenceValues, err := common.LoadReferenceValuesFromFile("../../testdata/different_reference_values.toml")
+	if err != nil {
+		t.Fatalf("Could not load reference values: %v", err)
+	}
+
+	_, err = loadAndVerifyProvenances(referenceValues, []string{"file://" + tempPath1})
+
+	want := "do not contain the actual binary SHA256 digest"
+	if err == nil || !strings.Contains(err.Error(), want) {
+		t.Fatalf("got %q, want error message containing %q,", err, want)
+	}
+
+	want = "do not contain the actual builder image digest"
+	if err == nil || !strings.Contains(err.Error(), want) {
+		t.Fatalf("got %q, want error message containing %q,", err, want)
+	}
+
+	want = "does not contain the repo URI"
+	if err == nil || !strings.Contains(err.Error(), want) {
+		t.Fatalf("got %q, want error message containing %q,", err, want)
+	}
+}
+
 // copyToTemp creates a copy of the given file in `/tmp`.
 // This is used for creating URLs with `file` as the scheme.
 func copyToTemp(path string) (string, error) {
