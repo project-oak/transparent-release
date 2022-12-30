@@ -45,8 +45,8 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 	}
 	tempURI := "file://" + tempPath
 	provenances := []string{tempURI}
-	referenceValues, err := common.LoadReferenceValuesFromFile("../../testdata/reference_values.toml")
 
+	referenceValues, err := common.LoadReferenceValuesFromFile("../../testdata/reference_values.toml")
 	if err != nil {
 		t.Fatalf("Could not load reference values: %v", err)
 	}
