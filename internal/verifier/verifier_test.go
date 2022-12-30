@@ -32,7 +32,6 @@ const (
 	validProvenancePath       = "amber_provenance.json"
 	invalidHashProvenancePath = "invalid_hash_amber_provenance.json"
 	badCommandProvenancePath  = "bad_command_amber_provenance.json"
-	binarySHA256Digest        = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
 )
 
 func TestReproducibleProvenanceVerifier_validProvenance(t *testing.T) {

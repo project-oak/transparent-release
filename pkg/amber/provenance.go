@@ -81,10 +81,12 @@ func ParseProvenanceFile(path string) (*types.ProvenanceIR, error) {
 	if err := validateSLSAProvenanceJSON(statementBytes); err != nil {
 		return nil, err
 	}
+
 	provenanceIR, err := types.ParseStatementData(statementBytes)
 	if err := SetAmberProvenanceData(provenanceIR); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not set the Amber provenance data: %v", err)
 	}
+
 	return provenanceIR, nil
 }
 

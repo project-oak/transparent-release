@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package types
+package v02
 
 import (
 	"fmt"
@@ -20,12 +20,11 @@ import (
 	"testing"
 
 	"github.com/project-oak/transparent-release/internal/testutil"
-	slsa "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 	"github.com/project-oak/transparent-release/pkg/types"
 )
 
 const (
-	provenanceExamplePath    = "../../../schema/provenance/v1/example.json"
+	provenanceExamplePath    = "../../../../schema/provenance/v1/example.json"
 	wantSHA1HexDigitLength   = 40
 	wantSHA256HexDigitLength = 64
 )
@@ -42,10 +41,14 @@ func TestParseStatementData(t *testing.T) {
 		t.Fatalf("Failed to parse example provenance: %v", err)
 	}
 
-	slsa.SetSLSAv02ProvenanceData(provenanceIR)
+	err = SetSLSAv02ProvenanceData(provenanceIR)
+	if err != nil {
+		t.Fatalf("Could not set provenance data: %v", err)
+	}
+
 	provenance := provenanceIR.GetProvenance()
 
-	predicate, err := slsa.ParseSLSAv02Predicate(provenance.Predicate)
+	predicate, err := ParseSLSAv02Predicate(provenance.Predicate)
 	if err != nil {
 		t.Fatalf("Could not parse provenance predicate: %v", err)
 	}

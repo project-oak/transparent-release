@@ -70,10 +70,11 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 		if err != nil {
 			return nil, fmt.Errorf("couldn't parse bytes from %s into a provenance statement: %v", uri, err)
 		}
-		common.SetProvenanceData(provenance)
-		if err != nil {
+
+		if common.SetProvenanceData(provenance) != nil {
 			return nil, fmt.Errorf("couldn't set provenance data: %v", err)
 		}
+
 		sum256 := sha256.Sum256(provenanceBytes)
 		if err != nil {
 			return nil, fmt.Errorf("could not parse provenance into ProvenanceIR: %v", err)
@@ -88,11 +89,7 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 
 	binaryDigest := provenanceIRs[0].GetBinarySHA256Digest()
 	binaryName := provenanceIRs[0].GetBinaryName()
-
-	result, err := verifyConsistency(provenanceIRs, binaryDigest, binaryName)
-	if err != nil {
-		return nil, fmt.Errorf("could not verify consistency: %v", err)
-	}
+	result := verifyConsistency(provenanceIRs, binaryDigest, binaryName)
 
 	verifyResult, err := verifyProvenances(referenceValues, provenanceIRs)
 	if err != nil {
@@ -141,7 +138,7 @@ func verifyProvenances(referenceValues *common.ReferenceValues, provenanceIRs []
 // binary digest.
 // TODO(b/222440937): Perform any additional verification among provenances to ensure their consistency.
 // TODO(#165) Replace input type ValidatedProvenance with ProvenanceIR. Use common.FromProvenance before calling this function.
-func verifyConsistency(provenanceIRs []types.ProvenanceIR, binaryDigest string, binaryName string) (verifier.VerificationResult, error) {
+func verifyConsistency(provenanceIRs []types.ProvenanceIR, binaryDigest string, binaryName string) verifier.VerificationResult {
 	result := verifier.NewVerificationResult()
 	// verify that all provenances have the given binary digest and name.
 	for ind := 1; ind < len(provenanceIRs); ind++ {
@@ -160,7 +157,7 @@ func verifyConsistency(provenanceIRs []types.ProvenanceIR, binaryDigest string, 
 					nextBinaryName, binaryName))
 		}
 	}
-	return result, nil
+	return result
 }
 
 func getProvenanceBytes(provenanceURI string) ([]byte, error) {
