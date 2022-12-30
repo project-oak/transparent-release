@@ -202,12 +202,19 @@ func GetMaterialsGitURI(pred ProvenancePredicate) []string {
 	return gitURIs
 }
 
-// FromSLSAv02 maps data from a validated SLSA v0.2 provenance to ProvenanceIR.
-func FromSLSAv02(provenance *types.ValidatedProvenance) *types.ProvenanceIR {
-	// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
-	binarySHA256Digest := provenance.GetBinarySHA256Digest()
+// SetSLSAv02ProvenanceData sets data to verify a SLSA v02 provenance in the given ProvenanceIR.
+func SetSLSAv02ProvenanceData(provenanceIR *types.ProvenanceIR) error {
 	buildType := GenericSLSABuildType
-	binaryName := provenance.GetBinaryName()
-	provenanceIR := types.NewProvenanceIR(binarySHA256Digest, types.WithBinaryName(binaryName), types.WithBuildType(buildType))
-	return provenanceIR
+
+	predicate, err := ParseSLSAv02Predicate(provenanceIR.GetProvenance().Predicate)
+	if err != nil {
+		return fmt.Errorf("could not parse provenance predicate: %v", err)
+	}
+
+	// We collect repo uris from where they appear in the provenance to verify that they point to the same reference repo uri.
+	repoURIs := GetMaterialsGitURI(*predicate)
+
+	provenanceIR.SetProvenanceData(types.WithBuildType(buildType),
+		types.WithRepoURIs(repoURIs))
+	return nil
 }

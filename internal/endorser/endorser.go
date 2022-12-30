@@ -70,27 +70,25 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 		if err != nil {
 			return nil, fmt.Errorf("couldn't parse bytes from %s into a provenance statement: %v", uri, err)
 		}
+		common.SetProvenanceData(provenance)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't set provenance data: %v", err)
+		}
 		sum256 := sha256.Sum256(provenanceBytes)
-		provenanceIR, err := common.FromProvenance(provenance)
 		if err != nil {
 			return nil, fmt.Errorf("could not parse provenance into ProvenanceIR: %v", err)
 		}
 
-		provenanceIRs = append(provenanceIRs, *provenanceIR)
+		provenanceIRs = append(provenanceIRs, *provenance)
 		provenancesData = append(provenancesData, amber.ProvenanceData{
 			URI:          uri,
 			SHA256Digest: hex.EncodeToString(sum256[:]),
 		})
 	}
 
-	binaryDigest, err := provenanceIRs[0].GetBinarySHA256Digest()
-	if err != nil {
-		return nil, fmt.Errorf("could not get digest when loading provenances: %v", err)
-	}
-	binaryName, err := provenanceIRs[0].GetBinaryName()
-	if err != nil {
-		return nil, fmt.Errorf("could not get binary name when loading provenances: %v", err)
-	}
+	binaryDigest := provenanceIRs[0].GetBinarySHA256Digest()
+	binaryName := provenanceIRs[0].GetBinaryName()
+
 	result, err := verifyConsistency(provenanceIRs, binaryDigest, binaryName)
 	if err != nil {
 		return nil, fmt.Errorf("could not verify consistency: %v", err)
@@ -147,21 +145,14 @@ func verifyConsistency(provenanceIRs []types.ProvenanceIR, binaryDigest string, 
 	result := verifier.NewVerificationResult()
 	// verify that all provenances have the given binary digest and name.
 	for ind := 1; ind < len(provenanceIRs); ind++ {
-		nextBinaryDigest, err := provenanceIRs[ind].GetBinarySHA256Digest()
-		if err != nil {
-			return result, fmt.Errorf("verification of consistency failed: could not get binary digest in provenance #%d", ind)
-		}
+		nextBinaryDigest := provenanceIRs[ind].GetBinarySHA256Digest()
 		if nextBinaryDigest != binaryDigest {
 			result.SetFailed(fmt.Sprintf("provenances are not consistent: unexpected binary SHA256 digest in provenance #%d; got %q, want %q",
 				ind,
 				nextBinaryDigest, binaryDigest))
 		}
 
-		nextBinaryName, err := provenanceIRs[ind].GetBinaryName()
-		if err != nil {
-			return result, fmt.Errorf("verification of consistency failed: could not get binary name in provenance #%d", ind)
-		}
-
+		nextBinaryName := provenanceIRs[ind].GetBinaryName()
 		if nextBinaryName != binaryName {
 			result.SetFailed(
 				fmt.Sprintf("provenances are not consistent: unexpected subject name in provenance #%d; got %q, want %q",

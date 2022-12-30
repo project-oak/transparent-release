@@ -64,7 +64,7 @@ type ProvenanceVerifier interface {
 // specified in the provenance and checking that the hash of the binary is the
 // same as the digest in the subject of the provenance file.
 type ReproducibleProvenanceVerifier struct {
-	Provenance *types.ValidatedProvenance
+	Provenance *types.ProvenanceIR
 	GitRootDir string
 }
 
@@ -175,11 +175,7 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 func verifyBinarySHA256Digest(want *common.ReferenceValues, got *types.ProvenanceIR) (VerificationResult, error) {
 	result := NewVerificationResult()
 
-	gotBinarySHA256Digest, err := got.GetBinarySHA256Digest()
-
-	if err != nil {
-		return result, err
-	}
+	gotBinarySHA256Digest := got.GetBinarySHA256Digest()
 
 	if want.BinarySHA256Digests == nil {
 		return result, fmt.Errorf("no reference binary SHA256 digests given")

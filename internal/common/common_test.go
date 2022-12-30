@@ -20,7 +20,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/amber"
 	slsav02 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
@@ -152,25 +151,40 @@ func TestParseReferenceValues(t *testing.T) {
 
 func TestFromProvenance_Amber(t *testing.T) {
 	path := filepath.Join(testdataPath, provenanceExamplePath)
-	provenance, err := amber.ParseProvenanceFile(path)
+	got, err := amber.ParseProvenanceFile(path)
 	if err != nil {
 		t.Fatalf("couldn't parse the provenance file: %v", err)
 	}
 
-	want := types.NewProvenanceIR("322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d",
-		types.WithBuildType(amber.AmberBuildTypeV1),
-		types.WithBuildCmd([]string{"cp", "testdata/static.txt", "test.txt"}),
-		types.WithBuilderImageSHA256Digest("9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"),
-		types.WithRepoURIs([]string{"https://github.com/project-oak/transparent-release"}))
-
-	got, err := FromProvenance(provenance)
+	err = SetProvenanceData(got)
 	if err != nil {
 		t.Fatalf("couldn't map provenance to ProvenanceIR: %v", err)
 	}
 
-	if diff := cmp.Diff(got, want, cmp.AllowUnexported(types.ProvenanceIR{})); diff != "" {
-		t.Errorf("unexpected provenanceIR: %s", diff)
+	testutil.AssertEq(t, "binary digest", got.GetBinarySHA256Digest(), "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d")
+
+	gotBuildType, err := got.GetBuildType()
+	if err != nil {
+		t.Fatalf("couldn't get build type")
 	}
+	testutil.AssertEq(t, "build type", gotBuildType, amber.AmberBuildTypeV1)
+
+	gotBuildCmd, err := got.GetBuildCmd()
+	if err != nil {
+		t.Fatalf("couldn't get build cmd")
+	}
+	testutil.AssertEq(t, "build cmd[0]", gotBuildCmd[0], "cp")
+	testutil.AssertEq(t, "build cmd[1]", gotBuildCmd[1], "testdata/static.txt")
+	testutil.AssertEq(t, "build cmd[2]", gotBuildCmd[2], "test.txt")
+
+	gotBuilderImageDigest, err := got.GetBuilderImageSHA256Digest()
+	if err != nil {
+		t.Fatalf("couldn't get builder image digest")
+	}
+	testutil.AssertEq(t, "builder image digest", gotBuilderImageDigest, "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9")
+
+	gotRepoURIs := got.GetRepoURIs()
+	testutil.AssertEq(t, "repo URI", gotRepoURIs[0], "https://github.com/project-oak/transparent-release")
 }
 
 func TestFromProvenance_Slsav02(t *testing.T) {
@@ -179,23 +193,26 @@ func TestFromProvenance_Slsav02(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not read the provenance file: %v", err)
 	}
-	provenance, err := types.ParseStatementData(statementBytes)
+	got, err := types.ParseStatementData(statementBytes)
 	if err != nil {
 		t.Fatalf("couldn't parse the provenance file: %v", err)
 	}
 
-	want := types.NewProvenanceIR("d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc",
-		types.WithBuildType(slsav02.GenericSLSABuildType),
-		types.WithRepoURIs([]string{"git+https://github.com/project-oak/oak@refs/heads/main"}))
-
-	got, err := FromProvenance(provenance)
+	err = SetProvenanceData(got)
 	if err != nil {
 		t.Fatalf("couldn't map provenance to ProvenanceIR: %v", err)
 	}
 
-	if diff := cmp.Diff(got, want, cmp.AllowUnexported(ProvenanceIR{})); diff != "" {
-		t.Errorf("unexpected provenanceIR: %s", diff)
+	testutil.AssertEq(t, "binary digest", got.GetBinarySHA256Digest(), "d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc")
+
+	gotBuildType, err := got.GetBuildType()
+	if err != nil {
+		t.Fatalf("couldn't get build type")
 	}
+	testutil.AssertEq(t, "build type", gotBuildType, slsav02.GenericSLSABuildType)
+
+	gotRepoURIs := got.GetRepoURIs()
+	testutil.AssertEq(t, "repo URI", gotRepoURIs[0], "git+https://github.com/project-oak/oak@refs/heads/main")
 }
 
 func TestFromProvenance_Slsav1(t *testing.T) {
@@ -211,7 +228,7 @@ func TestFromProvenance_Slsav1(t *testing.T) {
 
 	// Currently SLSA v1.0 provenances are not supported, so we expect an error.
 	want := fmt.Sprintf("unsupported predicateType (%q) for provenance", "https://slsa.dev/provenance/v1.0")
-	_, err = FromProvenance(provenance)
+	err = SetProvenanceData(provenance)
 	got := fmt.Sprintf("%v", err)
 
 	if got != want {

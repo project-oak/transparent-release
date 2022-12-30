@@ -76,26 +76,26 @@ type ReferenceValues struct {
 	RepoURI string `toml:"repo_uri"`
 }
 
-// FromProvenance validates and converts a provenance of arbitrary type to ProvenanceIR
-// TODO(#165): Remove types.ValidatedProvenance and perform the conversion directly on an intoto.statement.
-func FromProvenance(prov *types.ValidatedProvenance) (*types.ProvenanceIR, error) {
-	predType := prov.PredicateType()
+// SetProvenanceData sets, depending on the predicate of the underlying provenance intoto.Statement,
+// the data for verifying the provenance.
+func SetProvenanceData(provenanceIR *types.ProvenanceIR) error {
+	predType := provenanceIR.PredicateType()
 	switch predType {
 	case intoto.SLSAV02PredicateType:
-		pred, err := slsav02.ParseSLSAv02Predicate(prov.GetProvenance().Predicate)
+		pred, err := slsav02.ParseSLSAv02Predicate(provenanceIR.GetProvenance().Predicate)
 		if err != nil {
-			return nil, fmt.Errorf("could not parse provenance predicate: %v", err)
+			return fmt.Errorf("could not parse provenance predicate: %v", err)
 		}
 		switch pred.BuildType {
 		case amber.AmberBuildTypeV1:
-			return amber.FromAmber(prov)
+			return amber.SetAmberProvenanceData(provenanceIR)
 		case slsav02.GenericSLSABuildType:
-			return slsav02.FromSLSAv02(prov), nil
+			return slsav02.SetSLSAv02ProvenanceData(provenanceIR)
 		default:
-			return nil, fmt.Errorf("unsupported buildType (%q) for SLSA0v2 provenance", pred.BuildType)
+			return fmt.Errorf("unsupported buildType (%q) for SLSA0v2 provenance", pred.BuildType)
 		}
 	default:
-		return nil, fmt.Errorf("unsupported predicateType (%q) for provenance", predType)
+		return fmt.Errorf("unsupported predicateType (%q) for provenance", predType)
 	}
 }
 
@@ -126,7 +126,7 @@ func LoadBuildConfigFromFile(path string) (*BuildConfig, error) {
 }
 
 // LoadBuildConfigFromProvenance loads build configuration from a SLSA Provenance object.
-func LoadBuildConfigFromProvenance(provenance *types.ValidatedProvenance) (*BuildConfig, error) {
+func LoadBuildConfigFromProvenance(provenance *types.ProvenanceIR) (*BuildConfig, error) {
 	statement := provenance.GetProvenance()
 	predicate, err := slsav02.ParseSLSAv02Predicate(statement.Predicate)
 	if err != nil {

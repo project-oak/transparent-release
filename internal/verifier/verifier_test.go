@@ -23,6 +23,7 @@ import (
 	"github.com/project-oak/transparent-release/internal/common"
 	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/amber"
+	"github.com/project-oak/transparent-release/pkg/intoto"
 	"github.com/project-oak/transparent-release/pkg/types"
 )
 
@@ -97,14 +98,14 @@ func TestReproducibleProvenanceVerifier_badCommand(t *testing.T) {
 }
 
 func TestVerifyHasBuildCmd_HasBuildCmd(t *testing.T) {
-	got := types.NewProvenanceIR(binarySHA256Digest, types.WithBuildCmd([]string{"build cmd"}))
+	got := types.NewProvenanceIR(&intoto.Statement{}, types.WithBuildCmd([]string{"build cmd"}))
 	result := verifyHasBuildCmd(got)
 
 	testutil.AssertEq(t, "has build cmd", result.IsVerified, true)
 }
 
 func TestVerifyHasBuildCmd_HasNoBuildCmd(t *testing.T) {
-	got := types.NewProvenanceIR(binarySHA256Digest)
+	got := types.NewProvenanceIR(&intoto.Statement{})
 	result := verifyHasBuildCmd(got)
 
 	testutil.AssertEq(t, "has no build cmd", result.IsVerified, false)
@@ -118,7 +119,7 @@ func TestVerifyHasBuildCmd_HasNoBuildCmd(t *testing.T) {
 
 func TestVerifyHasBuildCmd_EmptyBuildCmds(t *testing.T) {
 	// There is no build cmd.
-	got := types.NewProvenanceIR(binarySHA256Digest)
+	got := types.NewProvenanceIR(&intoto.Statement{})
 	// And the reference values do not ask for a build cmd.
 	want := common.ReferenceValues{
 		WantBuildCmds: false,
@@ -140,7 +141,7 @@ func TestVerifyHasBuildCmd_EmptyBuildCmds(t *testing.T) {
 
 func TestVerifyBuilderImageDigest_DigestFound(t *testing.T) {
 	builderImageSHA256Digest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
-	got := types.NewProvenanceIR(binarySHA256Digest, types.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
+	got := types.NewProvenanceIR(&intoto.Statement{}, types.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
 	want := common.ReferenceValues{
 		BuilderImageSHA256Digests: []string{"some_other_digest", builderImageSHA256Digest},
 	}
@@ -159,7 +160,7 @@ func TestVerifyBuilderImageDigest_DigestFound(t *testing.T) {
 
 func TestVerifyBuilderImageDigest_DigestNotFound(t *testing.T) {
 	builderImageSHA256Digest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
-	got := types.NewProvenanceIR(binarySHA256Digest, types.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
+	got := types.NewProvenanceIR(&intoto.Statement{}, types.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
 	want := common.ReferenceValues{
 		BuilderImageSHA256Digests: []string{"some_other_digest", "and_some_other"},
 	}
@@ -186,7 +187,7 @@ func TestVerifyBuilderImageDigest_DigestNotFound(t *testing.T) {
 }
 
 func TestVerifyRepoURI_FoundURI(t *testing.T) {
-	got := types.NewProvenanceIR(binarySHA256Digest,
+	got := types.NewProvenanceIR(&intoto.Statement{},
 		types.WithRepoURIs([]string{
 			"git+https://github.com/project-oak/transparent-release@refs/heads/main",
 			"https://github.com/project-oak/transparent-release",
@@ -213,7 +214,7 @@ func TestVerifyRepoURI_FoundURI(t *testing.T) {
 
 func TestVerifyRepoURI_WrongURI(t *testing.T) {
 	wrongURI := "git+https://github.com/project-oak/oak@refs/heads/main"
-	got := types.NewProvenanceIR(binarySHA256Digest,
+	got := types.NewProvenanceIR(&intoto.Statement{},
 		types.WithRepoURIs([]string{
 			wrongURI,
 			"https://github.com/project-oak/transparent-release",
@@ -246,7 +247,7 @@ func TestVerifyRepoURI_WrongURI(t *testing.T) {
 
 func TestVerifyRepoURI_NoReferences(t *testing.T) {
 	// We have no repo URIs in the provenance.
-	got := types.NewProvenanceIR(binarySHA256Digest,
+	got := types.NewProvenanceIR(&intoto.Statement{},
 		types.WithRepoURIs([]string{}))
 	want := common.ReferenceValues{
 		RepoURI: "github.com/project-oak/transparent-release",

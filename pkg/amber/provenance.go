@@ -71,50 +71,53 @@ func validateSLSAProvenanceJSON(provenanceFile []byte) error {
 }
 
 // ParseProvenanceFile reads a JSON file from a given path, and calls ParseStatementData on the
-// content of the file, if the read is successful.
+// content of the file, if the read is successful. It then sets all fields in ProvenanceIR to verify Amber provenances.
 // Returns an error if the file is not a valid provenance statement.
-func ParseProvenanceFile(path string) (*types.ValidatedProvenance, error) {
+func ParseProvenanceFile(path string) (*types.ProvenanceIR, error) {
 	statementBytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("could not read the provenance file: %v", err)
 	}
-
 	if err := validateSLSAProvenanceJSON(statementBytes); err != nil {
 		return nil, err
 	}
-
-	return types.ParseStatementData(statementBytes)
+	provenanceIR, err := types.ParseStatementData(statementBytes)
+	if err := SetAmberProvenanceData(provenanceIR); err != nil {
+		return nil, err
+	}
+	return provenanceIR, nil
 }
 
-// FromAmber maps data from a validated Amber provenance to ProvenanceIR.
-func FromAmber(provenance *types.ValidatedProvenance) (*types.ProvenanceIR, error) {
-	// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
-	binarySHA256Digest := provenance.GetBinarySHA256Digest()
+// SetAmberProvenanceData sets data to verify a Amber provenance in the given ProvenanceIR.
+func SetAmberProvenanceData(provenanceIR *types.ProvenanceIR) error {
 	buildType := AmberBuildTypeV1
-	binaryName := provenance.GetBinaryName()
 
-	predicate, err := slsav02.ParseSLSAv02Predicate(provenance.GetProvenance().Predicate)
+	predicate, err := slsav02.ParseSLSAv02Predicate(provenanceIR.GetProvenance().Predicate)
 	if err != nil {
-		return nil, fmt.Errorf("could not parse provenance predicate: %v", err)
+		return fmt.Errorf("could not parse provenance predicate: %v", err)
 	}
 
 	buildCmd, err := GetBuildCmd(*predicate)
 	if err != nil {
-		return nil, fmt.Errorf("could not get build cmd from *amber.ValidatedProvenance: %v", err)
+		return fmt.Errorf("could not get build cmd from *amber.ValidatedProvenance: %v", err)
 	}
 
 	builderImageDigest, err := GetBuilderImageDigest(*predicate)
 	if err != nil {
-		return nil, fmt.Errorf("could get builder image digest from *amber.ValidatedProvenance: %v", err)
+		return fmt.Errorf("could get builder image digest from *amber.ValidatedProvenance: %v", err)
 	}
 
-	provenanceIR := types.NewProvenanceIR(binarySHA256Digest,
-		types.WithBuildType(buildType),
-		types.WithBinaryName(binaryName),
-		types.WithBuildCmd(buildCmd),
-		types.WithBuilderImageSHA256Digest(builderImageDigest))
+	// We collect repo uris from where they appear in the provenance to verify that they point to the same reference repo uri.
+	repoURIs := slsav02.GetMaterialsGitURI(*predicate)
 
-	return provenanceIR, nil
+	provenanceIR.SetProvenanceData(
+		types.WithBuildType(buildType),
+		types.WithBuildCmd(buildCmd),
+		types.WithBuilderImageSHA256Digest(builderImageDigest),
+		types.WithRepoURIs(repoURIs),
+	)
+
+	return nil
 }
 
 // ParseBuildConfig parses the map in predicate.BuildConfig into an instance of BuildConfig.
