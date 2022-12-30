@@ -39,15 +39,18 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 		NotAfter:  &nextWeek,
 	}
 
-	tempPath, err := copyToTemp("../../testdata/provenance.json")
+	tempPath, err := copyToTemp("../../testdata/amber_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
 	tempURI := "file://" + tempPath
 	provenances := []string{tempURI}
-	referenceValues := common.ReferenceValues{
-		BinarySHA256Digests: []string{binaryHash},
+
+	referenceValues, err := common.LoadReferenceValuesFromFile("../../testdata/reference_values.toml")
+	if err != nil {
+		t.Fatalf("Could not load reference values: %v", err)
 	}
+
 	statement, err := GenerateEndorsement(referenceValues, validity, provenances)
 	if err != nil {
 		t.Fatalf("Could not generate endorsement from %q: %v", provenances[0], err)
@@ -63,11 +66,11 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 }
 
 func TestLoadAndVerifyProvenances_MultipleValidEndorsement(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/provenance.json")
+	tempPath1, err := copyToTemp("../../testdata/amber_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
-	tempPath2, err := copyToTemp("../../testdata/provenance.json")
+	tempPath2, err := copyToTemp("../../testdata/amber_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
@@ -76,7 +79,7 @@ func TestLoadAndVerifyProvenances_MultipleValidEndorsement(t *testing.T) {
 		// Make sure we pick the correct binary hash if there are several reference values.
 		BinarySHA256Digests: []string{binaryHash + "_diff", binaryHash},
 	}
-	provenanceSet, err := loadAndVerifyProvenances(referenceValues, provenances)
+	provenanceSet, err := loadAndVerifyProvenances(&referenceValues, provenances)
 	if err != nil {
 		t.Fatalf("Could not generate endorsement from %q: %v", provenances[0], err)
 	}
@@ -93,11 +96,11 @@ func TestGenerateEndorsement_FailingSingleRemoteProvenanceEndorsement(t *testing
 		NotAfter:  &nextWeek,
 	}
 
-	provenances := []string{"https://github.com/project-oak/transparent-release/blob/main/testdata/provenance.json"}
+	provenances := []string{"https://github.com/project-oak/transparent-release/blob/main/testdata/amber_provenance.json"}
 	referenceValues := common.ReferenceValues{
 		BinarySHA256Digests: []string{binaryHash},
 	}
-	_, err := GenerateEndorsement(referenceValues, validity, provenances)
+	_, err := GenerateEndorsement(&referenceValues, validity, provenances)
 	want := "could not load provenances"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
@@ -105,7 +108,7 @@ func TestGenerateEndorsement_FailingSingleRemoteProvenanceEndorsement(t *testing
 }
 
 func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/provenance.json")
+	tempPath1, err := copyToTemp("../../testdata/amber_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
@@ -115,7 +118,7 @@ func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
 	}
 
 	// Provenances do not contain the given reference binary SHA256 digest value, but are consistent.
-	_, err = loadAndVerifyProvenances(referenceValues, []string{"file://" + tempPath1, "file://" + tempPath1})
+	_, err = loadAndVerifyProvenances(&referenceValues, []string{"file://" + tempPath1, "file://" + tempPath1})
 	want := "do not contain the actual binary SHA256 digest"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
@@ -123,12 +126,12 @@ func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
 }
 
 func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/provenance.json")
+	tempPath1, err := copyToTemp("../../testdata/amber_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
 
-	tempPath2, err := copyToTemp("../../testdata/different_provenance.json")
+	tempPath2, err := copyToTemp("../../testdata/different_amber_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
@@ -138,7 +141,7 @@ func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
 	}
 
 	// Provenances each contain a (different) given reference binary SHA256 digest value, but are inconsistent.
-	_, err = loadAndVerifyProvenances(referenceValues, []string{"file://" + tempPath1, "file://" + tempPath2})
+	_, err = loadAndVerifyProvenances(&referenceValues, []string{"file://" + tempPath1, "file://" + tempPath2})
 	want := "provenances are not consistent"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
@@ -146,12 +149,12 @@ func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
 }
 
 func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/provenance.json")
+	tempPath1, err := copyToTemp("../../testdata/amber_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
 
-	tempPath2, err := copyToTemp("../../testdata/different_provenance.json")
+	tempPath2, err := copyToTemp("../../testdata/different_amber_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
@@ -160,7 +163,7 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 		BinarySHA256Digests: []string{binaryHash + "_diff"},
 	}
 
-	_, err = loadAndVerifyProvenances(referenceValues, []string{"file://" + tempPath1, "file://" + tempPath2})
+	_, err = loadAndVerifyProvenances(&referenceValues, []string{"file://" + tempPath1, "file://" + tempPath2})
 	want := "do not contain the actual binary SHA256 digest"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
@@ -180,7 +183,7 @@ func copyToTemp(path string) (string, error) {
 		return "", err
 	}
 
-	tmpfile, err := os.CreateTemp("", "provenance.json")
+	tmpfile, err := os.CreateTemp("", "amber_provenance.json")
 	if err != nil {
 		return "", fmt.Errorf("couldn't create tempfile: %v", err)
 	}

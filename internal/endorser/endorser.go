@@ -38,7 +38,7 @@ import (
 // must be provided. The endorsement statement is generated only if the provenance statements are
 // valid. Each provenanceURI must either specify a local file (using the `file` scheme), or a
 // remote file (using the `http/https` scheme).
-func GenerateEndorsement(referenceValues common.ReferenceValues, validityDuration amber.ClaimValidity, provenanceURIs []string) (*intoto.Statement, error) {
+func GenerateEndorsement(referenceValues *common.ReferenceValues, validityDuration amber.ClaimValidity, provenanceURIs []string) (*intoto.Statement, error) {
 	verifiedProvenances, err := loadAndVerifyProvenances(referenceValues, provenanceURIs)
 	if err != nil {
 		return nil, fmt.Errorf("could not load provenances: %v", err)
@@ -53,7 +53,7 @@ func GenerateEndorsement(referenceValues common.ReferenceValues, validityDuratio
 // (2) Any of the provenances cannot be loaded (e.g., invalid URI),
 // (3) Any of the provenances is invalid (see verifyProvenances for details on validity),
 // (4) Provenances do not match (e.g., have different binary names).
-func loadAndVerifyProvenances(referenceValues common.ReferenceValues, provenanceURIs []string) (*amber.VerifiedProvenanceSet, error) {
+func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanceURIs []string) (*amber.VerifiedProvenanceSet, error) {
 	if len(provenanceURIs) == 0 {
 		return nil, fmt.Errorf("at least one provenance file must be provided")
 	}
@@ -101,7 +101,7 @@ func loadAndVerifyProvenances(referenceValues common.ReferenceValues, provenance
 
 // verifyProvenances verifies the given list of provenances. An error is returned if not.
 // TODO(b/222440937): Document any additional checks.
-func verifyProvenances(referenceValues common.ReferenceValues, provenances []types.ValidatedProvenance) (verifier.VerificationResult, error) {
+func verifyProvenances(referenceValues *common.ReferenceValues, provenances []types.ValidatedProvenance) (verifier.VerificationResult, error) {
 	combinedResult := verifier.NewVerificationResult()
 	for index := range provenances {
 		provenanceVerifier := verifier.ProvenanceMetadataVerifier{

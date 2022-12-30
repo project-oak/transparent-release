@@ -128,7 +128,7 @@ func chdir(dir string) {
 // content of the provenance predicate against a given set of expected values.
 type ProvenanceMetadataVerifier struct {
 	Got  *types.ValidatedProvenance
-	Want common.ReferenceValues
+	Want *common.ReferenceValues
 	// TODO(#69): Add metadata fields.
 }
 
@@ -153,7 +153,7 @@ func (verifier *ProvenanceMetadataVerifier) Verify() (VerificationResult, error)
 // all non-empty fields in got using fields in the reference values. Empty fields will not be verified.
 type ProvenanceIRVerifier struct {
 	Got  *common.ProvenanceIR
-	Want common.ReferenceValues
+	Want *common.ReferenceValues
 }
 
 // TODO(b/222440937): In future, also verify the details of the given provenance and the signature.
@@ -196,7 +196,7 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 }
 
 // verifyBinarySHA256Digest verifies that the binary SHA256 in this provenance is contained in the given reference binary SHA256 digests (in want).
-func verifyBinarySHA256Digest(want common.ReferenceValues, got *common.ProvenanceIR) (VerificationResult, error) {
+func verifyBinarySHA256Digest(want *common.ReferenceValues, got *common.ProvenanceIR) (VerificationResult, error) {
 	result := NewVerificationResult()
 
 	gotBinarySHA256Digest, err := got.GetBinarySHA256Digest()
@@ -236,7 +236,7 @@ func verifyHasBuildCmd(got *common.ProvenanceIR) VerificationResult {
 }
 
 // verifyBuilderImageDigest verifies that the given builder image digest matches a builder image digest in the reference values.
-func verifyBuilderImageDigest(want common.ReferenceValues, got *common.ProvenanceIR) (VerificationResult, error) {
+func verifyBuilderImageDigest(want *common.ReferenceValues, got *common.ProvenanceIR) (VerificationResult, error) {
 	result := NewVerificationResult()
 
 	gotBuilderImageDigest, err := got.GetBuilderImageSHA256Digest()
@@ -262,7 +262,7 @@ func verifyBuilderImageDigest(want common.ReferenceValues, got *common.Provenanc
 }
 
 // verifyRepoURIs verifies that the references to URIs in the provenance point to the repo URI given in the reference values.
-func verifyRepoURIs(want common.ReferenceValues, got *common.ProvenanceIR) VerificationResult {
+func verifyRepoURIs(want *common.ReferenceValues, got *common.ProvenanceIR) VerificationResult {
 	result := NewVerificationResult()
 
 	for _, gotRepoURI := range got.GetRepoURIs() {
