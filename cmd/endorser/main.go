@@ -27,6 +27,17 @@ import (
 	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
+// Example Calls
+
+// go run cmd/endorser/main.go -reference_values_path testdata/reference_values.toml -provenance_path testdata/amber_provenance.json
+// Fails with expected error
+// go run cmd/endorser/main.go -reference_values_path testdata/wrong-reference-values.toml -provenance_path testdata/amber_provenance.json
+
+// Fails and shouldn't fail:
+// go run cmd/endorser/main.go -reference_values_path testdata/reference_values.toml -provenance_path testdata/slsa_v02_provenance.json
+
+// Fails with not implemented:
+// go run cmd/endorser/main.go -reference_values_path testdata/reference_values.toml -provenance_path testdata/slsa_v1_provenance.json
 func main() {
 	provenancePath := flag.String("provenance_path", "",
 		"Required - Path to provenance file.")
@@ -54,7 +65,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error when endorsing the provenance: %v", err)
 	} else {
-		fmt.Printf("statement: %v", statement)
+		fmt.Printf("statement: %v\n", statement)
 	}
 }
 
