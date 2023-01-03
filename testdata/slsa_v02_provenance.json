@@ -1,0 +1,46 @@
+{
+    "_type": "https://in-toto.io/Statement/v0.1",
+    "predicateType": "https://slsa.dev/provenance/v0.2",
+    "subject": [
+        {
+            "name": "oak_functions_freestanding_bin",
+            "digest": {
+                "sha256": "d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc"
+            }
+        }
+    ],
+    "predicate": {
+        "builder": {
+            "id": "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"
+        },
+        "buildType": "https://github.com/slsa-framework/slsa-github-generator/generic@v1",
+        "invocation": {
+            "configSource": {
+                "uri": "git+https://github.com/project-oak/oak@refs/heads/main",
+                "digest": {
+                    "sha1": "1b128fb2556e4bdcc4f92552654bfbca9d2fb8c6"
+                },
+                "entryPoint": ".github/workflows/provenance.yaml"
+            },
+            "parameters": {},
+            "environment": {}
+        },
+        "metadata": {
+            "buildInvocationID": "3230206088-1",
+            "completeness": {
+                "parameters": true,
+                "environment": false,
+                "materials": false
+            },
+            "reproducible": false
+        },
+        "materials": [
+            {
+                "uri": "git+https://github.com/project-oak/oak@refs/heads/main",
+                "digest": {
+                    "sha1": "1b128fb2556e4bdcc4f92552654bfbca9d2fb8c6"
+                }
+            }
+        ]
+    }
+}
