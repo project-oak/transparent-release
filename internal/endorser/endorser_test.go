@@ -185,7 +185,9 @@ func TestLoadAndVerifyProvenances_NotVerified(t *testing.T) {
 		t.Fatalf("Could not load reference values: %v", err)
 	}
 
-	if _, err := loadAndVerifyProvenances(referenceValues, []string{"file://" + tempPath1}); err == nil || !strings.Contains(err.Error(), errorBinaryDigest) {
+	_, err = loadAndVerifyProvenances(referenceValues, []string{"file://" + tempPath1})
+
+	if err == nil || !strings.Contains(err.Error(), errorBinaryDigest) {
 		t.Fatalf("got %q, want error message containing %q,", err, errorBinaryDigest)
 	}
 
