@@ -13,7 +13,7 @@
         "builder": {
             "id": "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"
         },
-        "buildType": "https://github.com/slsa-framework/slsa-github-generator@v1",
+        "buildType": "https://github.com/slsa-framework/slsa-github-generator/generic@v1",
         "invocation": {
             "configSource": {
                 "uri": "git+https://github.com/project-oak/oak@refs/heads/main",

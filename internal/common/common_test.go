@@ -184,10 +184,9 @@ func TestFromProvenance_Slsav02(t *testing.T) {
 		t.Fatalf("couldn't parse the provenance file: %v", err)
 	}
 
-	// TODO(mschett): The current example for slsa_v02_provenance.json has a slightly different build type.
 	want := NewProvenanceIR("d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc",
 		WithBuildType(slsav02.GenericSLSABuildType),
-		WithRepoURIs([]string{"https://github.com/project-oak/transparent-release"}))
+		WithRepoURIs([]string{"git+https://github.com/project-oak/oak@refs/heads/main"}))
 
 	got, err := FromProvenance(provenance)
 	if err != nil {
