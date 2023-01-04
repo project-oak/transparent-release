@@ -73,7 +73,7 @@ func validateSLSAProvenanceJSON(provenanceFile []byte) error {
 // ParseProvenanceFile reads a JSON file from a given path, and calls ParseStatementData on the
 // content of the file, if the read is successful. It then sets all fields in ProvenanceIR to verify Amber provenances.
 // Returns an error if the file is not a valid provenance statement.
-func ParseProvenanceFile(path string) (*types.ProvenanceIR, error) {
+func ParseProvenanceFile(path string) (*types.ValidatedProvenance, error) {
 	statementBytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("could not read the provenance file: %v", err)
@@ -82,48 +82,12 @@ func ParseProvenanceFile(path string) (*types.ProvenanceIR, error) {
 		return nil, err
 	}
 
-	provenanceIR, err := types.ParseStatementData(statementBytes)
+	validatedProvenance, err := types.ParseStatementData(statementBytes)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse the provenance bytes: %v", err)
 	}
 
-	if err := SetAmberProvenanceData(provenanceIR); err != nil {
-		return nil, fmt.Errorf("could not set the Amber provenance data: %v", err)
-	}
-
-	return provenanceIR, nil
-}
-
-// SetAmberProvenanceData sets data to verify a Amber provenance in the given ProvenanceIR.
-func SetAmberProvenanceData(provenanceIR *types.ProvenanceIR) error {
-	buildType := AmberBuildTypeV1
-
-	predicate, err := slsav02.ParseSLSAv02Predicate(provenanceIR.GetProvenance().Predicate)
-	if err != nil {
-		return fmt.Errorf("could not parse provenance predicate: %v", err)
-	}
-
-	buildCmd, err := GetBuildCmd(*predicate)
-	if err != nil {
-		return fmt.Errorf("could not get build cmd from *amber.ValidatedProvenance: %v", err)
-	}
-
-	builderImageDigest, err := GetBuilderImageDigest(*predicate)
-	if err != nil {
-		return fmt.Errorf("could get builder image digest from *amber.ValidatedProvenance: %v", err)
-	}
-
-	// We collect repo uris from where they appear in the provenance to verify that they point to the same reference repo uri.
-	repoURIs := slsav02.GetMaterialsGitURI(*predicate)
-
-	provenanceIR.SetProvenanceData(
-		types.WithBuildType(buildType),
-		types.WithBuildCmd(buildCmd),
-		types.WithBuilderImageSHA256Digest(builderImageDigest),
-		types.WithRepoURIs(repoURIs),
-	)
-
-	return nil
+	return validatedProvenance, nil
 }
 
 // ParseBuildConfig parses the map in predicate.BuildConfig into an instance of BuildConfig.

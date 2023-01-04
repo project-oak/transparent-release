@@ -36,17 +36,12 @@ func TestParseStatementData(t *testing.T) {
 		t.Fatalf("Could not read the provenance file: %v", err)
 	}
 
-	provenanceIR, err := types.ParseStatementData(statementBytes)
+	validatedProvenance, err := types.ParseStatementData(statementBytes)
 	if err != nil {
 		t.Fatalf("Failed to parse example provenance: %v", err)
 	}
 
-	err = SetSLSAv02ProvenanceData(provenanceIR)
-	if err != nil {
-		t.Fatalf("Could not set provenance data: %v", err)
-	}
-
-	provenance := provenanceIR.GetProvenance()
+	provenance := validatedProvenance.GetProvenance()
 
 	predicate, err := ParseSLSAv02Predicate(provenance.Predicate)
 	if err != nil {
@@ -58,6 +53,6 @@ func TestParseStatementData(t *testing.T) {
 	testutil.AssertEq(t, "commitHash length", len(predicate.Materials[1].Digest["sha1"]), wantSHA1HexDigitLength)
 	testutil.AssertEq(t, "builderImageID length", len(predicate.Materials[0].Digest["sha256"]), wantSHA256HexDigitLength)
 	testutil.AssertEq(t, "builderImageURI", predicate.Materials[0].URI, fmt.Sprintf("gcr.io/oak-ci/oak@sha256:%s", predicate.Materials[0].Digest["sha256"]))
-	testutil.AssertEq(t, "subjectName", provenanceIR.GetBinaryName(), "oak_functions_loader")
+	testutil.AssertEq(t, "subjectName", validatedProvenance.GetBinaryName(), "oak_functions_loader")
 	testutil.AssertNonEmpty(t, "builderId", predicate.Builder.ID)
 }

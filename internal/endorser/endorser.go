@@ -59,19 +59,20 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 	}
 
 	// load provenanceIRs from URIs
-	provenanceIRs := make([]types.ProvenanceIR, 0, len(provenanceURIs))
+	provenanceIRs := make([]common.ProvenanceIR, 0, len(provenanceURIs))
 	provenancesData := make([]amber.ProvenanceData, 0, len(provenanceURIs))
 	for _, uri := range provenanceURIs {
 		provenanceBytes, err := getProvenanceBytes(uri)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't load the provenance file from %s: %v", uri, err)
 		}
-		provenance, err := types.ParseStatementData(provenanceBytes)
+		validatedProvenance, err := types.ParseStatementData(provenanceBytes)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't parse bytes from %s into a provenance statement: %v", uri, err)
 		}
 
-		if common.SetProvenanceData(provenance) != nil {
+		provenanceIR, err := common.FromValidatedProvenance(validatedProvenance)
+		if err != nil {
 			return nil, fmt.Errorf("couldn't set provenance data: %v", err)
 		}
 
@@ -80,7 +81,7 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 			return nil, fmt.Errorf("could not parse provenance into ProvenanceIR: %v", err)
 		}
 
-		provenanceIRs = append(provenanceIRs, *provenance)
+		provenanceIRs = append(provenanceIRs, *provenanceIR)
 		provenancesData = append(provenancesData, amber.ProvenanceData{
 			URI:          uri,
 			SHA256Digest: hex.EncodeToString(sum256[:]),
@@ -112,7 +113,7 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 
 // verifyProvenances verifies the given list of provenances. An error is returned if not.
 // TODO(b/222440937): Document any additional checks.
-func verifyProvenances(referenceValues *common.ReferenceValues, provenanceIRs []types.ProvenanceIR) (verifier.VerificationResult, error) {
+func verifyProvenances(referenceValues *common.ReferenceValues, provenanceIRs []common.ProvenanceIR) (verifier.VerificationResult, error) {
 	combinedResult := verifier.NewVerificationResult()
 	for index := range provenanceIRs {
 		provenanceVerifier := verifier.ProvenanceIRVerifier{
@@ -138,7 +139,7 @@ func verifyProvenances(referenceValues *common.ReferenceValues, provenanceIRs []
 // binary digest.
 // TODO(b/222440937): Perform any additional verification among provenances to ensure their consistency.
 // TODO(#165) Replace input type ValidatedProvenance with ProvenanceIR. Use common.FromProvenance before calling this function.
-func verifyConsistency(provenanceIRs []types.ProvenanceIR, binaryDigest string, binaryName string) verifier.VerificationResult {
+func verifyConsistency(provenanceIRs []common.ProvenanceIR, binaryDigest string, binaryName string) verifier.VerificationResult {
 	result := verifier.NewVerificationResult()
 	// verify that all provenances have the given binary digest and name.
 	for ind := 1; ind < len(provenanceIRs); ind++ {

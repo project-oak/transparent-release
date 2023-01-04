@@ -25,7 +25,6 @@ import (
 	"time"
 
 	"github.com/project-oak/transparent-release/pkg/intoto"
-	"github.com/project-oak/transparent-release/pkg/types"
 )
 
 const (
@@ -200,21 +199,4 @@ func GetMaterialsGitURI(pred ProvenancePredicate) []string {
 		}
 	}
 	return gitURIs
-}
-
-// SetSLSAv02ProvenanceData sets data to verify a SLSA v02 provenance in the given ProvenanceIR.
-func SetSLSAv02ProvenanceData(provenanceIR *types.ProvenanceIR) error {
-	buildType := GenericSLSABuildType
-
-	predicate, err := ParseSLSAv02Predicate(provenanceIR.GetProvenance().Predicate)
-	if err != nil {
-		return fmt.Errorf("could not parse provenance predicate: %v", err)
-	}
-
-	// We collect repo uris from where they appear in the provenance to verify that they point to the same reference repo uri.
-	repoURIs := GetMaterialsGitURI(*predicate)
-
-	provenanceIR.SetProvenanceData(types.WithBuildType(buildType),
-		types.WithRepoURIs(repoURIs))
-	return nil
 }

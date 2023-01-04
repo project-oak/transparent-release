@@ -151,12 +151,12 @@ func TestParseReferenceValues(t *testing.T) {
 
 func TestFromProvenance_Amber(t *testing.T) {
 	path := filepath.Join(testdataPath, provenanceExamplePath)
-	got, err := amber.ParseProvenanceFile(path)
+	validatedProvenance, err := amber.ParseProvenanceFile(path)
 	if err != nil {
 		t.Fatalf("couldn't parse the provenance file: %v", err)
 	}
 
-	err = SetProvenanceData(got)
+	got, err := FromValidatedProvenance(validatedProvenance)
 	if err != nil {
 		t.Fatalf("couldn't map provenance to ProvenanceIR: %v", err)
 	}
@@ -193,12 +193,12 @@ func TestFromProvenance_Slsav02(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not read the provenance file: %v", err)
 	}
-	got, err := types.ParseStatementData(statementBytes)
+	validatedProvenance, err := types.ParseStatementData(statementBytes)
 	if err != nil {
 		t.Fatalf("couldn't parse the provenance file: %v", err)
 	}
 
-	err = SetProvenanceData(got)
+	got, err := FromValidatedProvenance(validatedProvenance)
 	if err != nil {
 		t.Fatalf("couldn't map provenance to ProvenanceIR: %v", err)
 	}
@@ -221,14 +221,14 @@ func TestFromProvenance_Slsav1(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not read the provenance file: %v", err)
 	}
-	provenance, err := types.ParseStatementData(statementBytes)
+	validatedProvenance, err := types.ParseStatementData(statementBytes)
 	if err != nil {
 		t.Fatalf("couldn't parse the provenance file: %v", err)
 	}
 
 	// Currently SLSA v1.0 provenances are not supported, so we expect an error.
 	want := fmt.Sprintf("unsupported predicateType (%q) for provenance", "https://slsa.dev/provenance/v1.0")
-	err = SetProvenanceData(provenance)
+	_, err = FromValidatedProvenance(validatedProvenance)
 	got := fmt.Sprintf("%v", err)
 
 	if got != want {

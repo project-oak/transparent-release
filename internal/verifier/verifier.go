@@ -64,7 +64,7 @@ type ProvenanceVerifier interface {
 // specified in the provenance and checking that the hash of the binary is the
 // same as the digest in the subject of the provenance file.
 type ReproducibleProvenanceVerifier struct {
-	Provenance *types.ProvenanceIR
+	Provenance *types.ValidatedProvenance
 	GitRootDir string
 }
 
@@ -128,7 +128,7 @@ func chdir(dir string) {
 // all non-empty fields in got using fields in the reference values. Empty fields will not be verified.
 // TODO(#69): Check metadata against the expected values.
 type ProvenanceIRVerifier struct {
-	Got  *types.ProvenanceIR
+	Got  *common.ProvenanceIR
 	Want *common.ReferenceValues
 }
 
@@ -172,7 +172,7 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 }
 
 // verifyBinarySHA256Digest verifies that the binary SHA256 in this provenance is contained in the given reference binary SHA256 digests (in want).
-func verifyBinarySHA256Digest(want *common.ReferenceValues, got *types.ProvenanceIR) (VerificationResult, error) {
+func verifyBinarySHA256Digest(want *common.ReferenceValues, got *common.ProvenanceIR) (VerificationResult, error) {
 	result := NewVerificationResult()
 
 	gotBinarySHA256Digest := got.GetBinarySHA256Digest()
@@ -199,7 +199,7 @@ func verifyBinarySHA256Digest(want *common.ReferenceValues, got *types.Provenanc
 }
 
 // verifyHasBuildCmd verifies that the build cmd is not empty.
-func verifyHasBuildCmd(got *types.ProvenanceIR) VerificationResult {
+func verifyHasBuildCmd(got *common.ProvenanceIR) VerificationResult {
 	result := NewVerificationResult()
 	if _, err := got.GetBuildCmd(); err != nil {
 		result.SetFailed("no build cmd found")
@@ -208,7 +208,7 @@ func verifyHasBuildCmd(got *types.ProvenanceIR) VerificationResult {
 }
 
 // verifyBuilderImageDigest verifies that the given builder image digest matches a builder image digest in the reference values.
-func verifyBuilderImageDigest(want *common.ReferenceValues, got *types.ProvenanceIR) (VerificationResult, error) {
+func verifyBuilderImageDigest(want *common.ReferenceValues, got *common.ProvenanceIR) (VerificationResult, error) {
 	result := NewVerificationResult()
 
 	gotBuilderImageDigest, err := got.GetBuilderImageSHA256Digest()
@@ -234,7 +234,7 @@ func verifyBuilderImageDigest(want *common.ReferenceValues, got *types.Provenanc
 }
 
 // verifyRepoURIs verifies that the references to URIs in the provenance point to the repo URI given in the reference values.
-func verifyRepoURIs(want *common.ReferenceValues, got *types.ProvenanceIR) VerificationResult {
+func verifyRepoURIs(want *common.ReferenceValues, got *common.ProvenanceIR) VerificationResult {
 	result := NewVerificationResult()
 
 	for _, gotRepoURI := range got.GetRepoURIs() {
