@@ -172,13 +172,13 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 	}
 
 	// Verify HasBuildCmd.
-	if verifier.Want.WantBuildCmds {
+	if verifier.Got.HasBuildCmd() && verifier.Want.WantBuildCmds {
 		nextResult := verifyHasBuildCmd(verifier.Got)
 		combinedResult.Combine(nextResult)
 	}
 
 	// Verify BuilderImageDigest.
-	if verifier.Want.BuilderImageSHA256Digests != nil {
+	if verifier.Got.HasBuilderImageSHA256Digest() && verifier.Want.BuilderImageSHA256Digests != nil {
 		nextResult, err := verifyBuilderImageDigest(verifier.Want, verifier.Got)
 		if err != nil {
 			return combinedResult, fmt.Errorf("failed to verify builder image digests: %v", err)
@@ -187,7 +187,7 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 	}
 
 	// Verify RepoURIs.
-	if verifier.Want.RepoURI != "" {
+	if verifier.Got.HasRepoURIs() && verifier.Want.RepoURI != "" {
 		nextResult := verifyRepoURIs(verifier.Want, verifier.Got)
 		combinedResult.Combine(nextResult)
 	}

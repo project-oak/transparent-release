@@ -95,6 +95,30 @@ func TestReproducibleProvenanceVerifier_badCommand(t *testing.T) {
 	}
 }
 
+func TestVerifyHasNoValues(t *testing.T) {
+	// There are no values set apart from the binary digest.
+	got := common.NewProvenanceIR(binarySHA256Digest)
+
+	want := common.ReferenceValues{
+		WantBuildCmds:             true,
+		BuilderImageSHA256Digests: []string{"builder_image_digest"},
+		RepoURI:                   "some_repo_uri",
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: &want,
+	}
+
+	// We don't expect any verification to happen.
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
+	// Thus the result is the default: true.
+	testutil.AssertEq(t, "no verification happened", result.IsVerified, true)
+}
+
 func TestVerifyHasBuildCmd_HasBuildCmd(t *testing.T) {
 	got := common.NewProvenanceIR(binarySHA256Digest, common.WithBuildCmd([]string{"build cmd"}))
 	result := verifyHasBuildCmd(got)
