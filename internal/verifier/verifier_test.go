@@ -23,6 +23,7 @@ import (
 	"github.com/project-oak/transparent-release/internal/common"
 	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/amber"
+	slsav02 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 )
 
 const (
@@ -97,7 +98,7 @@ func TestReproducibleProvenanceVerifier_badCommand(t *testing.T) {
 
 func TestVerifyHasNoValues(t *testing.T) {
 	// There are no values set apart from the binary digest.
-	got := common.NewProvenanceIR(binarySHA256Digest)
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1)
 
 	want := common.ReferenceValues{
 		WantBuildCmds:             true,
@@ -120,7 +121,7 @@ func TestVerifyHasNoValues(t *testing.T) {
 }
 
 func TestVerifyHasBuildCmd_HasAndNeedsBuildCmd(t *testing.T) {
-	got := common.NewProvenanceIR(binarySHA256Digest, common.WithBuildCmd([]string{"build cmd"}))
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuildCmd([]string{"build cmd"}))
 
 	want := common.ReferenceValues{
 		WantBuildCmds: true,
@@ -141,7 +142,7 @@ func TestVerifyHasBuildCmd_HasAndNeedsBuildCmd(t *testing.T) {
 
 func TestVerify_NeedsButCannotHaveNoBuildCmd(t *testing.T) {
 	// No buildCmd is set in the provenance.
-	got := common.NewProvenanceIR(binarySHA256Digest)
+	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType)
 
 	want := common.ReferenceValues{
 		WantBuildCmds: true,
@@ -162,7 +163,7 @@ func TestVerify_NeedsButCannotHaveNoBuildCmd(t *testing.T) {
 
 func TestVerify_NeedsButHasNoBuildCmd(t *testing.T) {
 	// The build command is empty.
-	got := common.NewProvenanceIR(binarySHA256Digest, common.WithBuildCmd([]string{}))
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuildCmd([]string{}))
 	// And the reference values ask for a build cmd.
 	want := common.ReferenceValues{
 		WantBuildCmds: true,
@@ -190,7 +191,7 @@ func TestVerify_NeedsButHasNoBuildCmd(t *testing.T) {
 
 func TestVerify_HasNoBuildCmdButNotNeeded(t *testing.T) {
 	// The build command is empty.
-	got := common.NewProvenanceIR(binarySHA256Digest, common.WithBuildCmd([]string{}))
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuildCmd([]string{}))
 	// But the reference values do not ask for a build cmd.
 	want := common.ReferenceValues{
 		WantBuildCmds: false,
@@ -212,7 +213,7 @@ func TestVerify_HasNoBuildCmdButNotNeeded(t *testing.T) {
 
 func TestVerify_HasAndNeedsBuilderImageDigest(t *testing.T) {
 	builderImageSHA256Digest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
-	got := common.NewProvenanceIR(binarySHA256Digest, common.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
 	want := common.ReferenceValues{
 		BuilderImageSHA256Digests: []string{"some_other_digest", builderImageSHA256Digest},
 	}
@@ -231,7 +232,7 @@ func TestVerify_HasAndNeedsBuilderImageDigest(t *testing.T) {
 
 func TestVerify_NeedsButBuilderImageDigestNotFound(t *testing.T) {
 	builderImageSHA256Digest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
-	got := common.NewProvenanceIR(binarySHA256Digest, common.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
 	want := common.ReferenceValues{
 		BuilderImageSHA256Digests: []string{"some_other_digest", "and_some_other"},
 	}
@@ -259,7 +260,7 @@ func TestVerify_NeedsButBuilderImageDigestNotFound(t *testing.T) {
 
 func TestVerify_NeedsButHasEmptyBuilderImageDigest(t *testing.T) {
 	builderImageSHA256Digest := ""
-	got := common.NewProvenanceIR(binarySHA256Digest, common.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
 	want := common.ReferenceValues{
 		BuilderImageSHA256Digests: []string{"some_digest"},
 	}
@@ -287,7 +288,7 @@ func TestVerify_NeedsButHasEmptyBuilderImageDigest(t *testing.T) {
 
 func TestVerify_HasEmptyBuilderImageDigestButNotNeeded(t *testing.T) {
 	builderImageSHA256Digest := ""
-	got := common.NewProvenanceIR(binarySHA256Digest, common.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
 	want := common.ReferenceValues{
 		// We do not check for the builder image digest.
 	}
@@ -305,7 +306,7 @@ func TestVerify_HasEmptyBuilderImageDigestButNotNeeded(t *testing.T) {
 }
 
 func TestVerify_HasFoundRepoURI(t *testing.T) {
-	got := common.NewProvenanceIR(binarySHA256Digest,
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1,
 		common.WithRepoURIs([]string{
 			"git+https://github.com/project-oak/transparent-release@refs/heads/main",
 			"https://github.com/project-oak/transparent-release",
@@ -333,6 +334,7 @@ func TestVerify_HasFoundRepoURI(t *testing.T) {
 func TestVerify_HasWrongRepoURI(t *testing.T) {
 	wrongURI := "git+https://github.com/project-oak/oak@refs/heads/main"
 	got := common.NewProvenanceIR(binarySHA256Digest,
+		amber.AmberBuildTypeV1,
 		common.WithRepoURIs([]string{
 			wrongURI,
 			"https://github.com/project-oak/transparent-release",
@@ -365,7 +367,7 @@ func TestVerify_HasWrongRepoURI(t *testing.T) {
 
 func TestVerify_HasNoRepoURIs(t *testing.T) {
 	// We have no repo URIs in the provenance.
-	got := common.NewProvenanceIR(binarySHA256Digest,
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1,
 		common.WithRepoURIs([]string{}))
 	want := common.ReferenceValues{
 		RepoURI: "github.com/project-oak/transparent-release",
