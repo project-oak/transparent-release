@@ -158,7 +158,7 @@ func TestFromProvenance_Amber(t *testing.T) {
 	}
 
 	want := NewProvenanceIR("322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d",
-		WithBuildType(amber.AmberBuildTypeV1),
+		amber.AmberBuildTypeV1,
 		WithBuildCmd([]string{"cp", "testdata/static.txt", "test.txt"}),
 		WithBuilderImageSHA256Digest("9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"),
 		WithRepoURIs([]string{"https://github.com/project-oak/transparent-release"}))
@@ -185,7 +185,7 @@ func TestFromProvenance_Slsav02(t *testing.T) {
 	}
 
 	want := NewProvenanceIR("d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc",
-		WithBuildType(slsav02.GenericSLSABuildType),
+		slsav02.GenericSLSABuildType,
 		WithRepoURIs([]string{"git+https://github.com/project-oak/oak@refs/heads/main"}))
 
 	got, err := FromProvenance(provenance)

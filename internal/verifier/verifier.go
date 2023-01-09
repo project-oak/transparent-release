@@ -172,13 +172,13 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 	}
 
 	// Verify HasBuildCmd.
-	if verifier.Want.WantBuildCmds {
-		nextResult := verifyHasBuildCmd(verifier.Got)
+	if verifier.Got.HasBuildCmd() && verifier.Want.WantBuildCmds {
+		nextResult := verifyHasNotEmptyBuildCmd(verifier.Got)
 		combinedResult.Combine(nextResult)
 	}
 
 	// Verify BuilderImageDigest.
-	if verifier.Want.BuilderImageSHA256Digests != nil {
+	if verifier.Got.HasBuilderImageSHA256Digest() && verifier.Want.BuilderImageSHA256Digests != nil {
 		nextResult, err := verifyBuilderImageDigest(verifier.Want, verifier.Got)
 		if err != nil {
 			return combinedResult, fmt.Errorf("failed to verify builder image digests: %v", err)
@@ -187,7 +187,7 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 	}
 
 	// Verify RepoURIs.
-	if verifier.Want.RepoURI != "" {
+	if verifier.Got.HasRepoURIs() && verifier.Want.RepoURI != "" {
 		nextResult := verifyRepoURIs(verifier.Want, verifier.Got)
 		combinedResult.Combine(nextResult)
 	}
@@ -226,10 +226,10 @@ func verifyBinarySHA256Digest(want *common.ReferenceValues, got *common.Provenan
 	return result, nil
 }
 
-// verifyHasBuildCmd verifies that the build cmd is not empty.
-func verifyHasBuildCmd(got *common.ProvenanceIR) VerificationResult {
+// verifyHasNotEmptyBuildCmd verifies that the build cmd is not empty.
+func verifyHasNotEmptyBuildCmd(got *common.ProvenanceIR) VerificationResult {
 	result := NewVerificationResult()
-	if _, err := got.GetBuildCmd(); err != nil {
+	if buildCmd, err := got.GetBuildCmd(); err != nil || len(buildCmd) == 0 {
 		result.SetFailed("no build cmd found")
 	}
 	return result

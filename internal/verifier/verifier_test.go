@@ -23,6 +23,7 @@ import (
 	"github.com/project-oak/transparent-release/internal/common"
 	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/amber"
+	slsav02 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 )
 
 const (
@@ -95,30 +96,104 @@ func TestReproducibleProvenanceVerifier_badCommand(t *testing.T) {
 	}
 }
 
-func TestVerifyHasBuildCmd_HasBuildCmd(t *testing.T) {
-	got := common.NewProvenanceIR(binarySHA256Digest, common.WithBuildCmd([]string{"build cmd"}))
-	result := verifyHasBuildCmd(got)
+func TestVerifyHasNoValues(t *testing.T) {
+	// There are no optional fields set apart from the binary digest and the build type.
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1)
+
+	want := common.ReferenceValues{
+		// We ask for all the optional values in the reference values.
+		WantBuildCmds:             true,
+		BuilderImageSHA256Digests: []string{"builder_image_digest"},
+		RepoURI:                   "some_repo_uri",
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: &want,
+	}
+
+	// We don't expect any verification to happen.
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
+	// Thus the result is the default: true.
+	testutil.AssertEq(t, "no verification happened", result.IsVerified, true)
+}
+
+func TestVerifyHasBuildCmd_HasAndNeedsBuildCmd(t *testing.T) {
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuildCmd([]string{"build cmd"}))
+
+	want := common.ReferenceValues{
+		WantBuildCmds: true,
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: &want,
+	}
+
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
 
 	testutil.AssertEq(t, "has build cmd", result.IsVerified, true)
 }
 
-func TestVerifyHasBuildCmd_HasNoBuildCmd(t *testing.T) {
-	got := common.NewProvenanceIR(binarySHA256Digest)
-	result := verifyHasBuildCmd(got)
+func TestVerify_NeedsButCannotHaveNoBuildCmd(t *testing.T) {
+	// No buildCmd is set in the provenance.
+	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType)
+
+	want := common.ReferenceValues{
+		WantBuildCmds: true,
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: &want,
+	}
+
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
+
+	testutil.AssertEq(t, "cannot have build cmd", result.IsVerified, true)
+}
+
+func TestVerify_NeedsButHasNoBuildCmd(t *testing.T) {
+	// The build command is empty.
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuildCmd([]string{}))
+	// And the reference values ask for a build cmd.
+	want := common.ReferenceValues{
+		WantBuildCmds: true,
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: &want,
+	}
+
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
 
 	testutil.AssertEq(t, "has no build cmd", result.IsVerified, false)
 
 	justifications := fmt.Sprintf("%s", result.Justifications)
-	want := "no build cmd found"
-	if !strings.Contains(justifications, want) {
-		t.Fatalf("got %q, want justification containing %q,", justifications, want)
+
+	wantJustification := "no build cmd found"
+	if !strings.Contains(justifications, wantJustification) {
+		t.Fatalf("got %q, want justification containing %q,", justifications, wantJustification)
 	}
 }
 
-func TestVerifyHasBuildCmd_EmptyBuildCmds(t *testing.T) {
-	// There is no build cmd.
-	got := common.NewProvenanceIR(binarySHA256Digest)
-	// And the reference values do not ask for a build cmd.
+func TestVerify_HasNoBuildCmdButNotNeeded(t *testing.T) {
+	// The build command is empty.
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuildCmd([]string{}))
+	// But the reference values do not ask for a build cmd.
 	want := common.ReferenceValues{
 		WantBuildCmds: false,
 	}
@@ -137,11 +212,11 @@ func TestVerifyHasBuildCmd_EmptyBuildCmds(t *testing.T) {
 	testutil.AssertEq(t, "no verification happened", result.IsVerified, true)
 }
 
-func TestVerifyBuilderImageDigest_DigestFound(t *testing.T) {
-	builderImageSHA256Digest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
-	got := common.NewProvenanceIR(binarySHA256Digest, common.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
+func TestVerify_HasAndNeedsBuilderImageDigest(t *testing.T) {
+	builderDigest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuilderImageSHA256Digest(builderDigest))
 	want := common.ReferenceValues{
-		BuilderImageSHA256Digests: []string{"some_other_digest", builderImageSHA256Digest},
+		BuilderImageSHA256Digests: []string{"some_other_digest", builderDigest},
 	}
 
 	verifier := ProvenanceIRVerifier{
@@ -156,9 +231,9 @@ func TestVerifyBuilderImageDigest_DigestFound(t *testing.T) {
 	testutil.AssertEq(t, "builder digest not found", result.IsVerified, true)
 }
 
-func TestVerifyBuilderImageDigest_DigestNotFound(t *testing.T) {
-	builderImageSHA256Digest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
-	got := common.NewProvenanceIR(binarySHA256Digest, common.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
+func TestVerify_NeedsButBuilderImageDigestNotFound(t *testing.T) {
+	builderDigest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuilderImageSHA256Digest(builderDigest))
 	want := common.ReferenceValues{
 		BuilderImageSHA256Digests: []string{"some_other_digest", "and_some_other"},
 	}
@@ -177,15 +252,61 @@ func TestVerifyBuilderImageDigest_DigestNotFound(t *testing.T) {
 	gotJustifications := fmt.Sprintf("%s", result.Justifications)
 	wantJustifications := fmt.Sprintf("the reference builder image digests (%v) do not contain the actual builder image digest (%v)",
 		want.BuilderImageSHA256Digests,
-		builderImageSHA256Digest)
+		builderDigest)
 
 	if !strings.Contains(gotJustifications, wantJustifications) {
 		t.Fatalf("got %q, want justification containing %q,", gotJustifications, wantJustifications)
 	}
 }
 
-func TestVerifyRepoURI_FoundURI(t *testing.T) {
-	got := common.NewProvenanceIR(binarySHA256Digest,
+func TestVerify_NeedsButHasEmptyBuilderImageDigest(t *testing.T) {
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuilderImageSHA256Digest(""))
+	want := common.ReferenceValues{
+		BuilderImageSHA256Digests: []string{"some_digest"},
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: &want,
+	}
+
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
+	testutil.AssertEq(t, "builder digest not found", result.IsVerified, false)
+
+	gotJustifications := fmt.Sprintf("%s", result.Justifications)
+	wantJustifications := fmt.Sprintf("the reference builder image digests (%v) do not contain the actual builder image digest (%v)",
+		want.BuilderImageSHA256Digests,
+		"")
+
+	if !strings.Contains(gotJustifications, wantJustifications) {
+		t.Fatalf("got %q, want justification containing %q,", gotJustifications, wantJustifications)
+	}
+}
+
+func TestVerify_HasEmptyBuilderImageDigestButNotNeeded(t *testing.T) {
+	builderImageSHA256Digest := ""
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
+	want := common.ReferenceValues{
+		// We do not check for the builder image digest.
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: &want,
+	}
+
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
+	testutil.AssertEq(t, "no builder image digest needed", result.IsVerified, true)
+}
+
+func TestVerify_HasFoundRepoURI(t *testing.T) {
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1,
 		common.WithRepoURIs([]string{
 			"git+https://github.com/project-oak/transparent-release@refs/heads/main",
 			"https://github.com/project-oak/transparent-release",
@@ -210,9 +331,10 @@ func TestVerifyRepoURI_FoundURI(t *testing.T) {
 	testutil.AssertEq(t, "found repo uri in all references", result.IsVerified, true)
 }
 
-func TestVerifyRepoURI_WrongURI(t *testing.T) {
+func TestVerify_HasWrongRepoURI(t *testing.T) {
 	wrongURI := "git+https://github.com/project-oak/oak@refs/heads/main"
 	got := common.NewProvenanceIR(binarySHA256Digest,
+		amber.AmberBuildTypeV1,
 		common.WithRepoURIs([]string{
 			wrongURI,
 			"https://github.com/project-oak/transparent-release",
@@ -243,9 +365,9 @@ func TestVerifyRepoURI_WrongURI(t *testing.T) {
 	}
 }
 
-func TestVerifyRepoURI_NoReferences(t *testing.T) {
+func TestVerify_HasNoRepoURIs(t *testing.T) {
 	// We have no repo URIs in the provenance.
-	got := common.NewProvenanceIR(binarySHA256Digest,
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1,
 		common.WithRepoURIs([]string{}))
 	want := common.ReferenceValues{
 		RepoURI: "github.com/project-oak/transparent-release",
