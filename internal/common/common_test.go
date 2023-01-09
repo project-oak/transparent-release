@@ -161,7 +161,9 @@ func TestFromProvenance_Amber(t *testing.T) {
 		amber.AmberBuildTypeV1,
 		WithBuildCmd([]string{"cp", "testdata/static.txt", "test.txt"}),
 		WithBuilderImageSHA256Digest("9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"),
-		WithRepoURIs([]string{"https://github.com/project-oak/transparent-release"}))
+		WithRepoURIs([]string{"https://github.com/project-oak/transparent-release"}),
+		WithBinaryName("test.txt-9b5f98310dbbad675834474fa68c37d880687cb9"),
+	)
 
 	got, err := FromProvenance(provenance)
 	if err != nil {
