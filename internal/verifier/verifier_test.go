@@ -213,10 +213,10 @@ func TestVerify_HasNoBuildCmdButNotNeeded(t *testing.T) {
 }
 
 func TestVerify_HasAndNeedsBuilderImageDigest(t *testing.T) {
-	d := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
-	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuilderImageSHA256Digest(d))
+	bd := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuilderImageSHA256Digest(bd))
 	want := common.ReferenceValues{
-		BuilderImageSHA256Digests: []string{"some_other_digest", d},
+		BuilderImageSHA256Digests: []string{"some_other_digest", bd},
 	}
 
 	verifier := ProvenanceIRVerifier{
@@ -232,8 +232,8 @@ func TestVerify_HasAndNeedsBuilderImageDigest(t *testing.T) {
 }
 
 func TestVerify_NeedsButBuilderImageDigestNotFound(t *testing.T) {
-	d := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
-	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuilderImageSHA256Digest(d))
+	bd := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
+	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, common.WithBuilderImageSHA256Digest(bd))
 	want := common.ReferenceValues{
 		BuilderImageSHA256Digests: []string{"some_other_digest", "and_some_other"},
 	}
@@ -252,7 +252,7 @@ func TestVerify_NeedsButBuilderImageDigestNotFound(t *testing.T) {
 	gotJustifications := fmt.Sprintf("%s", result.Justifications)
 	wantJustifications := fmt.Sprintf("the reference builder image digests (%v) do not contain the actual builder image digest (%v)",
 		want.BuilderImageSHA256Digests,
-		d)
+		bd)
 
 	if !strings.Contains(gotJustifications, wantJustifications) {
 		t.Fatalf("got %q, want justification containing %q,", gotJustifications, wantJustifications)
