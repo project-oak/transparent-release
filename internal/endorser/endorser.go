@@ -64,12 +64,14 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 	for _, uri := range provenanceURIs {
 		provenanceBytes, err := getProvenanceBytes(uri)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't load the provenance file from %s: %v", uri, err)
+			return nil, fmt.Errorf("couldn't load the provenance bytes from %s: %v", uri, err)
 		}
+		// Parse into a validated provenance to get the predicate/build type of the provenance.
 		validatedProvenance, err := types.ParseStatementData(provenanceBytes)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't parse bytes from %s into a provenance statement: %v", uri, err)
+			return nil, fmt.Errorf("couldn't parse bytes from %s into a validated provenance: %v", uri, err)
 		}
+		// Maps to internal provenance represenation based on the predicate/build type.
 		provenanceIR, err := common.FromValidatedProvenance(validatedProvenance)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't map from %s to internal representation: %v", validatedProvenance, err)
