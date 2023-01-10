@@ -102,12 +102,9 @@ func NewProvenanceIR(binarySHA256Digest string, buildType string, options ...fun
 	return provenance
 }
 
-// GetBinarySHA256Digest gets the binary sha256 digest. Returns an error if the binary sha256 digest is empty.
-func (p *ProvenanceIR) GetBinarySHA256Digest() (string, error) {
-	if p.binarySHA256Digest == "" {
-		return "", fmt.Errorf("provenance does not have a binary SHA256 digest")
-	}
-	return p.binarySHA256Digest, nil
+// GetBinarySHA256Digest gets the binary sha256 digest.
+func (p *ProvenanceIR) GetBinarySHA256Digest() string {
+	return p.binarySHA256Digest
 }
 
 // WithBuildCmd sets the build cmd when creating a new ProvenanceIR.
@@ -187,10 +184,11 @@ func (p *ProvenanceIR) GetBinaryName() (string, error) {
 	return *p.binaryName, nil
 }
 
-// FromProvenance validates and converts a provenance of arbitrary type to ProvenanceIR
+// FromValidatedProvenance maps a validated provenance to ProvenanceIR by checking the provenance's
+// predicate and build type.
 //
 // To add a new mapping from a provenance P write `fromP`, which sets every required field `X` from `ProvenanceIR` using `WithX`.
-func FromProvenance(prov *types.ValidatedProvenance) (*ProvenanceIR, error) {
+func FromValidatedProvenance(prov *types.ValidatedProvenance) (*ProvenanceIR, error) {
 	predType := prov.PredicateType()
 	switch predType {
 	case intoto.SLSAV02PredicateType:
