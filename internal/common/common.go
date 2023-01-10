@@ -79,6 +79,10 @@ type ReferenceValues struct {
 // ProvenanceIR is an internal intermediate representation of data from provenances.
 // We want to map different provenances of different build types to ProvenanceIR, so
 // all fields except for `binarySHA256Digest` and `buildType` are optional.
+//
+// To add a new field X to `ProvenanceIR`
+// (i) implement GetX, HasX, WithX, and
+// (ii) check whether `WithX` needs to be added to existing mappings to `ProvenanceIR` from validated provenances.
 type ProvenanceIR struct {
 	binarySHA256Digest       string
 	buildType                string
@@ -164,6 +168,8 @@ func (p *ProvenanceIR) GetRepoURIs() []string {
 
 // FromProvenance validates and converts a provenance of arbitrary type to ProvenanceIR
 // TODO(#165): Remove types.ValidatedProvenance and perform the conversion directly on an intoto.statement.
+//
+// To add a new mapping from a provenance P write `fromP`, which sets every required field `X` from `ProvenanceIR` using `WithX`.
 func FromProvenance(prov *types.ValidatedProvenance) (*ProvenanceIR, error) {
 	predType := prov.PredicateType()
 	switch predType {
