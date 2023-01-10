@@ -136,7 +136,7 @@ type ProvenanceMetadataVerifier struct {
 // ProvenanceMetadataVerifier instance.
 // TODO(#69): Check metadata against the expected values.
 func (verifier *ProvenanceMetadataVerifier) Verify() (VerificationResult, error) {
-	provenanceIR, err := common.FromProvenance(verifier.Got)
+	provenanceIR, err := common.FromValidatedProvenance(verifier.Got)
 	if err != nil {
 		return VerificationResult{}, fmt.Errorf("could not parse provenance into ProvenanceIR: %v", err)
 	}

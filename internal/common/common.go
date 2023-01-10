@@ -188,7 +188,6 @@ func (p *ProvenanceIR) GetBinaryName() (string, error) {
 }
 
 // FromProvenance validates and converts a provenance of arbitrary type to ProvenanceIR
-// TODO(#165): Remove types.ValidatedProvenance and perform the conversion directly on an intoto.statement.
 //
 // To add a new mapping from a provenance P write `fromP`, which sets every required field `X` from `ProvenanceIR` using `WithX`.
 func FromProvenance(prov *types.ValidatedProvenance) (*ProvenanceIR, error) {

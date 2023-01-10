@@ -165,7 +165,7 @@ func TestFromProvenance_Amber(t *testing.T) {
 		WithBinaryName("test.txt-9b5f98310dbbad675834474fa68c37d880687cb9"),
 	)
 
-	got, err := FromProvenance(provenance)
+	got, err := FromValidatedProvenance(provenance)
 	if err != nil {
 		t.Fatalf("couldn't map provenance to ProvenanceIR: %v", err)
 	}
@@ -190,7 +190,7 @@ func TestFromProvenance_Slsav02(t *testing.T) {
 		slsav02.GenericSLSABuildType,
 		WithRepoURIs([]string{"git+https://github.com/project-oak/oak@refs/heads/main"}))
 
-	got, err := FromProvenance(provenance)
+	got, err := FromValidatedProvenance(provenance)
 	if err != nil {
 		t.Fatalf("couldn't map provenance to ProvenanceIR: %v", err)
 	}
@@ -213,7 +213,7 @@ func TestFromProvenance_Slsav1(t *testing.T) {
 
 	// Currently SLSA v1.0 provenances are not supported, so we expect an error.
 	want := fmt.Sprintf("unsupported predicateType (%q) for provenance", "https://slsa.dev/provenance/v1.0")
-	_, err = FromProvenance(provenance)
+	_, err = FromValidatedProvenance(provenance)
 	got := fmt.Sprintf("%v", err)
 
 	if got != want {
