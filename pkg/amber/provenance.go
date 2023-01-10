@@ -110,8 +110,7 @@ func GetBuildCmd(predicate slsav02.ProvenancePredicate) ([]string, error) {
 
 // GetBuilder extracts and returns the builder from the given ProvenancePredicate.
 func GetBuilder(predicate slsav02.ProvenancePredicate) string {
-	// TODO(mschett): Return Builder.
-	return "Some Placeholder Builder"
+	return predicate.Builder.ID
 }
 
 // GetBuilderImageDigest extracts and returns the digest for the Builder Image.

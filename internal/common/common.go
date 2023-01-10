@@ -275,8 +275,7 @@ func fromSLSAv02(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 	// A *types.ValidatedProvenance has a binary name.
 	binaryName := provenance.GetBinaryName()
 
-	// TODO(mschett): Figure out the correct builder.
-	builder := "Some Placeholder Builder"
+	builder := predicate.Builder.ID
 
 	provenanceIR := NewProvenanceIR(binarySHA256Digest, buildType, binaryName,
 		WithRepoURIs(repoURIs),

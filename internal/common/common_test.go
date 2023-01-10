@@ -162,6 +162,7 @@ func TestFromProvenance_Amber(t *testing.T) {
 		WithBuildCmd([]string{"cp", "testdata/static.txt", "test.txt"}),
 		WithBuilderImageSHA256Digest("9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"),
 		WithRepoURIs([]string{"https://github.com/project-oak/transparent-release"}),
+		WithTrustedBuilder("https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"),
 	)
 
 	got, err := FromValidatedProvenance(provenance)
@@ -188,6 +189,7 @@ func TestFromProvenance_Slsav02(t *testing.T) {
 	want := NewProvenanceIR("d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc",
 		slsav02.GenericSLSABuildType, "oak_functions_freestanding_bin",
 		WithRepoURIs([]string{"git+https://github.com/project-oak/oak@refs/heads/main"}),
+		WithTrustedBuilder("https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"),
 	)
 
 	got, err := FromValidatedProvenance(provenance)
