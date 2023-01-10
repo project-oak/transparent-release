@@ -106,6 +106,7 @@ func TestVerifyHasNoValues(t *testing.T) {
 		WantBuildCmds:             true,
 		BuilderImageSHA256Digests: []string{"builder_image_digest"},
 		RepoURI:                   "some_repo_uri",
+		TrustedBuilders:           []string{"some_trusted_builder"},
 	}
 
 	verifier := ProvenanceIRVerifier{
@@ -122,7 +123,7 @@ func TestVerifyHasNoValues(t *testing.T) {
 	testutil.AssertEq(t, "no verification happened", result.IsVerified, true)
 }
 
-func TestVerifyHasBuildCmd_HasAndNeedsBuildCmd(t *testing.T) {
+func TestVerify_HasBuildCmd_HasAndNeedsBuildCmd(t *testing.T) {
 	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, binaryName, common.WithBuildCmd([]string{"build cmd"}))
 
 	want := common.ReferenceValues{
@@ -384,6 +385,93 @@ func TestVerify_HasNoRepoURIs(t *testing.T) {
 		t.Fatalf("verify failed, got %v", err)
 	}
 	testutil.AssertEq(t, "no references to any repo URI to match against", result.IsVerified, true)
+}
+
+func TestVerify_HasAndNeedsTrustedBuilder(t *testing.T) {
+	trustedBuilder := "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"
+	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, common.WithTrustedBuilder(trustedBuilder))
+
+	want := common.ReferenceValues{
+		TrustedBuilders: []string{trustedBuilder},
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: &want,
+	}
+
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
+	testutil.AssertEq(t, "built by trusted builder", result.IsVerified, true)
+}
+
+func TestVerify_NeedsButTrustedBuilderNotFound(t *testing.T) {
+	trustedBuilder := "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"
+	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, common.WithTrustedBuilder(trustedBuilder))
+
+	want := common.ReferenceValues{
+		TrustedBuilders: []string{"other_" + trustedBuilder, "another_" + trustedBuilder},
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: &want,
+	}
+
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
+	testutil.AssertEq(t, "not built by trusted builder", result.IsVerified, false)
+}
+
+func TestVerify_NeedsButHasEmptyTrustedBuilder(t *testing.T) {
+	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, common.WithTrustedBuilder(""))
+
+	want := common.ReferenceValues{
+		TrustedBuilders: []string{"other_trusted_builder", "another_trusted_builder"},
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: &want,
+	}
+
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
+	testutil.AssertEq(t, "builder digest not found", result.IsVerified, false)
+
+	gotJustifications := fmt.Sprintf("%s", result.Justifications)
+	wantJustifications := fmt.Sprintf("the reference trusted builders (%v) do not contain the actual trusted builder (%v)",
+		want.TrustedBuilders,
+		"")
+
+	if !strings.Contains(gotJustifications, wantJustifications) {
+		t.Fatalf("got %q, want justification containing %q,", gotJustifications, wantJustifications)
+	}
+}
+
+func TestVerify_HasEmptyTrustedBuilderButNotNeeded(t *testing.T) {
+	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, common.WithTrustedBuilder(""))
+
+	want := common.ReferenceValues{
+		// We do not check the trusted builder.
+	}
+
+	verifier := ProvenanceIRVerifier{
+		Got:  got,
+		Want: &want,
+	}
+
+	result, err := verifier.Verify()
+	if err != nil {
+		t.Fatalf("verify failed, got %v", err)
+	}
+	testutil.AssertEq(t, "no trusted builder needed", result.IsVerified, true)
 }
 
 func TestAmberProvenanceMetadataVerifier(t *testing.T) {

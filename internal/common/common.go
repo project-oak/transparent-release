@@ -74,6 +74,8 @@ type ReferenceValues struct {
 	BuilderImageSHA256Digests []string `toml:"builder_image_sha256_digests"`
 	// The URI of the repo holding the resources the binary is built from.
 	RepoURI string `toml:"repo_uri"`
+	// The builders a product team trusts to build the binary.
+	TrustedBuilders []string `toml:"trusted_builders"`
 }
 
 // ProvenanceIR is an internal intermediate representation of data from provenances.
@@ -90,6 +92,7 @@ type ProvenanceIR struct {
 	buildCmd                 *[]string
 	builderImageSHA256Digest *string
 	repoURIs                 *[]string
+	trustedBuilder           *string
 }
 
 // NewProvenanceIR creates a new proveance with given optional fields.
@@ -169,6 +172,26 @@ func (p *ProvenanceIR) GetRepoURIs() []string {
 	return *p.repoURIs
 }
 
+// WithTrustedBuilder sets the trusted builder when creating a new ProvenanceIR.
+func WithTrustedBuilder(trustedBuilder string) func(p *ProvenanceIR) {
+	return func(p *ProvenanceIR) {
+		p.trustedBuilder = &trustedBuilder
+	}
+}
+
+// HasTrustedBuilder returns true if the trusted builder has been set in the ProvenanceIR.
+func (p *ProvenanceIR) HasTrustedBuilder() bool {
+	return p.trustedBuilder != nil
+}
+
+// GetTrustedBuilder gets the builder image sha256 digest. Returns an error if the trusted builder has not been set.
+func (p *ProvenanceIR) GetTrustedBuilder() (string, error) {
+	if !p.HasTrustedBuilder() {
+		return "", fmt.Errorf("provenance does not have a trusted builder")
+	}
+	return *p.trustedBuilder, nil
+}
+
 // FromValidatedProvenance maps a validated provenance to ProvenanceIR by checking the provenance's
 // predicate and build type.
 //
@@ -222,10 +245,14 @@ func fromAmber(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 	// A *types.ValidatedProvenance has a binary name.
 	binaryName := provenance.GetBinaryName()
 
+	builder := amber.GetBuilder(*predicate)
+
 	provenanceIR := NewProvenanceIR(binarySHA256Digest, buildType, binaryName,
 		WithBuildCmd(buildCmd),
 		WithBuilderImageSHA256Digest(builderImageDigest),
-		WithRepoURIs(repoURIs))
+		WithRepoURIs(repoURIs),
+		WithTrustedBuilder(builder),
+	)
 
 	return provenanceIR, nil
 }
@@ -248,8 +275,12 @@ func fromSLSAv02(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 	// A *types.ValidatedProvenance has a binary name.
 	binaryName := provenance.GetBinaryName()
 
+	// TODO(mschett): Figure out the correct builder.
+	builder := "Some Placeholder Builder"
+
 	provenanceIR := NewProvenanceIR(binarySHA256Digest, buildType, binaryName,
 		WithRepoURIs(repoURIs),
+		WithTrustedBuilder(builder),
 	)
 	return provenanceIR, nil
 }
