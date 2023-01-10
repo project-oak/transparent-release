@@ -167,7 +167,6 @@ func verifyConsistency(provenanceIRs []common.ProvenanceIR) (verifier.Verificati
 					ind,
 					binaryName, refBinaryName))
 		}
-
 	}
 	return result, nil
 }
