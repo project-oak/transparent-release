@@ -84,10 +84,7 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 		})
 	}
 
-	result, err := verifyConsistency(provenanceIRs)
-	if err != nil {
-		return nil, fmt.Errorf("couldn't verify consistency of provenances: %v", err)
-	}
+	result := verifyConsistency(provenanceIRs)
 
 	verifyResult, err := verifyProvenances(referenceValues, provenanceIRs)
 	if err != nil {
@@ -135,7 +132,7 @@ func verifyProvenances(referenceValues *common.ReferenceValues, provenances []co
 // verifyConsistency verifies that all provenances have the same binary name and
 // binary digest.
 // TODO(b/222440937): Perform any additional verification among provenances to ensure their consistency.
-func verifyConsistency(provenanceIRs []common.ProvenanceIR) (verifier.VerificationResult, error) {
+func verifyConsistency(provenanceIRs []common.ProvenanceIR) verifier.VerificationResult {
 	result := verifier.NewVerificationResult()
 	// get the binary digest and binary name of the first provenance as reference
 	refBinaryDigest := provenanceIRs[0].GetBinarySHA256Digest()
@@ -149,16 +146,14 @@ func verifyConsistency(provenanceIRs []common.ProvenanceIR) (verifier.Verificati
 				provenanceIRs[ind].GetBinarySHA256Digest(), refBinaryDigest))
 		}
 
-		binaryName := provenanceIRs[ind].GetBinaryName()
-
-		if binaryName != refBinaryName {
+		if provenanceIRs[ind].GetBinaryName() != refBinaryName {
 			result.SetFailed(
 				fmt.Sprintf("provenances are not consistent: unexpected subject name in provenance #%d; got %q, want %q",
 					ind,
-					binaryName, refBinaryName))
+					provenanceIRs[ind].GetBinaryName(), refBinaryName))
 		}
 	}
-	return result, nil
+	return result
 }
 
 func getProvenanceBytes(provenanceURI string) ([]byte, error) {
