@@ -389,7 +389,7 @@ func TestVerify_HasNoRepoURIs(t *testing.T) {
 
 func TestVerify_HasAndNeedsTrustedBuilder(t *testing.T) {
 	trustedBuilder := "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"
-	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, common.WithTrustedBuilder(trustedBuilder))
+	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, common.WithTrustedBuilder(trustedBuilder))
 
 	want := common.ReferenceValues{
 		TrustedBuilders: []string{trustedBuilder},
@@ -409,7 +409,7 @@ func TestVerify_HasAndNeedsTrustedBuilder(t *testing.T) {
 
 func TestVerify_NeedsButTrustedBuilderNotFound(t *testing.T) {
 	trustedBuilder := "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"
-	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, common.WithTrustedBuilder(trustedBuilder))
+	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, common.WithTrustedBuilder(trustedBuilder))
 
 	want := common.ReferenceValues{
 		TrustedBuilders: []string{"other_" + trustedBuilder, "another_" + trustedBuilder},
@@ -428,7 +428,7 @@ func TestVerify_NeedsButTrustedBuilderNotFound(t *testing.T) {
 }
 
 func TestVerify_NeedsButHasEmptyTrustedBuilder(t *testing.T) {
-	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, common.WithTrustedBuilder(""))
+	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, common.WithTrustedBuilder(""))
 
 	want := common.ReferenceValues{
 		TrustedBuilders: []string{"other_trusted_builder", "another_trusted_builder"},
@@ -456,7 +456,7 @@ func TestVerify_NeedsButHasEmptyTrustedBuilder(t *testing.T) {
 }
 
 func TestVerify_HasEmptyTrustedBuilderButNotNeeded(t *testing.T) {
-	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, common.WithTrustedBuilder(""))
+	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, common.WithTrustedBuilder(""))
 
 	want := common.ReferenceValues{
 		// We do not check the trusted builder.
