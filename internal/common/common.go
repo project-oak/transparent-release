@@ -78,7 +78,7 @@ type ReferenceValues struct {
 
 // ProvenanceIR is an internal intermediate representation of data from provenances.
 // We want to map different provenances of different build types to ProvenanceIR, so
-// all fields except for `binarySHA256Digest` and `buildType` are optional.
+// all fields except for `binarySHA256Digest`, `buildType`, and `binaryName` are optional.
 //
 // To add a new field X to `ProvenanceIR`
 // (i) implement GetX, HasX, WithX, and
@@ -86,16 +86,16 @@ type ReferenceValues struct {
 type ProvenanceIR struct {
 	binarySHA256Digest       string
 	buildType                string
+	binaryName               string
 	buildCmd                 *[]string
 	builderImageSHA256Digest *string
 	repoURIs                 *[]string
-	binaryName               *string
 }
 
 // NewProvenanceIR creates a new proveance with given optional fields.
 // Every provenancy needs to a have binary sha256 digest, so this is not optional.
-func NewProvenanceIR(binarySHA256Digest string, buildType string, options ...func(p *ProvenanceIR)) *ProvenanceIR {
-	provenance := &ProvenanceIR{binarySHA256Digest: binarySHA256Digest, buildType: buildType}
+func NewProvenanceIR(binarySHA256Digest string, buildType string, binaryName string, options ...func(p *ProvenanceIR)) *ProvenanceIR {
+	provenance := &ProvenanceIR{binarySHA256Digest: binarySHA256Digest, buildType: buildType, binaryName: binaryName}
 	for _, addOption := range options {
 		addOption(provenance)
 	}
@@ -105,6 +105,11 @@ func NewProvenanceIR(binarySHA256Digest string, buildType string, options ...fun
 // GetBinarySHA256Digest gets the binary sha256 digest.
 func (p *ProvenanceIR) GetBinarySHA256Digest() string {
 	return p.binarySHA256Digest
+}
+
+// GetBinaryName returns the binary name.
+func (p *ProvenanceIR) GetBinaryName() string {
+	return p.binaryName
 }
 
 // WithBuildCmd sets the build cmd when creating a new ProvenanceIR.
@@ -164,26 +169,6 @@ func (p *ProvenanceIR) GetRepoURIs() []string {
 	return *p.repoURIs
 }
 
-// WithBinaryName sets the binary name when creating a new ProvenanceIR.
-func WithBinaryName(repoURIs string) func(p *ProvenanceIR) {
-	return func(p *ProvenanceIR) {
-		p.binaryName = &repoURIs
-	}
-}
-
-// HasBinaryName returns true if the binary name has been set in the ProvenanceIR.
-func (p *ProvenanceIR) HasBinaryName() bool {
-	return p.binaryName != nil
-}
-
-// GetBinaryName returns the binary name. Returns an error if the binary name has not been set.
-func (p *ProvenanceIR) GetBinaryName() (string, error) {
-	if !p.HasBinaryName() {
-		return "", fmt.Errorf("provenance does not have a binary name")
-	}
-	return *p.binaryName, nil
-}
-
 // FromValidatedProvenance maps a validated provenance to ProvenanceIR by checking the provenance's
 // predicate and build type.
 //
@@ -212,7 +197,7 @@ func FromValidatedProvenance(prov *types.ValidatedProvenance) (*ProvenanceIR, er
 // fromAmber maps data from a validated Amber provenance to ProvenanceIR.
 // invariant: for every data X in a validated Amber provenance that can be mapped to a field in `ProvenanceIR`, `fromAmber` sets a non-nil value v for X by using `WithX(v)`.
 func fromAmber(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
-	// A *amber.ValidatedProvenance contains a SHA256 hash of a single subject.
+	// A *types.ValidatedProvenance contains a SHA256 hash of a single subject.
 	binarySHA256Digest := provenance.GetBinarySHA256Digest()
 	buildType := amber.AmberBuildTypeV1
 
@@ -234,14 +219,13 @@ func fromAmber(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 	// We collect repo uris from where they appear in the provenance to verify that they point to the same reference repo uri.
 	repoURIs := slsav02.GetMaterialsGitURI(*predicate)
 
-	// A *amber.ValidatedProvenance has a binary name.
+	// A *types.ValidatedProvenance has a binary name.
 	binaryName := provenance.GetBinaryName()
 
-	provenanceIR := NewProvenanceIR(binarySHA256Digest, buildType,
+	provenanceIR := NewProvenanceIR(binarySHA256Digest, buildType, binaryName,
 		WithBuildCmd(buildCmd),
 		WithBuilderImageSHA256Digest(builderImageDigest),
-		WithRepoURIs(repoURIs),
-		WithBinaryName(binaryName))
+		WithRepoURIs(repoURIs))
 
 	return provenanceIR, nil
 }
@@ -249,7 +233,7 @@ func fromAmber(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 // fromSLSAv02 maps data from a validated SLSA v0.2 provenance to ProvenanceIR.
 // invariant: for every data X in a validated SLSA v0.2 provenance that can be mapped to a field in `ProvenanceIR`, `fromSLSAv02` sets a non-nil value v for X by using `WithX(v)`.
 func fromSLSAv02(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
-	// A slsa.ValidatedProvenance contains a SHA256 hash of a single subject.
+	// A *tyes.ValidatedProvenance contains a SHA256 hash of a single subject.
 	binarySHA256Digest := provenance.GetBinarySHA256Digest()
 	buildType := slsav02.GenericSLSABuildType
 
@@ -261,7 +245,10 @@ func fromSLSAv02(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 	// We collect repo uris from where they appear in the provenance to verify that they point to the same reference repo uri.
 	repoURIs := slsav02.GetMaterialsGitURI(*predicate)
 
-	provenanceIR := NewProvenanceIR(binarySHA256Digest, buildType,
+	// A *types.ValidatedProvenance has a binary name.
+	binaryName := provenance.GetBinaryName()
+
+	provenanceIR := NewProvenanceIR(binarySHA256Digest, buildType, binaryName,
 		WithRepoURIs(repoURIs),
 	)
 	return provenanceIR, nil

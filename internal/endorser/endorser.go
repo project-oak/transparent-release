@@ -99,15 +99,9 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 		return nil, fmt.Errorf("verification of provenances failed: %v", result.Justifications)
 	}
 
-	refBinaryDigest := provenanceIRs[0].GetBinarySHA256Digest()
-	refBinaryName, err := provenanceIRs[0].GetBinaryName()
-	if err != nil {
-		return nil, fmt.Errorf("provenance does not have binary name: %v", err)
-	}
-
 	verifiedProvenances := amber.VerifiedProvenanceSet{
-		BinaryDigest: refBinaryDigest,
-		BinaryName:   refBinaryName,
+		BinaryDigest: provenanceIRs[0].GetBinarySHA256Digest(),
+		BinaryName:   provenanceIRs[0].GetBinaryName(),
 		Provenances:  provenancesData,
 	}
 
@@ -143,12 +137,10 @@ func verifyProvenances(referenceValues *common.ReferenceValues, provenances []co
 // TODO(b/222440937): Perform any additional verification among provenances to ensure their consistency.
 func verifyConsistency(provenanceIRs []common.ProvenanceIR) (verifier.VerificationResult, error) {
 	result := verifier.NewVerificationResult()
-	// get the binary digest and binary name as the first provenance as reference
+	// get the binary digest and binary name of the first provenance as reference
 	refBinaryDigest := provenanceIRs[0].GetBinarySHA256Digest()
-	refBinaryName, err := provenanceIRs[0].GetBinaryName()
-	if err != nil {
-		return result, fmt.Errorf("provenance does not have binary name: %v", err)
-	}
+	refBinaryName := provenanceIRs[0].GetBinaryName()
+
 	// verify that all remaining provenances have the same binary digest and binary name.
 	for ind := 1; ind < len(provenanceIRs); ind++ {
 		if provenanceIRs[ind].GetBinarySHA256Digest() != refBinaryDigest {
@@ -157,10 +149,8 @@ func verifyConsistency(provenanceIRs []common.ProvenanceIR) (verifier.Verificati
 				provenanceIRs[ind].GetBinarySHA256Digest(), refBinaryDigest))
 		}
 
-		binaryName, err := provenanceIRs[ind].GetBinaryName()
-		if err != nil {
-			return result, fmt.Errorf("provenance #%d does not have binary name: %v", ind, err)
-		}
+		binaryName := provenanceIRs[ind].GetBinaryName()
+
 		if binaryName != refBinaryName {
 			result.SetFailed(
 				fmt.Sprintf("provenances are not consistent: unexpected subject name in provenance #%d; got %q, want %q",
