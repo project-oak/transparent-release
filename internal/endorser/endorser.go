@@ -58,29 +58,35 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 		return nil, fmt.Errorf("at least one provenance file must be provided")
 	}
 
-	// load provenances from URIs
-	provenances := make([]types.ValidatedProvenance, 0, len(provenanceURIs))
+	// load provenanceIRs from URIs
+	provenanceIRs := make([]common.ProvenanceIR, 0, len(provenanceURIs))
 	provenancesData := make([]amber.ProvenanceData, 0, len(provenanceURIs))
 	for _, uri := range provenanceURIs {
 		provenanceBytes, err := getProvenanceBytes(uri)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't load the provenance file from %s: %v", uri, err)
+			return nil, fmt.Errorf("couldn't load the provenance bytes from %s: %v", uri, err)
 		}
-		provenance, err := types.ParseStatementData(provenanceBytes)
+		// Parse into a validated provenance to get the predicate/build type of the provenance.
+		validatedProvenance, err := types.ParseStatementData(provenanceBytes)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't parse bytes from %s into a provenance statement: %v", uri, err)
+			return nil, fmt.Errorf("couldn't parse bytes from %s into a validated provenance: %v", uri, err)
+		}
+		// Map to internal provenance representation based on the predicate/build type.
+		provenanceIR, err := common.FromValidatedProvenance(validatedProvenance)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't map from %s to internal representation: %v", validatedProvenance, err)
 		}
 		sum256 := sha256.Sum256(provenanceBytes)
-		provenances = append(provenances, *provenance)
+		provenanceIRs = append(provenanceIRs, *provenanceIR)
 		provenancesData = append(provenancesData, amber.ProvenanceData{
 			URI:          uri,
 			SHA256Digest: hex.EncodeToString(sum256[:]),
 		})
 	}
 
-	result := verifyConsistency(provenances)
+	result := verifyConsistency(provenanceIRs)
 
-	verifyResult, err := verifyProvenances(referenceValues, provenances)
+	verifyResult, err := verifyProvenances(referenceValues, provenanceIRs)
 	if err != nil {
 		return nil, fmt.Errorf("failed while verifying provenances: %v", err)
 	}
@@ -91,8 +97,8 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 	}
 
 	verifiedProvenances := amber.VerifiedProvenanceSet{
-		BinaryName:   provenances[0].GetBinaryName(),
-		BinaryDigest: provenances[0].GetBinarySHA256Digest(),
+		BinaryDigest: provenanceIRs[0].GetBinarySHA256Digest(),
+		BinaryName:   provenanceIRs[0].GetBinaryName(),
 		Provenances:  provenancesData,
 	}
 
@@ -101,10 +107,10 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 
 // verifyProvenances verifies the given list of provenances. An error is returned if not.
 // TODO(b/222440937): Document any additional checks.
-func verifyProvenances(referenceValues *common.ReferenceValues, provenances []types.ValidatedProvenance) (verifier.VerificationResult, error) {
+func verifyProvenances(referenceValues *common.ReferenceValues, provenances []common.ProvenanceIR) (verifier.VerificationResult, error) {
 	combinedResult := verifier.NewVerificationResult()
 	for index := range provenances {
-		provenanceVerifier := verifier.ProvenanceMetadataVerifier{
+		provenanceVerifier := verifier.ProvenanceIRVerifier{
 			Got:  &provenances[index],
 			Want: referenceValues,
 		}
@@ -126,23 +132,25 @@ func verifyProvenances(referenceValues *common.ReferenceValues, provenances []ty
 // verifyConsistency verifies that all provenances have the same binary name and
 // binary digest.
 // TODO(b/222440937): Perform any additional verification among provenances to ensure their consistency.
-// TODO(#165) Replace input type ValidatedProvenance with ProvenanceIR. Use common.FromProvenance before calling this function.
-func verifyConsistency(provenances []types.ValidatedProvenance) verifier.VerificationResult {
+func verifyConsistency(provenanceIRs []common.ProvenanceIR) verifier.VerificationResult {
 	result := verifier.NewVerificationResult()
-	// verify that all provenances have the same binary digest and name.
-	binaryDigest := provenances[0].GetBinarySHA256Digest()
-	binaryName := provenances[0].GetBinaryName()
-	for ind := 1; ind < len(provenances); ind++ {
-		if provenances[ind].GetBinaryName() != binaryName {
+	// get the binary digest and binary name of the first provenance as reference
+	refBinaryDigest := provenanceIRs[0].GetBinarySHA256Digest()
+	refBinaryName := provenanceIRs[0].GetBinaryName()
+
+	// verify that all remaining provenances have the same binary digest and binary name.
+	for ind := 1; ind < len(provenanceIRs); ind++ {
+		if provenanceIRs[ind].GetBinarySHA256Digest() != refBinaryDigest {
+			result.SetFailed(fmt.Sprintf("provenances are not consistent: unexpected binary SHA256 digest in provenance #%d; got %q, want %q",
+				ind,
+				provenanceIRs[ind].GetBinarySHA256Digest(), refBinaryDigest))
+		}
+
+		if provenanceIRs[ind].GetBinaryName() != refBinaryName {
 			result.SetFailed(
 				fmt.Sprintf("provenances are not consistent: unexpected subject name in provenance #%d; got %q, want %q",
 					ind,
-					provenances[ind].GetBinaryName(), binaryName))
-		}
-		if provenances[ind].GetBinarySHA256Digest() != binaryDigest {
-			result.SetFailed(fmt.Sprintf("provenances are not consistent: unexpected binary SHA256 digest in provenance #%d; got %q, want %q",
-				ind,
-				provenances[ind].GetBinarySHA256Digest(), binaryDigest))
+					provenanceIRs[ind].GetBinaryName(), refBinaryName))
 		}
 	}
 	return result

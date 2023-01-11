@@ -124,31 +124,6 @@ func chdir(dir string) {
 	}
 }
 
-// ProvenanceMetadataVerifier verifies provenances by comparing the
-// content of the provenance predicate against a given set of expected values.
-type ProvenanceMetadataVerifier struct {
-	Got  *types.ValidatedProvenance
-	Want *common.ReferenceValues
-	// TODO(#69): Add metadata fields.
-}
-
-// Verify verifies a given provenance file by checking its content against the expected values
-// ProvenanceMetadataVerifier instance.
-// TODO(#69): Check metadata against the expected values.
-func (verifier *ProvenanceMetadataVerifier) Verify() (VerificationResult, error) {
-	provenanceIR, err := common.FromProvenance(verifier.Got)
-	if err != nil {
-		return VerificationResult{}, fmt.Errorf("could not parse provenance into ProvenanceIR: %v", err)
-	}
-
-	provenanceVerifier := ProvenanceIRVerifier{
-		Got:  provenanceIR,
-		Want: verifier.Want,
-	}
-
-	return provenanceVerifier.Verify()
-}
-
 // ProvenanceIRVerifier verifies a provenance against a given reference, by verifying
 // all non-empty fields in got using fields in the reference values. Empty fields will not be verified.
 type ProvenanceIRVerifier struct {
@@ -199,11 +174,7 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 func verifyBinarySHA256Digest(want *common.ReferenceValues, got *common.ProvenanceIR) (VerificationResult, error) {
 	result := NewVerificationResult()
 
-	gotBinarySHA256Digest, err := got.GetBinarySHA256Digest()
-
-	if err != nil {
-		return result, err
-	}
+	gotBinarySHA256Digest := got.GetBinarySHA256Digest()
 
 	if want.BinarySHA256Digests == nil {
 		return result, fmt.Errorf("no reference binary SHA256 digests given")
