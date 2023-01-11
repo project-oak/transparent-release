@@ -134,6 +134,8 @@ type ProvenanceIRVerifier struct {
 // TODO(b/222440937): In future, also verify the details of the given provenance and the signature.
 // Verify verifies an instance of ProvenanceIRVerifier by comparing its Got and Want fields.
 // All empty fields are ignored. If a field in Got contains more than one value, we return an error.
+//
+//nolint:cyclop
 func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 	combinedResult := NewVerificationResult()
 
