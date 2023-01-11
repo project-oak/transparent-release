@@ -108,11 +108,6 @@ func GetBuildCmd(predicate slsav02.ProvenancePredicate) ([]string, error) {
 	return buildConfig.Command, nil
 }
 
-// GetBuilder extracts and returns the builder from the given ProvenancePredicate.
-func GetBuilder(predicate slsav02.ProvenancePredicate) string {
-	return predicate.Builder.ID
-}
-
 // GetBuilderImageDigest extracts and returns the digest for the Builder Image.
 func GetBuilderImageDigest(predicate slsav02.ProvenancePredicate) (string, error) {
 	for _, material := range predicate.Materials {
