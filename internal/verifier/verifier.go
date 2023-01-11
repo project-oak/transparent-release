@@ -134,6 +134,8 @@ type ProvenanceIRVerifier struct {
 // TODO(b/222440937): In future, also verify the details of the given provenance and the signature.
 // Verify verifies an instance of ProvenanceIRVerifier by comparing its Got and Want fields.
 // All empty fields are ignored. If a field in Got contains more than one value, we return an error.
+//
+//nolint:cyclop
 func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 	combinedResult := NewVerificationResult()
 
@@ -164,6 +166,15 @@ func (verifier *ProvenanceIRVerifier) Verify() (VerificationResult, error) {
 	// Verify RepoURIs.
 	if verifier.Got.HasRepoURIs() && verifier.Want.RepoURI != "" {
 		nextResult := verifyRepoURIs(verifier.Want, verifier.Got)
+		combinedResult.Combine(nextResult)
+	}
+
+	// Verify TrustedBuilder.
+	if verifier.Got.HasTrustedBuilder() && verifier.Want.TrustedBuilders != nil {
+		nextResult, err := verifyTrustedBuilder(verifier.Want, verifier.Got)
+		if err != nil {
+			return combinedResult, fmt.Errorf("failed to verify trusted builder: %v", err)
+		}
 		combinedResult.Combine(nextResult)
 	}
 
@@ -243,4 +254,29 @@ func verifyRepoURIs(want *common.ReferenceValues, got *common.ProvenanceIR) Veri
 		}
 	}
 	return result
+}
+
+// verifyTrustedBuilder verifies that the given trusted builder matches a trusted builder in the reference values.
+func verifyTrustedBuilder(want *common.ReferenceValues, got *common.ProvenanceIR) (VerificationResult, error) {
+	result := NewVerificationResult()
+
+	gotTrustedBuilder, err := got.GetTrustedBuilder()
+	if err != nil {
+		return result, err
+	}
+
+	foundInReferences := false
+	for _, wantTrustedBuilder := range want.TrustedBuilders {
+		if wantTrustedBuilder == gotTrustedBuilder {
+			foundInReferences = true
+		}
+	}
+
+	if !foundInReferences {
+		result.SetFailed(fmt.Sprintf("the reference trusted builders (%v) do not contain the actual trusted builder (%v)",
+			want.TrustedBuilders,
+			gotTrustedBuilder))
+	}
+
+	return result, nil
 }
