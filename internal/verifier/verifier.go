@@ -206,7 +206,6 @@ func verifyRepoURIs(want *common.ReferenceValues, got *common.ProvenanceIR) erro
 
 // verifyTrustedBuilder verifies that the given trusted builder matches a trusted builder in the reference values.
 func verifyTrustedBuilder(want *common.ReferenceValues, got *common.ProvenanceIR) error {
-
 	gotTrustedBuilder, err := got.GetTrustedBuilder()
 	if err != nil {
 		return fmt.Errorf("no trusted builder set")
