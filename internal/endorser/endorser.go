@@ -26,6 +26,8 @@ import (
 	"net/url"
 	"os"
 
+	"go.uber.org/multierr"
+
 	"github.com/project-oak/transparent-release/internal/common"
 	"github.com/project-oak/transparent-release/internal/verifier"
 	"github.com/project-oak/transparent-release/pkg/amber"
@@ -84,16 +86,9 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 		})
 	}
 
-	result := verifyConsistency(provenanceIRs)
-
-	verifyResult, err := verifyProvenances(referenceValues, provenanceIRs)
-	if err != nil {
-		return nil, fmt.Errorf("failed while verifying provenances: %v", err)
-	}
-	result.Combine(verifyResult)
-
-	if !result.IsVerified {
-		return nil, fmt.Errorf("verification of provenances failed: %v", result.Justifications)
+	errs := multierr.Append(verifyConsistency(provenanceIRs), verifyProvenances(referenceValues, provenanceIRs))
+	if errs != nil {
+		return nil, fmt.Errorf("failed while verifying of provenances: %v", errs)
 	}
 
 	verifiedProvenances := amber.VerifiedProvenanceSet{
@@ -107,33 +102,26 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 
 // verifyProvenances verifies the given list of provenances. An error is returned if not.
 // TODO(b/222440937): Document any additional checks.
-func verifyProvenances(referenceValues *common.ReferenceValues, provenances []common.ProvenanceIR) (verifier.VerificationResult, error) {
-	combinedResult := verifier.NewVerificationResult()
+func verifyProvenances(referenceValues *common.ReferenceValues, provenances []common.ProvenanceIR) error {
+	var errs error
 	for index := range provenances {
 		provenanceVerifier := verifier.ProvenanceIRVerifier{
 			Got:  &provenances[index],
 			Want: referenceValues,
 		}
-		result, err := provenanceVerifier.Verify()
-		if err != nil {
-			return combinedResult, fmt.Errorf("verification of the provenance at index %d failed: %v;", index, err)
+		if err := provenanceVerifier.Verify(); err != nil {
+			multierr.AppendInto(&errs, fmt.Errorf("verification of the provenance at index %d failed: %v;", index, err))
 		}
-
-		// result already holds a justification, but we also want to add the index where it failed.
-		if !result.IsVerified {
-			result.Justifications = append([]string{fmt.Sprintf("verification of the provenance at index %d failed;", index)}, result.Justifications...)
-		}
-
-		combinedResult.Combine(result)
 	}
-	return combinedResult, nil
+	return errs
 }
 
 // verifyConsistency verifies that all provenances have the same binary name and
 // binary digest.
 // TODO(b/222440937): Perform any additional verification among provenances to ensure their consistency.
-func verifyConsistency(provenanceIRs []common.ProvenanceIR) verifier.VerificationResult {
-	result := verifier.NewVerificationResult()
+func verifyConsistency(provenanceIRs []common.ProvenanceIR) error {
+	var errs error
+
 	// get the binary digest and binary name of the first provenance as reference
 	refBinaryDigest := provenanceIRs[0].GetBinarySHA256Digest()
 	refBinaryName := provenanceIRs[0].GetBinaryName()
@@ -141,19 +129,19 @@ func verifyConsistency(provenanceIRs []common.ProvenanceIR) verifier.Verificatio
 	// verify that all remaining provenances have the same binary digest and binary name.
 	for ind := 1; ind < len(provenanceIRs); ind++ {
 		if provenanceIRs[ind].GetBinarySHA256Digest() != refBinaryDigest {
-			result.SetFailed(fmt.Sprintf("provenances are not consistent: unexpected binary SHA256 digest in provenance #%d; got %q, want %q",
+			multierr.AppendInto(&errs, fmt.Errorf("provenances are not consistent: unexpected binary SHA256 digest in provenance #%d; got %q, want %q",
 				ind,
 				provenanceIRs[ind].GetBinarySHA256Digest(), refBinaryDigest))
 		}
 
 		if provenanceIRs[ind].GetBinaryName() != refBinaryName {
-			result.SetFailed(
-				fmt.Sprintf("provenances are not consistent: unexpected subject name in provenance #%d; got %q, want %q",
+			multierr.AppendInto(&errs,
+				fmt.Errorf("provenances are not consistent: unexpected subject name in provenance #%d; got %q, want %q",
 					ind,
 					provenanceIRs[ind].GetBinaryName(), refBinaryName))
 		}
 	}
-	return result
+	return errs
 }
 
 func getProvenanceBytes(provenanceURI string) ([]byte, error) {
