@@ -174,7 +174,6 @@ func verifyHasNotEmptyBuildCmd(got *common.ProvenanceIR) error {
 
 // verifyBuilderImageDigest verifies that the given builder image digest matches a builder image digest in the reference values.
 func verifyBuilderImageDigest(want *common.ReferenceValues, got *common.ProvenanceIR) error {
-
 	gotBuilderImageDigest, err := got.GetBuilderImageSHA256Digest()
 	if err != nil {
 		return fmt.Errorf("no builder image digest set")
