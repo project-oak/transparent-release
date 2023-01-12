@@ -126,7 +126,6 @@ func (verifier *ProvenanceIRVerifier) Verify() error {
 
 	// Verify BuilderImageDigest.
 	if verifier.Got.HasBuilderImageSHA256Digest() && verifier.Want.BuilderImageSHA256Digests != nil {
-
 		if err := verifyBuilderImageDigest(verifier.Want, verifier.Got); err != nil {
 			multierr.AppendInto(&errs, fmt.Errorf("failed to verify builder image digests: %v", err))
 		}
