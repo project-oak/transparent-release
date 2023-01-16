@@ -41,9 +41,7 @@ func main() {
 		GitRootDir: *gitRootDirPtr,
 	}
 
-	if report, err := provenanceVerifier.Verify(); err != nil {
+	if err := provenanceVerifier.Verify(); err != nil {
 		log.Fatalf("error when verifying the provenance: %v", err)
-	} else if !report.IsVerified {
-		log.Fatalf("verification failed: %v", report.Justifications)
 	}
 }

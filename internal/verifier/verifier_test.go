@@ -21,7 +21,6 @@ import (
 	"testing"
 
 	"github.com/project-oak/transparent-release/internal/common"
-	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/amber"
 	slsav02 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 )
@@ -46,7 +45,7 @@ func TestReproducibleProvenanceVerifier_validProvenance(t *testing.T) {
 		Provenance: provenance,
 	}
 
-	if _, err := verifier.Verify(); err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("couldn't verify the provenance file: %v", err)
 	}
 }
@@ -63,18 +62,9 @@ func TestReproducibleProvenanceVerifier_invalidHash(t *testing.T) {
 		Provenance: provenance,
 	}
 
-	result, err := verifier.Verify()
-
-	if err != nil {
-		t.Fatalf("verify failed: %v", err)
-	}
-
-	testutil.AssertEq(t, "invalid hash", result.IsVerified, false)
-
-	got := fmt.Sprintf("%v", result.Justifications)
-	want := "failed to verify the digest of the built binary"
-	if !strings.Contains(got, want) {
-		t.Fatalf("got %v, want justification containing %q,", got, want)
+	wantErr := "failed to verify the digest of the built binary"
+	if err = verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
+		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
 	}
 }
 
@@ -92,12 +82,12 @@ func TestReproducibleProvenanceVerifier_badCommand(t *testing.T) {
 
 	want := "couldn't build the binary"
 
-	if _, got := verifier.Verify(); !strings.Contains(got.Error(), want) {
+	if got := verifier.Verify(); !strings.Contains(got.Error(), want) {
 		t.Fatalf("got %v, want error message containing %q,", got, want)
 	}
 }
 
-func TestVerifyHasNoValues(t *testing.T) {
+func TestVerify_HasNoValues(t *testing.T) {
 	// There are no optional fields set apart from the binary digest and the build type.
 	got := common.NewProvenanceIR(binarySHA256Digest, amber.AmberBuildTypeV1, binaryName)
 
@@ -115,12 +105,10 @@ func TestVerifyHasNoValues(t *testing.T) {
 	}
 
 	// We don't expect any verification to happen.
-	result, err := verifier.Verify()
-	if err != nil {
+
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
-	// Thus the result is the default: true.
-	testutil.AssertEq(t, "no verification happened", result.IsVerified, true)
 }
 
 func TestVerify_HasBuildCmd_HasAndNeedsBuildCmd(t *testing.T) {
@@ -135,12 +123,9 @@ func TestVerify_HasBuildCmd_HasAndNeedsBuildCmd(t *testing.T) {
 		Want: &want,
 	}
 
-	result, err := verifier.Verify()
-	if err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
-
-	testutil.AssertEq(t, "has build cmd", result.IsVerified, true)
 }
 
 func TestVerify_NeedsButCannotHaveNoBuildCmd(t *testing.T) {
@@ -156,12 +141,9 @@ func TestVerify_NeedsButCannotHaveNoBuildCmd(t *testing.T) {
 		Want: &want,
 	}
 
-	result, err := verifier.Verify()
-	if err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
-
-	testutil.AssertEq(t, "cannot have build cmd", result.IsVerified, true)
 }
 
 func TestVerify_NeedsButHasNoBuildCmd(t *testing.T) {
@@ -177,18 +159,9 @@ func TestVerify_NeedsButHasNoBuildCmd(t *testing.T) {
 		Want: &want,
 	}
 
-	result, err := verifier.Verify()
-	if err != nil {
-		t.Fatalf("verify failed, got %v", err)
-	}
-
-	testutil.AssertEq(t, "has no build cmd", result.IsVerified, false)
-
-	justifications := fmt.Sprintf("%s", result.Justifications)
-
-	wantJustification := "no build cmd found"
-	if !strings.Contains(justifications, wantJustification) {
-		t.Fatalf("got %q, want justification containing %q,", justifications, wantJustification)
+	wantErr := "no build cmd found"
+	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
+		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
 	}
 }
 
@@ -206,12 +179,9 @@ func TestVerify_HasNoBuildCmdButNotNeeded(t *testing.T) {
 	}
 
 	// We don't expect any verification to happen.
-	result, err := verifier.Verify()
-	if err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
-	// Thus the result is the default: true.
-	testutil.AssertEq(t, "no verification happened", result.IsVerified, true)
 }
 
 func TestVerify_HasAndNeedsBuilderImageDigest(t *testing.T) {
@@ -226,11 +196,9 @@ func TestVerify_HasAndNeedsBuilderImageDigest(t *testing.T) {
 		Want: &want,
 	}
 
-	result, err := verifier.Verify()
-	if err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
-	testutil.AssertEq(t, "builder digest not found", result.IsVerified, true)
 }
 
 func TestVerify_NeedsButBuilderImageDigestNotFound(t *testing.T) {
@@ -245,19 +213,11 @@ func TestVerify_NeedsButBuilderImageDigestNotFound(t *testing.T) {
 		Want: &want,
 	}
 
-	result, err := verifier.Verify()
-	if err != nil {
-		t.Fatalf("verify failed, got %v", err)
-	}
-	testutil.AssertEq(t, "builder digest found", result.IsVerified, false)
-
-	gotJustifications := fmt.Sprintf("%s", result.Justifications)
-	wantJustifications := fmt.Sprintf("the reference builder image digests (%v) do not contain the actual builder image digest (%v)",
+	wantErr := fmt.Sprintf("the reference builder image digests (%v) do not contain the actual builder image digest (%v)",
 		want.BuilderImageSHA256Digests,
 		builderDigest)
-
-	if !strings.Contains(gotJustifications, wantJustifications) {
-		t.Fatalf("got %q, want justification containing %q,", gotJustifications, wantJustifications)
+	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
+		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
 	}
 }
 
@@ -272,19 +232,11 @@ func TestVerify_NeedsButHasEmptyBuilderImageDigest(t *testing.T) {
 		Want: &want,
 	}
 
-	result, err := verifier.Verify()
-	if err != nil {
-		t.Fatalf("verify failed, got %v", err)
-	}
-	testutil.AssertEq(t, "builder digest not found", result.IsVerified, false)
-
-	gotJustifications := fmt.Sprintf("%s", result.Justifications)
-	wantJustifications := fmt.Sprintf("the reference builder image digests (%v) do not contain the actual builder image digest (%v)",
+	wantErr := fmt.Sprintf("the reference builder image digests (%v) do not contain the actual builder image digest (%v)",
 		want.BuilderImageSHA256Digests,
 		"")
-
-	if !strings.Contains(gotJustifications, wantJustifications) {
-		t.Fatalf("got %q, want justification containing %q,", gotJustifications, wantJustifications)
+	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
+		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
 	}
 }
 
@@ -300,11 +252,9 @@ func TestVerify_HasEmptyBuilderImageDigestButNotNeeded(t *testing.T) {
 		Want: &want,
 	}
 
-	result, err := verifier.Verify()
-	if err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
-	testutil.AssertEq(t, "no builder image digest needed", result.IsVerified, true)
 }
 
 func TestVerify_HasFoundRepoURI(t *testing.T) {
@@ -322,15 +272,10 @@ func TestVerify_HasFoundRepoURI(t *testing.T) {
 		Want: &want,
 	}
 
-	result, err := verifier.Verify()
-	if err != nil {
+	// verify succeeds because found repo uri in all references
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
-	if result.IsVerified == false {
-		t.Fatalf("%v", result.Justifications)
-	}
-
-	testutil.AssertEq(t, "found repo uri in all references", result.IsVerified, true)
 }
 
 func TestVerify_HasWrongRepoURI(t *testing.T) {
@@ -350,20 +295,12 @@ func TestVerify_HasWrongRepoURI(t *testing.T) {
 		Want: &want,
 	}
 
-	result, err := verifier.Verify()
-	if err != nil {
-		t.Fatalf("verify failed, got %v", err)
-	}
-	testutil.AssertEq(t, "wrong repo uri in reference", result.IsVerified, false)
-
-	gotJustifications := fmt.Sprintf("%s", result.Justifications)
-	wantJustifications := fmt.Sprintf("the URI from the provenance (%v) does not contain the repo URI (%v)",
+	wantErr := fmt.Sprintf("the URI from the provenance (%v) does not contain the repo URI (%v)",
 		wrongURI,
 		want.RepoURI,
 	)
-
-	if !strings.Contains(gotJustifications, wantJustifications) {
-		t.Fatalf("got %q, want justification containing %q,", gotJustifications, wantJustifications)
+	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
+		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
 	}
 }
 
@@ -380,11 +317,10 @@ func TestVerify_HasNoRepoURIs(t *testing.T) {
 		Want: &want,
 	}
 
-	result, err := verifier.Verify()
-	if err != nil {
+	// verfy succeeds because there are no references to any repo URI to match against
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
-	testutil.AssertEq(t, "no references to any repo URI to match against", result.IsVerified, true)
 }
 
 func TestVerify_HasAndNeedsTrustedBuilder(t *testing.T) {
@@ -400,11 +336,9 @@ func TestVerify_HasAndNeedsTrustedBuilder(t *testing.T) {
 		Want: &want,
 	}
 
-	result, err := verifier.Verify()
-	if err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
-	testutil.AssertEq(t, "built by trusted builder", result.IsVerified, true)
 }
 
 func TestVerify_NeedsButTrustedBuilderNotFound(t *testing.T) {
@@ -420,11 +354,12 @@ func TestVerify_NeedsButTrustedBuilderNotFound(t *testing.T) {
 		Want: &want,
 	}
 
-	result, err := verifier.Verify()
-	if err != nil {
-		t.Fatalf("verify failed, got %v", err)
+	wantErr := fmt.Sprintf("the reference trusted builders (%v) do not contain the actual trusted builder (%v)",
+		want.TrustedBuilders,
+		trustedBuilder)
+	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
+		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
 	}
-	testutil.AssertEq(t, "not built by trusted builder", result.IsVerified, false)
 }
 
 func TestVerify_NeedsButHasEmptyTrustedBuilder(t *testing.T) {
@@ -439,19 +374,11 @@ func TestVerify_NeedsButHasEmptyTrustedBuilder(t *testing.T) {
 		Want: &want,
 	}
 
-	result, err := verifier.Verify()
-	if err != nil {
-		t.Fatalf("verify failed, got %v", err)
-	}
-	testutil.AssertEq(t, "builder digest not found", result.IsVerified, false)
-
-	gotJustifications := fmt.Sprintf("%s", result.Justifications)
-	wantJustifications := fmt.Sprintf("the reference trusted builders (%v) do not contain the actual trusted builder (%v)",
+	wantErr := fmt.Sprintf("the reference trusted builders (%v) do not contain the actual trusted builder (%v)",
 		want.TrustedBuilders,
 		"")
-
-	if !strings.Contains(gotJustifications, wantJustifications) {
-		t.Fatalf("got %q, want justification containing %q,", gotJustifications, wantJustifications)
+	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
+		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
 	}
 }
 
@@ -467,11 +394,9 @@ func TestVerify_HasEmptyTrustedBuilderButNotNeeded(t *testing.T) {
 		Want: &want,
 	}
 
-	result, err := verifier.Verify()
-	if err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
-	testutil.AssertEq(t, "no trusted builder needed", result.IsVerified, true)
 }
 
 func TestAmberProvenanceMetadataVerifier(t *testing.T) {
@@ -485,7 +410,7 @@ func TestAmberProvenanceMetadataVerifier(t *testing.T) {
 		Provenance: provenance,
 	}
 
-	if _, err := verifier.Verify(); err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("couldn't verify the provenance file: %v", err)
 	}
 }
