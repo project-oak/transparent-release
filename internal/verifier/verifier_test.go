@@ -62,10 +62,8 @@ func TestReproducibleProvenanceVerifier_invalidHash(t *testing.T) {
 		Provenance: provenance,
 	}
 
-	err = verifier.Verify()
-
 	wantErr := "failed to verify the digest of the built binary"
-	if err == nil || !strings.Contains(err.Error(), wantErr) {
+	if err = verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
 		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
 	}
 }
@@ -107,8 +105,8 @@ func TestVerify_HasNoValues(t *testing.T) {
 	}
 
 	// We don't expect any verification to happen.
-	err := verifier.Verify()
-	if err != nil {
+
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
 }
@@ -125,8 +123,7 @@ func TestVerify_HasBuildCmd_HasAndNeedsBuildCmd(t *testing.T) {
 		Want: &want,
 	}
 
-	err := verifier.Verify()
-	if err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
 }
@@ -144,8 +141,7 @@ func TestVerify_NeedsButCannotHaveNoBuildCmd(t *testing.T) {
 		Want: &want,
 	}
 
-	err := verifier.Verify()
-	if err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
 }
@@ -163,10 +159,8 @@ func TestVerify_NeedsButHasNoBuildCmd(t *testing.T) {
 		Want: &want,
 	}
 
-	err := verifier.Verify()
-
 	wantErr := "no build cmd found"
-	if err == nil || !strings.Contains(err.Error(), wantErr) {
+	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
 		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
 	}
 }
@@ -185,8 +179,7 @@ func TestVerify_HasNoBuildCmdButNotNeeded(t *testing.T) {
 	}
 
 	// We don't expect any verification to happen.
-	err := verifier.Verify()
-	if err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
 }
@@ -203,8 +196,7 @@ func TestVerify_HasAndNeedsBuilderImageDigest(t *testing.T) {
 		Want: &want,
 	}
 
-	err := verifier.Verify()
-	if err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
 }
@@ -221,11 +213,10 @@ func TestVerify_NeedsButBuilderImageDigestNotFound(t *testing.T) {
 		Want: &want,
 	}
 
-	err := verifier.Verify()
 	wantErr := fmt.Sprintf("the reference builder image digests (%v) do not contain the actual builder image digest (%v)",
 		want.BuilderImageSHA256Digests,
 		builderDigest)
-	if err == nil || !strings.Contains(err.Error(), wantErr) {
+	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
 		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
 	}
 }
@@ -241,11 +232,10 @@ func TestVerify_NeedsButHasEmptyBuilderImageDigest(t *testing.T) {
 		Want: &want,
 	}
 
-	err := verifier.Verify()
 	wantErr := fmt.Sprintf("the reference builder image digests (%v) do not contain the actual builder image digest (%v)",
 		want.BuilderImageSHA256Digests,
 		"")
-	if err == nil || !strings.Contains(err.Error(), wantErr) {
+	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
 		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
 	}
 }
@@ -262,8 +252,7 @@ func TestVerify_HasEmptyBuilderImageDigestButNotNeeded(t *testing.T) {
 		Want: &want,
 	}
 
-	err := verifier.Verify()
-	if err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
 }
@@ -284,8 +273,7 @@ func TestVerify_HasFoundRepoURI(t *testing.T) {
 	}
 
 	// verify succeeds because found repo uri in all references
-	err := verifier.Verify()
-	if err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
 }
@@ -307,13 +295,11 @@ func TestVerify_HasWrongRepoURI(t *testing.T) {
 		Want: &want,
 	}
 
-	err := verifier.Verify()
-
 	wantErr := fmt.Sprintf("the URI from the provenance (%v) does not contain the repo URI (%v)",
 		wrongURI,
 		want.RepoURI,
 	)
-	if err == nil || !strings.Contains(err.Error(), wantErr) {
+	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
 		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
 	}
 }
@@ -332,8 +318,7 @@ func TestVerify_HasNoRepoURIs(t *testing.T) {
 	}
 
 	// verfy succeeds because there are no references to any repo URI to match against
-	err := verifier.Verify()
-	if err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
 }
@@ -351,8 +336,7 @@ func TestVerify_HasAndNeedsTrustedBuilder(t *testing.T) {
 		Want: &want,
 	}
 
-	err := verifier.Verify()
-	if err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
 }
@@ -370,12 +354,10 @@ func TestVerify_NeedsButTrustedBuilderNotFound(t *testing.T) {
 		Want: &want,
 	}
 
-	err := verifier.Verify()
-
 	wantErr := fmt.Sprintf("the reference trusted builders (%v) do not contain the actual trusted builder (%v)",
 		want.TrustedBuilders,
 		trustedBuilder)
-	if err == nil || !strings.Contains(err.Error(), wantErr) {
+	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
 		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
 	}
 }
@@ -392,12 +374,10 @@ func TestVerify_NeedsButHasEmptyTrustedBuilder(t *testing.T) {
 		Want: &want,
 	}
 
-	err := verifier.Verify()
-
 	wantErr := fmt.Sprintf("the reference trusted builders (%v) do not contain the actual trusted builder (%v)",
 		want.TrustedBuilders,
 		"")
-	if err == nil || !strings.Contains(err.Error(), wantErr) {
+	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
 		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
 	}
 }
@@ -414,8 +394,7 @@ func TestVerify_HasEmptyTrustedBuilderButNotNeeded(t *testing.T) {
 		Want: &want,
 	}
 
-	err := verifier.Verify()
-	if err != nil {
+	if err := verifier.Verify(); err != nil {
 		t.Fatalf("verify failed, got %v", err)
 	}
 }
