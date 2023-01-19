@@ -104,15 +104,14 @@ type ProvenanceIRVerifier struct {
 	Want *common.ReferenceValues
 }
 
-// TODO(b/222440937): In future, also verify the details of the given provenance and the signature.
 // Verify verifies an instance of ProvenanceIRVerifier by comparing its Got and Want fields.
-// All empty fields are ignored. If a field in Got contains more than one value, we return an error.
+// Verify checks fields, which (i) are set in Got, i.e., GotHasX is true, and (ii) are set in Want.
 //
 //nolint:cyclop
 func (verifier *ProvenanceIRVerifier) Verify() error {
 	var errs error
 
-	// Verify BinarySHA256 Digest.
+	// Verify BinarySHA256 Digest. Every reference value contains a binary digest.
 	if verifier.Want.BinarySHA256Digests != nil {
 		if err := verifyBinarySHA256Digest(verifier.Want, verifier.Got); err != nil {
 			multierr.AppendInto(&errs, fmt.Errorf("failed to verify binary SHA256 digest: %v", err))
