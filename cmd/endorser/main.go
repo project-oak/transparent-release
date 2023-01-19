@@ -29,15 +29,24 @@ import (
 
 // Example Calls
 
+// Amber Provenance Example
+
 // go run cmd/endorser/main.go -reference_values_path testdata/reference_values.toml -provenance_path testdata/amber_provenance.json
-// Fails with expected error
+// statement: &{{https://in-toto.io/Statement/v0.1 https://github.com/project-oak/transparent-release/claim/v1 [{test.txt-9b5f98310dbbad675834474fa68c37d880687cb9 map[sha256:322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d]}]} {https://github.com/project-oak/transparent-release/endorsement/v2 <nil> 2023-01-19 09:32:04.517332532 +0000 GMT m=+0.000826160 0xc0000a1c30 [{Provenance file:///tmp/amber_provenance.json3352769119 map[sha256:f2aee88aaa67f37faeb77e66041478cf234146f9d25da459a7875f06a209a348]}]}}
+//
 // go run cmd/endorser/main.go -reference_values_path testdata/wrong-reference-values.toml -provenance_path testdata/amber_provenance.json
+// Fails and expected to fail
 
-// Fails and shouldn't fail:
-// go run cmd/endorser/main.go -reference_values_path testdata/reference_values.toml -provenance_path testdata/slsa_v02_provenance.json
+// SLSA v02 Provenance Example
 
-// Fails with not implemented:
+// go run cmd/endorser/main.go -reference_values_path testdata/other_reference_values.toml -provenance_path testdata/slsa_v02_provenance.json
+// statement: &{{https://in-toto.io/Statement/v0.1 https://github.com/project-oak/transparent-release/claim/v1 [{oak_functions_freestanding_bin map[sha256:d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc]}]} {https://github.com/project-oak/transparent-release/endorsement/v2 <nil> 2023-01-19 10:10:02.010695682 +0000 GMT m=+0.000831846 0xc000067c20 [{Provenance file:///tmp/amber_provenance.json3793561183 map[sha256:1c6c1f75086e61c1f825c93c331bdea00b6e7f3329bc01e455b82befe4f3ce6b]}]}}
+
+// SLSA v1 Provenance Example
+
+// Fails and expected to fail with not implemented:
 // go run cmd/endorser/main.go -reference_values_path testdata/reference_values.toml -provenance_path testdata/slsa_v1_provenance.json
+
 func main() {
 	provenancePath := flag.String("provenance_path", "",
 		"Required - Path to provenance file.")
