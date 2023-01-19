@@ -100,8 +100,7 @@ func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanc
 	return &verifiedProvenances, nil
 }
 
-// verifyProvenances verifies the given list of provenances. An error is returned if not.
-// TODO(b/222440937): Document any additional checks.
+// verifyProvenances verifies the given list of provenances. An error is returned if verification fails for one of them.
 func verifyProvenances(referenceValues *common.ReferenceValues, provenances []common.ProvenanceIR) error {
 	var errs error
 	for index := range provenances {
