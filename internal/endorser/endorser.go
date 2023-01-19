@@ -117,7 +117,6 @@ func verifyProvenances(referenceValues *common.ReferenceValues, provenances []co
 
 // verifyConsistency verifies that all provenances have the same binary name and
 // binary digest.
-// TODO(b/222440937): Perform any additional verification among provenances to ensure their consistency.
 func verifyConsistency(provenanceIRs []common.ProvenanceIR) error {
 	var errs error
 
