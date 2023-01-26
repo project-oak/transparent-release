@@ -17,8 +17,6 @@ package endorser
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -32,18 +30,25 @@ import (
 	"github.com/project-oak/transparent-release/internal/verifier"
 	"github.com/project-oak/transparent-release/pkg/amber"
 	"github.com/project-oak/transparent-release/pkg/intoto"
-	"github.com/project-oak/transparent-release/pkg/types"
 )
+
+// ParsedProvenance contains a provenance in the internal ProvenanceIR format,
+// and metadata about the source of the provenance. In case of a provenance
+// wrapped in a DSSE envelope, `SourceMetadata` contains the URI and digest of
+// the DSSE document, while `Provenance` contains the provenance itself.
+type ParsedProvenance struct {
+	Provenance     common.ProvenanceIR
+	SourceMetadata amber.ProvenanceData
+}
 
 // GenerateEndorsement generates an endorsement statement for the given validity duration, using
 // the given provenances as evidence and reference values to verify them. At least one provenance
 // must be provided. The endorsement statement is generated only if the provenance statements are
-// valid. Each provenanceURI must either specify a local file (using the `file` scheme), or a
-// remote file (using the `http/https` scheme).
-func GenerateEndorsement(referenceValues *common.ReferenceValues, validityDuration amber.ClaimValidity, provenanceURIs []string) (*intoto.Statement, error) {
-	verifiedProvenances, err := loadAndVerifyProvenances(referenceValues, provenanceURIs)
+// valid.
+func GenerateEndorsement(referenceValues *common.ReferenceValues, validityDuration amber.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
+	verifiedProvenances, err := verifyAndSummarizeProvenances(referenceValues, provenances)
 	if err != nil {
-		return nil, fmt.Errorf("could not load provenances: %v", err)
+		return nil, fmt.Errorf("could not verify and summarize provenances: %v", err)
 	}
 
 	return amber.GenerateEndorsementStatement(validityDuration, *verifiedProvenances), nil
@@ -51,39 +56,19 @@ func GenerateEndorsement(referenceValues *common.ReferenceValues, validityDurati
 
 // Returns an instance of amber.VerifiedProvenanceSet, containing metadata about a set of verified
 // provenances, or an error. An error is returned if any of the following conditions is met:
-// (1) The list of provenanceURIs is empty,
-// (2) Any of the provenances cannot be loaded (e.g., invalid URI),
-// (3) Any of the provenances is invalid (see verifyProvenances for details on validity),
-// (4) Provenances do not match (e.g., have different binary names).
-func loadAndVerifyProvenances(referenceValues *common.ReferenceValues, provenanceURIs []string) (*amber.VerifiedProvenanceSet, error) {
-	if len(provenanceURIs) == 0 {
+// (1) The list of provenances is empty,
+// (2) Any of the provenances is invalid (see verifyProvenances for details on validity),
+// (3) Provenances do not match (e.g., have different binary names).
+func verifyAndSummarizeProvenances(referenceValues *common.ReferenceValues, provenances []ParsedProvenance) (*amber.VerifiedProvenanceSet, error) {
+	if len(provenances) == 0 {
 		return nil, fmt.Errorf("at least one provenance file must be provided")
 	}
 
-	// load provenanceIRs from URIs
-	provenanceIRs := make([]common.ProvenanceIR, 0, len(provenanceURIs))
-	provenancesData := make([]amber.ProvenanceData, 0, len(provenanceURIs))
-	for _, uri := range provenanceURIs {
-		provenanceBytes, err := getProvenanceBytes(uri)
-		if err != nil {
-			return nil, fmt.Errorf("couldn't load the provenance bytes from %s: %v", uri, err)
-		}
-		// Parse into a validated provenance to get the predicate/build type of the provenance.
-		validatedProvenance, err := types.ParseStatementData(provenanceBytes)
-		if err != nil {
-			return nil, fmt.Errorf("couldn't parse bytes from %s into a validated provenance: %v", uri, err)
-		}
-		// Map to internal provenance representation based on the predicate/build type.
-		provenanceIR, err := common.FromValidatedProvenance(validatedProvenance)
-		if err != nil {
-			return nil, fmt.Errorf("couldn't map from %s to internal representation: %v", validatedProvenance, err)
-		}
-		sum256 := sha256.Sum256(provenanceBytes)
-		provenanceIRs = append(provenanceIRs, *provenanceIR)
-		provenancesData = append(provenancesData, amber.ProvenanceData{
-			URI:          uri,
-			SHA256Digest: hex.EncodeToString(sum256[:]),
-		})
+	provenanceIRs := make([]common.ProvenanceIR, 0, len(provenances))
+	provenancesData := make([]amber.ProvenanceData, 0, len(provenances))
+	for _, p := range provenances {
+		provenanceIRs = append(provenanceIRs, p.Provenance)
+		provenancesData = append(provenancesData, p.SourceMetadata)
 	}
 
 	errs := multierr.Append(verifyConsistency(provenanceIRs), verifyProvenances(referenceValues, provenanceIRs))
