@@ -15,8 +15,6 @@
 package endorser
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"os"
 	"strings"
@@ -26,7 +24,6 @@ import (
 	"github.com/project-oak/transparent-release/internal/common"
 	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/amber"
-	"github.com/project-oak/transparent-release/pkg/types"
 )
 
 const (
@@ -34,37 +31,6 @@ const (
 	binaryName        = "test.txt-9b5f98310dbbad675834474fa68c37d880687cb9"
 	errorBinaryDigest = "do not contain the actual binary SHA256 digest"
 )
-
-func loadProvenances(provenanceURIs []string) ([]ParsedProvenance, error) {
-	// load provenanceIRs from URIs
-	provenances := make([]ParsedProvenance, 0, len(provenanceURIs))
-	for _, uri := range provenanceURIs {
-		provenanceBytes, err := getProvenanceBytes(uri)
-		if err != nil {
-			return nil, fmt.Errorf("couldn't load the provenance bytes from %s: %v", uri, err)
-		}
-		// Parse into a validated provenance to get the predicate/build type of the provenance.
-		validatedProvenance, err := types.ParseStatementData(provenanceBytes)
-		if err != nil {
-			return nil, fmt.Errorf("couldn't parse bytes from %s into a validated provenance: %v", uri, err)
-		}
-		// Map to internal provenance representation based on the predicate/build type.
-		provenanceIR, err := common.FromValidatedProvenance(validatedProvenance)
-		if err != nil {
-			return nil, fmt.Errorf("couldn't map from %s to internal representation: %v", validatedProvenance, err)
-		}
-		sum256 := sha256.Sum256(provenanceBytes)
-		parsedProvenance := ParsedProvenance{
-			Provenance: *provenanceIR,
-			SourceMetadata: amber.ProvenanceData{
-				URI:          uri,
-				SHA256Digest: hex.EncodeToString(sum256[:]),
-			},
-		}
-		provenances = append(provenances, parsedProvenance)
-	}
-	return provenances, nil
-}
 
 func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 	tomorrow := time.Now().AddDate(0, 0, 1)
@@ -79,7 +45,7 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
 	tempURI := "file://" + tempPath
-	provenances, err := loadProvenances([]string{tempURI})
+	provenances, err := LoadProvenances([]string{tempURI})
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
@@ -112,7 +78,7 @@ func TestLoadAndVerifyProvenances_MultipleValidEndorsement(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
-	provenances, err := loadProvenances([]string{"file://" + tempPath1, "file://" + tempPath2})
+	provenances, err := LoadProvenances([]string{"file://" + tempPath1, "file://" + tempPath2})
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
@@ -131,8 +97,8 @@ func TestLoadAndVerifyProvenances_MultipleValidEndorsement(t *testing.T) {
 }
 
 func TestLoadProvenances_FailingSingleRemoteProvenanceEndorsement(t *testing.T) {
-	_, err := loadProvenances([]string{"https://github.com/project-oak/transparent-release/blob/main/testdata/amber_provenance.json"})
-	want := "couldn't parse bytes from"
+	_, err := LoadProvenances([]string{"https://github.com/project-oak/transparent-release/blob/main/testdata/amber_provenance.json"})
+	want := "couldn't load the provenance"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
 	}
@@ -144,7 +110,7 @@ func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
 
-	provenances, err := loadProvenances([]string{"file://" + tempPath1, "file://" + tempPath1})
+	provenances, err := LoadProvenances([]string{"file://" + tempPath1, "file://" + tempPath1})
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
@@ -170,7 +136,7 @@ func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
 
-	provenances, err := loadProvenances([]string{"file://" + tempPath1, "file://" + tempPath2})
+	provenances, err := LoadProvenances([]string{"file://" + tempPath1, "file://" + tempPath2})
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
@@ -197,7 +163,7 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
 
-	provenances, err := loadProvenances([]string{"file://" + tempPath1, "file://" + tempPath2})
+	provenances, err := LoadProvenances([]string{"file://" + tempPath1, "file://" + tempPath2})
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
@@ -222,7 +188,7 @@ func TestLoadAndVerifyProvenances_NotVerified(t *testing.T) {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
 
-	provenances, err := loadProvenances([]string{"file://" + tempPath1})
+	provenances, err := LoadProvenances([]string{"file://" + tempPath1})
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}

@@ -17,6 +17,8 @@ package endorser
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -30,6 +32,7 @@ import (
 	"github.com/project-oak/transparent-release/internal/verifier"
 	"github.com/project-oak/transparent-release/pkg/amber"
 	"github.com/project-oak/transparent-release/pkg/intoto"
+	"github.com/project-oak/transparent-release/pkg/types"
 )
 
 // ParsedProvenance contains a provenance in the internal ProvenanceIR format,
@@ -127,7 +130,51 @@ func verifyConsistency(provenanceIRs []common.ProvenanceIR) error {
 	return errs
 }
 
-func getProvenanceBytes(provenanceURI string) ([]byte, error) {
+// LoadProvenance loads a number of provenance from the give URIs. Returns an
+// array of ParsedProvenance instances, or an error if loading or parsing any
+// of the provenances fails. See LoadProvenance for more details.
+func LoadProvenances(provenanceURIs []string) ([]ParsedProvenance, error) {
+	// load provenanceIRs from URIs
+	provenances := make([]ParsedProvenance, 0, len(provenanceURIs))
+	for _, uri := range provenanceURIs {
+		parsedProvenance, err := LoadProvenance(uri)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't load the provenance from %s: %v", uri, err)
+		}
+		provenances = append(provenances, *parsedProvenance)
+	}
+	return provenances, nil
+}
+
+// LoadProvenance loads a provenance from the give URI (either a local file or
+// a remote file on an HTTP/HTTPS server). Returns an instance of
+// ParsedProvenance if loading and parsing is successful, or an error Otherwise.
+func LoadProvenance(provenanceURI string) (*ParsedProvenance, error) {
+	provenanceBytes, err := GetProvenanceBytes(provenanceURI)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't load the provenance bytes from %s: %v", provenanceURI, err)
+	}
+	// Parse into a validated provenance to get the predicate/build type of the provenance.
+	validatedProvenance, err := types.ParseStatementData(provenanceBytes)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't parse bytes from %s into a validated provenance: %v", provenanceURI, err)
+	}
+	// Map to internal provenance representation based on the predicate/build type.
+	provenanceIR, err := common.FromValidatedProvenance(validatedProvenance)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't map from %s to internal representation: %v", validatedProvenance, err)
+	}
+	sum256 := sha256.Sum256(provenanceBytes)
+	return &ParsedProvenance{
+		Provenance: *provenanceIR,
+		SourceMetadata: amber.ProvenanceData{
+			URI:          provenanceURI,
+			SHA256Digest: hex.EncodeToString(sum256[:]),
+		},
+	}, nil
+}
+
+func GetProvenanceBytes(provenanceURI string) ([]byte, error) {
 	uri, err := url.Parse(provenanceURI)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse the URI (%q): %v", provenanceURI, err)
