@@ -25,8 +25,8 @@ import (
 const (
 	revisionFilePath     = "coverage_revision.json"
 	coverageSummaryPath  = "project_coverage.json"
-	logFilePath          = "23:58:20:476141.log"
-	logFileWithCrashPath = "23:58:55:115260.log"
+	logFilePath          = "healthy.log"
+	logFileWithCrashPath = "crashed.log"
 	projectName          = "oak"
 	hash                 = "1586496a1cbb76e044cc17dcc98203417957c793"
 )
