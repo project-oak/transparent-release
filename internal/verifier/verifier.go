@@ -106,8 +106,6 @@ type ProvenanceIRVerifier struct {
 
 // Verify verifies an instance of ProvenanceIRVerifier by comparing its Got and Want fields.
 // Verify checks fields, which (i) are set in Got, i.e., GotHasX is true, and (ii) are set in Want.
-//
-//nolint:cyclop
 func (verifier *ProvenanceIRVerifier) Verify() error {
 	var errs error
 
@@ -147,7 +145,7 @@ func (verifier *ProvenanceIRVerifier) Verify() error {
 
 // verifyBinarySHA256Digest verifies that the binary SHA256 in this provenance is contained in the given reference binary SHA256 digests (in want).
 func verifyBinarySHA256Digest(want *common.ReferenceValues, got *common.ProvenanceIR) error {
-	gotBinarySHA256Digest := got.GetBinarySHA256Digest()
+	gotBinarySHA256Digest := got.BinarySHA256Digest()
 
 	if want.BinarySHA256Digests == nil {
 		return fmt.Errorf("no reference binary SHA256 digests given")
@@ -165,7 +163,7 @@ func verifyBinarySHA256Digest(want *common.ReferenceValues, got *common.Provenan
 
 // verifyHasNotEmptyBuildCmd verifies that the build cmd is not empty.
 func verifyHasNotEmptyBuildCmd(got *common.ProvenanceIR) error {
-	if buildCmd, err := got.GetBuildCmd(); err != nil || len(buildCmd) == 0 {
+	if buildCmd, err := got.BuildCmd(); err != nil || len(buildCmd) == 0 {
 		return fmt.Errorf("no build cmd found")
 	}
 	return nil
@@ -173,7 +171,7 @@ func verifyHasNotEmptyBuildCmd(got *common.ProvenanceIR) error {
 
 // verifyBuilderImageDigest verifies that the given builder image digest matches a builder image digest in the reference values.
 func verifyBuilderImageDigest(want *common.ReferenceValues, got *common.ProvenanceIR) error {
-	gotBuilderImageDigest, err := got.GetBuilderImageSHA256Digest()
+	gotBuilderImageDigest, err := got.BuilderImageSHA256Digest()
 	if err != nil {
 		return fmt.Errorf("no builder image digest set")
 	}
@@ -193,7 +191,7 @@ func verifyBuilderImageDigest(want *common.ReferenceValues, got *common.Provenan
 func verifyRepoURIs(want *common.ReferenceValues, got *common.ProvenanceIR) error {
 	var errs error
 
-	for _, gotRepoURI := range got.GetRepoURIs() {
+	for _, gotRepoURI := range got.RepoURIs() {
 		// We want the want.RepoURI be contained in every repo uri from the provenance.
 		if !strings.Contains(gotRepoURI, want.RepoURI) {
 			multierr.AppendInto(&errs, fmt.Errorf("the URI from the provenance (%v) does not contain the repo URI (%v)", gotRepoURI, want.RepoURI))
@@ -204,7 +202,7 @@ func verifyRepoURIs(want *common.ReferenceValues, got *common.ProvenanceIR) erro
 
 // verifyTrustedBuilder verifies that the given trusted builder matches a trusted builder in the reference values.
 func verifyTrustedBuilder(want *common.ReferenceValues, got *common.ProvenanceIR) error {
-	gotTrustedBuilder, err := got.GetTrustedBuilder()
+	gotTrustedBuilder, err := got.TrustedBuilder()
 	if err != nil {
 		return fmt.Errorf("no trusted builder set")
 	}
