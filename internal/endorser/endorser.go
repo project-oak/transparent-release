@@ -80,8 +80,8 @@ func verifyAndSummarizeProvenances(referenceValues *common.ReferenceValues, prov
 	}
 
 	verifiedProvenances := amber.VerifiedProvenanceSet{
-		BinaryDigest: provenanceIRs[0].GetBinarySHA256Digest(),
-		BinaryName:   provenanceIRs[0].GetBinaryName(),
+		BinaryDigest: provenanceIRs[0].BinarySHA256Digest(),
+		BinaryName:   provenanceIRs[0].BinaryName(),
 		Provenances:  provenancesData,
 	}
 
@@ -109,28 +109,28 @@ func verifyConsistency(provenanceIRs []common.ProvenanceIR) error {
 	var errs error
 
 	// get the binary digest and binary name of the first provenance as reference
-	refBinaryDigest := provenanceIRs[0].GetBinarySHA256Digest()
-	refBinaryName := provenanceIRs[0].GetBinaryName()
+	refBinaryDigest := provenanceIRs[0].BinarySHA256Digest()
+	refBinaryName := provenanceIRs[0].BinaryName()
 
 	// verify that all remaining provenances have the same binary digest and binary name.
 	for ind := 1; ind < len(provenanceIRs); ind++ {
-		if provenanceIRs[ind].GetBinarySHA256Digest() != refBinaryDigest {
+		if provenanceIRs[ind].BinarySHA256Digest() != refBinaryDigest {
 			multierr.AppendInto(&errs, fmt.Errorf("provenances are not consistent: unexpected binary SHA256 digest in provenance #%d; got %q, want %q",
 				ind,
-				provenanceIRs[ind].GetBinarySHA256Digest(), refBinaryDigest))
+				provenanceIRs[ind].BinarySHA256Digest(), refBinaryDigest))
 		}
 
-		if provenanceIRs[ind].GetBinaryName() != refBinaryName {
+		if provenanceIRs[ind].BinaryName() != refBinaryName {
 			multierr.AppendInto(&errs,
 				fmt.Errorf("provenances are not consistent: unexpected subject name in provenance #%d; got %q, want %q",
 					ind,
-					provenanceIRs[ind].GetBinaryName(), refBinaryName))
+					provenanceIRs[ind].BinaryName(), refBinaryName))
 		}
 	}
 	return errs
 }
 
-// LoadProvenance loads a number of provenance from the give URIs. Returns an
+// LoadProvenances loads a number of provenance from the give URIs. Returns an
 // array of ParsedProvenance instances, or an error if loading or parsing any
 // of the provenances fails. See LoadProvenance for more details.
 func LoadProvenances(provenanceURIs []string) ([]ParsedProvenance, error) {
@@ -174,6 +174,8 @@ func LoadProvenance(provenanceURI string) (*ParsedProvenance, error) {
 	}, nil
 }
 
+// GetProvenanceBytes fetches provenance bytes from the give URI. Supported URI
+// schemes are "http", "https", and "file". Only local files are supported.
 func GetProvenanceBytes(provenanceURI string) ([]byte, error) {
 	uri, err := url.Parse(provenanceURI)
 	if err != nil {

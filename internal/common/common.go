@@ -105,14 +105,50 @@ func NewProvenanceIR(binarySHA256Digest string, buildType string, binaryName str
 	return provenance
 }
 
-// GetBinarySHA256Digest gets the binary sha256 digest.
-func (p *ProvenanceIR) GetBinarySHA256Digest() string {
+// BinarySHA256Digest returns the binary sha256 digest.
+func (p *ProvenanceIR) BinarySHA256Digest() string {
 	return p.binarySHA256Digest
 }
 
-// GetBinaryName returns the binary name.
-func (p *ProvenanceIR) GetBinaryName() string {
+// BinaryName returns the binary name.
+func (p *ProvenanceIR) BinaryName() string {
 	return p.binaryName
+}
+
+// BuildType returns the buildType.
+func (p *ProvenanceIR) BuildType() string {
+	return p.buildType
+}
+
+// BuildCmd return the build cmd, or an error if the build cmd has not been set.
+func (p *ProvenanceIR) BuildCmd() ([]string, error) {
+	if !p.HasBuildCmd() {
+		return nil, fmt.Errorf("provenance does not have a build cmd")
+	}
+	return *p.buildCmd, nil
+}
+
+// RepoURIs returns repo URIs in the provenance.
+func (p *ProvenanceIR) RepoURIs() []string {
+	return *p.repoURIs
+}
+
+// BuilderImageSHA256Digest returns the builder image sha256 digest, or an
+// error if the builder image sha256 digest has not been set.
+func (p *ProvenanceIR) BuilderImageSHA256Digest() (string, error) {
+	if !p.HasBuilderImageSHA256Digest() {
+		return "", fmt.Errorf("provenance does not have a builder image SHA256 digest")
+	}
+	return *p.builderImageSHA256Digest, nil
+}
+
+// TrustedBuilder returns the builder image sha256 digest, or an error if the
+// trusted builder has not been set.
+func (p *ProvenanceIR) TrustedBuilder() (string, error) {
+	if !p.HasTrustedBuilder() {
+		return "", fmt.Errorf("provenance does not have a trusted builder")
+	}
+	return *p.trustedBuilder, nil
 }
 
 // WithBuildCmd sets the build cmd when creating a new ProvenanceIR.
@@ -127,14 +163,6 @@ func (p *ProvenanceIR) HasBuildCmd() bool {
 	return p.buildCmd != nil
 }
 
-// GetBuildCmd gets the build cmd. Returns an error if the build cmd has not been set.
-func (p *ProvenanceIR) GetBuildCmd() ([]string, error) {
-	if !p.HasBuildCmd() {
-		return nil, fmt.Errorf("provenance does not have a build cmd")
-	}
-	return *p.buildCmd, nil
-}
-
 // WithBuilderImageSHA256Digest sets the builder image sha256 digest when creating a new ProvenanceIR.
 func WithBuilderImageSHA256Digest(builderImageSHA256Digest string) func(p *ProvenanceIR) {
 	return func(p *ProvenanceIR) {
@@ -145,14 +173,6 @@ func WithBuilderImageSHA256Digest(builderImageSHA256Digest string) func(p *Prove
 // HasBuilderImageSHA256Digest returns true if the builder image digest has been set in the ProvenanceIR.
 func (p *ProvenanceIR) HasBuilderImageSHA256Digest() bool {
 	return p.builderImageSHA256Digest != nil
-}
-
-// GetBuilderImageSHA256Digest gets the builder image sha256 digest. Returns an error if the builder image sha256 digest has not been set.
-func (p *ProvenanceIR) GetBuilderImageSHA256Digest() (string, error) {
-	if !p.HasBuilderImageSHA256Digest() {
-		return "", fmt.Errorf("provenance does not have a builder image SHA256 digest")
-	}
-	return *p.builderImageSHA256Digest, nil
 }
 
 // WithRepoURIs sets repo URIs referenced in the provenance when creating a new ProvenanceIR.
@@ -167,11 +187,6 @@ func (p *ProvenanceIR) HasRepoURIs() bool {
 	return p.repoURIs != nil
 }
 
-// GetRepoURIs gets references to a repo in the provenance. There is no guarantee to get all the references to any repo.
-func (p *ProvenanceIR) GetRepoURIs() []string {
-	return *p.repoURIs
-}
-
 // WithTrustedBuilder sets the trusted builder when creating a new ProvenanceIR.
 func WithTrustedBuilder(trustedBuilder string) func(p *ProvenanceIR) {
 	return func(p *ProvenanceIR) {
@@ -182,14 +197,6 @@ func WithTrustedBuilder(trustedBuilder string) func(p *ProvenanceIR) {
 // HasTrustedBuilder returns true if the trusted builder has been set in the ProvenanceIR.
 func (p *ProvenanceIR) HasTrustedBuilder() bool {
 	return p.trustedBuilder != nil
-}
-
-// GetTrustedBuilder gets the builder image sha256 digest. Returns an error if the trusted builder has not been set.
-func (p *ProvenanceIR) GetTrustedBuilder() (string, error) {
-	if !p.HasTrustedBuilder() {
-		return "", fmt.Errorf("provenance does not have a trusted builder")
-	}
-	return *p.trustedBuilder, nil
 }
 
 // FromValidatedProvenance maps a validated provenance to ProvenanceIR by checking the provenance's
