@@ -336,14 +336,14 @@ give an overview of the architecture and the main concepts. RATS has many concep
 ones in our design, but seems to be focused on claims and evidence that are generated and consumed
 automatically. Claims and evidence in RATS are designed to be used for remote attestation. The
 claims in our binary transparency ecosystem, however, are not limited to the ones used for remote
-attestation. We target a wider range of use cases.
+attestation. We target a wider range of use cases, e.g., auto-generated Fuzz claims.
 
 In addition, the concept of
 [Concise Reference Integrity Manifest (CoRIM)](https://datatracker.ietf.org/doc/draft-ietf-rats-corim/)
 provided by the RATS working group is very similar to a `Claim` as described in this document.
 
-TODO: Summarize the comparison.
+TODO(#222): Summarize the comparison.
 
 ### Comparison to SCITT
 
-TBA.
+TODO(#222): TBA.
