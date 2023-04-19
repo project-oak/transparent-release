@@ -22,24 +22,25 @@ The life cycle of an endorsement statement has three phases as shown in the diag
 ### The pre-release phase
 
 In this phase, a trusted builder, for instance
-[the generic slsa-generator GitHub workflow](https://github.com/slsa-framework/slsa-github-generator/blob/de4491844e9be4184f786666af40f5b1b8e7ddc0/internal/builders/generic/README.md),
-generates a binary and a corresponding SLSA provenance statement. The trusted builder also signs the
-generated SLSA provenance statement. A provenance statement is another type of metadata about a
-binary that describes how and from which sources the binary was generated. Both the SLSA provenance
-statements, and our endorsement statements are customizations of the in-toto statements standard,
-and refer to one or more binaries as the subject of the statement. A binary can be uniquely
-identified by its cryptographic hash. The cryptographic hash function often used for identifying a
-binary is SHA256. For details about the format of the provenance statement please refer to
-[the SLSA provenance documentation](https://slsa.dev/provenance/v0.2).
+[the container-based SLSA3 builder workflow](https://github.com/slsa-framework/slsa-github-generator/blob/f14d71f7a0f58a45b6105c0b6d97c414328ceda0/internal/builders/docker/README.md),
+from the SLSA Framework, builds a binary and a corresponding SLSA v1.0 provenance statement. The
+trusted builder also signs the generated provenance statement. A provenance statement is another
+type of metadata about a binary that describes how and from which sources the binary was generated.
+Both the SLSA provenance statements, and our endorsement statements are customizations of the
+in-toto statements standard, and refer to one or more binaries as the subject of the statement. A
+binary can be uniquely identified by its cryptographic digest. The cryptographic hash function often
+used for identifying a binary is SHA256. For details about the format of the provenance statement
+please refer to [the SLSA v1.0 provenance documentation](https://slsa.dev/provenance/v1).
 
 We need provenance statements to be signed and published in a transparency log. This log, in case of
-the generic slsa-generator GitHub workflow, is an instance of Rekor hosted by sigstore. The binary
-is often uploaded to a storage server for future use. This can be content-addressable storage such
-as [ent](https://github.com/google/ent).
+the container-based SLSA3 builder workflow, is an instance of Rekor hosted by sigstore
+(https://rekor.sigstore.dev). The binary is often uploaded to a storage server for future use. This
+can be a content-addressable storage such as [ent](https://github.com/google/ent).
 
-To support the pre-release phase we provide the
-[cmd/builder](/cmd/README.md#building-binaries-using-the-cmdbuilder-tool) tool and a
-[guide on how to get started on your repo](https://github.com/project-oak/hello-transparent-release).
+For a detailed description of how to use the
+[the container-based SLSA3 builder workflow](https://github.com/slsa-framework/slsa-github-generator/blob/f14d71f7a0f58a45b6105c0b6d97c414328ceda0/internal/builders/docker/README.md)
+in your project see the
+[hello-transparent-release tutorial](https://github.com/project-oak/hello-transparent-release).
 
 ### The release phase
 
