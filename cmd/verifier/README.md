@@ -7,9 +7,13 @@ provenance file. The provenance file should follow the
 materials. The verification logic uses the provenance file to build a binary, and checks that the
 binary has a SHA256 hash equal to the expected digest given in the provenance file.
 
+Note that the Amber provenance format will soon be deprecated (see
+[issue #224](https://github.com/project-oak/transparent-release/issues/224)), and replaced with
+[SLSA v1.0 format](https://slsa.dev/provenance/v1).
+
 To verify a SLSA provenance of the Amber build type run:
 
-```bash
+```console
 $ go run cmd/verifier/main.go -provenance_path schema/provenance/v1/example.json
 ```
 
@@ -23,7 +27,7 @@ To use a local repository you can specify `-git_root_dir`. In this case, the bin
 from the repo, only if the latest commit matches the one specified in the config file fail with an
 error otherwise.
 
-```bash
+```console
 $ go run cmd/verifier/main.go \
   -provenance_path schema/provenance/v1/example.json \
   -git_root_dir <path-to-git-repo-root>

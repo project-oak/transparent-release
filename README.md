@@ -23,7 +23,7 @@ The life cycle of an endorsement statement has three phases as shown in the diag
 
 In this phase, a trusted builder, for instance
 [the container-based SLSA3 builder workflow](https://github.com/slsa-framework/slsa-github-generator/blob/f14d71f7a0f58a45b6105c0b6d97c414328ceda0/internal/builders/docker/README.md),
-from the SLSA Framework, builds a binary and a corresponding SLSA v1.0 provenance statement. The
+from the SLSA Framework, builds a binary and generates a SLSA v1.0 provenance statement for it. The
 trusted builder also signs the generated provenance statement. A provenance statement is another
 type of metadata about a binary that describes how and from which sources the binary was generated.
 Both the SLSA provenance statements, and our endorsement statements are customizations of the
@@ -33,7 +33,7 @@ used for identifying a binary is SHA256. For details about the format of the pro
 please refer to [the SLSA v1.0 provenance documentation](https://slsa.dev/provenance/v1).
 
 We need provenance statements to be signed and published in a transparency log. This log, in case of
-the container-based SLSA3 builder workflow, is an instance of Rekor hosted by sigstore
+the container-based SLSA3 builder workflow, is an instance of Rekor hosted by Sigstore
 (https://rekor.sigstore.dev). The binary is often uploaded to a storage server for future use. This
 can be a content-addressable storage such as [ent](https://github.com/google/ent).
 
