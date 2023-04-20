@@ -24,13 +24,11 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"strings"
 
 	toml "github.com/pelletier/go-toml"
 	slsav02 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 
-	"github.com/project-oak/transparent-release/pkg/amber"
 	"github.com/project-oak/transparent-release/pkg/intoto"
 	"github.com/project-oak/transparent-release/pkg/types"
 )
@@ -212,8 +210,6 @@ func FromValidatedProvenance(prov *types.ValidatedProvenance) (*ProvenanceIR, er
 			return nil, fmt.Errorf("could not parse provenance predicate: %v", err)
 		}
 		switch pred.BuildType {
-		case amber.AmberBuildTypeV1:
-			return fromAmber(prov)
 		case slsav02.GenericSLSABuildType:
 			return fromSLSAv02(prov)
 		default:
@@ -222,46 +218,6 @@ func FromValidatedProvenance(prov *types.ValidatedProvenance) (*ProvenanceIR, er
 	default:
 		return nil, fmt.Errorf("unsupported predicateType (%q) for provenance", predType)
 	}
-}
-
-// fromAmber maps data from a validated Amber provenance to ProvenanceIR.
-// invariant: for every data X in a validated Amber provenance that can be mapped to a field in `ProvenanceIR`, `fromAmber` sets a non-nil value v for X by using `WithX(v)`.
-func fromAmber(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
-	// A *types.ValidatedProvenance contains a SHA256 hash of a single subject.
-	binarySHA256Digest := provenance.GetBinarySHA256Digest()
-	buildType := amber.AmberBuildTypeV1
-
-	predicate, err := slsav02.ParseSLSAv02Predicate(provenance.GetProvenance().Predicate)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse provenance predicate: %v", err)
-	}
-
-	buildCmd, err := amber.GetBuildCmd(*predicate)
-	if err != nil {
-		return nil, fmt.Errorf("could not get build cmd from *amber.ValidatedProvenance: %v", err)
-	}
-
-	builderImageDigest, err := amber.GetBuilderImageDigest(*predicate)
-	if err != nil {
-		return nil, fmt.Errorf("could get builder image digest from *amber.ValidatedProvenance: %v", err)
-	}
-
-	// We collect repo uris from where they appear in the provenance to verify that they point to the same reference repo uri.
-	repoURIs := slsav02.GetMaterialsGitURI(*predicate)
-
-	// A *types.ValidatedProvenance has a binary name.
-	binaryName := provenance.GetBinaryName()
-
-	builder := predicate.Builder.ID
-
-	provenanceIR := NewProvenanceIR(binarySHA256Digest, buildType, binaryName,
-		WithBuildCmd(buildCmd),
-		WithBuilderImageSHA256Digest(builderImageDigest),
-		WithRepoURIs(repoURIs),
-		WithTrustedBuilder(builder),
-	)
-
-	return provenanceIR, nil
 }
 
 // fromSLSAv02 maps data from a validated SLSA v0.2 provenance to ProvenanceIR.
@@ -312,57 +268,6 @@ func LoadBuildConfigFromFile(path string) (*BuildConfig, error) {
 	config := BuildConfig{}
 	if err := tomlTree.Unmarshal(&config); err != nil {
 		return nil, fmt.Errorf("couldn't unmarshal toml file: %v", err)
-	}
-
-	return &config, nil
-}
-
-// LoadBuildConfigFromProvenance loads build configuration from a SLSA Provenance object.
-func LoadBuildConfigFromProvenance(provenance *types.ValidatedProvenance) (*BuildConfig, error) {
-	statement := provenance.GetProvenance()
-	predicate, err := slsav02.ParseSLSAv02Predicate(statement.Predicate)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse provenance predicate: %v", err)
-	}
-	if len(predicate.Materials) != 2 {
-		return nil, fmt.Errorf("the provenance must have exactly two Materials, got %d", len(predicate.Materials))
-	}
-
-	builderImage := predicate.Materials[0].URI
-	if builderImage == "" {
-		return nil, fmt.Errorf("the provenance's first material must specify a URI, got %s", builderImage)
-	}
-
-	repo := predicate.Materials[1].URI
-	if repo == "" {
-		return nil, fmt.Errorf("the provenance's second material must specify a URI, got %s", repo)
-	}
-
-	commitHash := predicate.Materials[1].Digest["sha1"]
-	if commitHash == "" {
-		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %s", commitHash)
-	}
-
-	buildConfig, err := amber.ParseBuildConfig(*predicate)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse BuildConfig: %v", err)
-	}
-	command := buildConfig.Command
-	if command[0] == "" {
-		return nil, fmt.Errorf("the provenance's buildConfig must specify a command, got %s", command)
-	}
-
-	outputPath := buildConfig.OutputPath
-	if outputPath == "" {
-		return nil, fmt.Errorf("the provenance's second material must have an sha1 hash, got %s", outputPath)
-	}
-
-	config := BuildConfig{
-		Repo:         predicate.Materials[1].URI,
-		CommitHash:   commitHash,
-		BuilderImage: builderImage,
-		Command:      command,
-		OutputPath:   outputPath,
 	}
 
 	return &config, nil
@@ -461,58 +366,6 @@ func (b *BuildConfig) ComputeBinarySHA256Digest() (string, error) {
 	}
 
 	return binarySHA256Digest, nil
-}
-
-// GenerateProvenanceStatement generates a provenance statement from this config.
-func (b *BuildConfig) GenerateProvenanceStatement() (*intoto.Statement, error) {
-	binarySha256Digest, err := b.ComputeBinarySHA256Digest()
-	if err != nil {
-		return nil, err
-	}
-
-	log.Printf("The binary digest is: %s", binarySha256Digest)
-
-	subject := intoto.Subject{
-		// TODO(#57): Get the name as an input in the TOML file.
-		Name:   fmt.Sprintf("%s-%s", filepath.Base(b.OutputPath), b.CommitHash),
-		Digest: intoto.DigestSet{"sha256": binarySha256Digest},
-	}
-
-	alg, digest, err := parseBuilderImageURI(b.BuilderImage)
-	if err != nil {
-		return nil, fmt.Errorf("malformed builder image URI: %v", err)
-	}
-
-	predicate := slsav02.ProvenancePredicate{
-		BuildType: amber.AmberBuildTypeV1,
-		BuildConfig: amber.BuildConfig{
-			Command:    b.Command,
-			OutputPath: b.OutputPath,
-		},
-		Materials: []slsav02.ProvenanceMaterial{
-			// Builder image
-			{
-				URI:    b.BuilderImage,
-				Digest: intoto.DigestSet{alg: digest},
-			},
-			// Source code
-			{
-				URI:    b.Repo,
-				Digest: intoto.DigestSet{"sha1": b.CommitHash},
-			},
-		},
-	}
-
-	statementHeader := intoto.StatementHeader{
-		Type:          intoto.StatementInTotoV01,
-		PredicateType: slsav02.PredicateSLSAProvenance,
-		Subject:       []intoto.Subject{subject},
-	}
-
-	return &intoto.Statement{
-		StatementHeader: statementHeader,
-		Predicate:       predicate,
-	}, nil
 }
 
 // ChangeDirToGitRoot changes to the given directory in `gitRootDir`. If

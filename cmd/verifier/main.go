@@ -18,27 +18,36 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 
+	"github.com/project-oak/transparent-release/internal/common"
 	"github.com/project-oak/transparent-release/internal/verifier"
-	"github.com/project-oak/transparent-release/pkg/amber"
+	"github.com/project-oak/transparent-release/pkg/types"
 )
 
 func main() {
 	provenancePath := flag.String("provenance_path", "",
 		"Required - Path to SLSA provenance file of the Amber build type.")
-	gitRootDirPtr := flag.String("git_root_dir", "",
-		"Optional - Root of the Git repository. If not specified, sources are fetched from the repo specified in the config file.")
 	flag.Parse()
 
-	provenance, err := amber.ParseProvenanceFile(*provenancePath)
+	provenanceBytes, err := os.ReadFile(*provenancePath)
 	if err != nil {
-		log.Fatalf("couldn't load the provenance file from %s: %v", *provenancePath, err)
-		return
+		log.Fatalf("couldn't load the provenance bytes from %s: %v", *provenancePath, err)
+	}
+	// Parse into a validated provenance to get the predicate/build type of the provenance.
+	validatedProvenance, err := types.ParseStatementData(provenanceBytes)
+	if err != nil {
+		log.Fatalf("couldn't parse bytes from %s into a validated provenance: %v", *provenancePath, err)
+	}
+	// Map to internal provenance representation based on the predicate/build type.
+	provenanceIR, err := common.FromValidatedProvenance(validatedProvenance)
+	if err != nil {
+		log.Fatalf("couldn't map from %s to internal representation: %v", validatedProvenance, err)
 	}
 
-	provenanceVerifier := verifier.ReproducibleProvenanceVerifier{
-		Provenance: provenance,
-		GitRootDir: *gitRootDirPtr,
+	provenanceVerifier := verifier.ProvenanceIRVerifier{
+		Got:  provenanceIR,
+		Want: &common.ReferenceValues{},
 	}
 
 	if err := provenanceVerifier.Verify(); err != nil {

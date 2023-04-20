@@ -27,8 +27,8 @@ import (
 )
 
 const (
-	binaryHash        = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
-	binaryName        = "test.txt-9b5f98310dbbad675834474fa68c37d880687cb9"
+	binaryHash        = "d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc"
+	binaryName        = "oak_functions_freestanding_bin"
 	errorBinaryDigest = "do not contain the actual binary SHA256 digest"
 )
 
@@ -40,7 +40,7 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 		NotAfter:  &nextWeek,
 	}
 
-	tempPath, err := copyToTemp("../../testdata/amber_provenance.json")
+	tempPath, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
@@ -70,11 +70,11 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 }
 
 func TestLoadAndVerifyProvenances_MultipleValidEndorsement(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/amber_provenance.json")
+	tempPath1, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
-	tempPath2, err := copyToTemp("../../testdata/amber_provenance.json")
+	tempPath2, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
@@ -105,7 +105,7 @@ func TestLoadProvenances_FailingSingleRemoteProvenanceEndorsement(t *testing.T) 
 }
 
 func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/amber_provenance.json")
+	tempPath1, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
@@ -126,12 +126,12 @@ func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
 }
 
 func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/amber_provenance.json")
+	tempPath1, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
 
-	tempPath2, err := copyToTemp("../../testdata/different_amber_provenance.json")
+	tempPath2, err := copyToTemp("../../testdata/different_slsa_v02_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
@@ -153,12 +153,12 @@ func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
 }
 
 func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/amber_provenance.json")
+	tempPath1, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
 
-	tempPath2, err := copyToTemp("../../testdata/different_amber_provenance.json")
+	tempPath2, err := copyToTemp("../../testdata/different_slsa_v02_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
@@ -183,7 +183,7 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 }
 
 func TestLoadAndVerifyProvenances_NotVerified(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/amber_provenance.json")
+	tempPath1, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
 	if err != nil {
 		t.Fatalf("Could not load provenance: %v", err)
 	}
@@ -203,7 +203,7 @@ func TestLoadAndVerifyProvenances_NotVerified(t *testing.T) {
 		t.Fatalf("got %q, want error message containing %q,", err, errorBinaryDigest)
 	}
 
-	want := "do not contain the actual builder image digest"
+	want := "failed to verify binary SHA256 digest"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
 	}

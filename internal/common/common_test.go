@@ -22,7 +22,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/project-oak/transparent-release/internal/testutil"
-	"github.com/project-oak/transparent-release/pkg/amber"
 	slsav02 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 	"github.com/project-oak/transparent-release/pkg/types"
 )
@@ -55,22 +54,6 @@ func TestLoadBuildConfigFromFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("couldn't load build file: %v", err)
 	}
-	checkBuildConfig(config, t)
-}
-
-func TestLoadBuildConfigFromProvenance(t *testing.T) {
-	path := filepath.Join(testdataPath, provenanceExamplePath)
-
-	provenance, err := amber.ParseProvenanceFile(path)
-	if err != nil {
-		t.Fatalf("couldn't parse the provenance file: %v", err)
-	}
-
-	config, err := LoadBuildConfigFromProvenance(provenance)
-	if err != nil {
-		t.Fatalf("couldn't load BuildConfig from provenance: %v", err)
-	}
-
 	checkBuildConfig(config, t)
 }
 
@@ -109,35 +92,6 @@ func TestParseBuilderImageURIInvalidURIs(t *testing.T) {
 	}
 }
 
-func TestGenerateProvenanceStatement(t *testing.T) {
-	// Load config from "build.toml" in testdata
-	path := filepath.Join(testdataPath, "build.toml")
-	config, err := LoadBuildConfigFromFile(path)
-	if err != nil {
-		t.Fatalf("couldn't load build file: %v", err)
-	}
-	// Replace output path with path of the "build.toml" file
-	config.OutputPath = path
-
-	prov, err := config.GenerateProvenanceStatement()
-	if err != nil {
-		t.Fatalf("couldn't generate provenance: %v", err)
-	}
-
-	predicate := prov.Predicate.(slsav02.ProvenancePredicate)
-	buildConfig := predicate.BuildConfig.(amber.BuildConfig)
-
-	// Check that the provenance is generated correctly
-	testutil.AssertEq(t, "repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/transparent-release")
-	testutil.AssertNonEmpty(t, "subjectName", prov.Subject[0].Name)
-	testutil.AssertEq(t, "subjectDigest", len(prov.Subject[0].Digest["sha256"]), wantSHA256HexDigitLength)
-	testutil.AssertEq(t, "commitHash length", len(predicate.Materials[1].Digest["sha1"]), wantSHA1HexDigitLength)
-	testutil.AssertEq(t, "builderImageID length", len(predicate.Materials[0].Digest["sha256"]), wantSHA256HexDigitLength)
-	testutil.AssertEq(t, "builderImageURI", predicate.Materials[0].URI, fmt.Sprintf("bash@sha256:%s", predicate.Materials[0].Digest["sha256"]))
-	testutil.AssertNonEmpty(t, "command[0]", buildConfig.Command[0])
-	testutil.AssertNonEmpty(t, "command[1]", buildConfig.Command[1])
-}
-
 func TestParseReferenceValues(t *testing.T) {
 	path := filepath.Join(testdataPath, "reference_values.toml")
 	referenceValues, err := LoadReferenceValuesFromFile(path)
@@ -145,34 +99,9 @@ func TestParseReferenceValues(t *testing.T) {
 		t.Fatalf("couldn't load reference values file: %v", err)
 	}
 
-	testutil.AssertEq(t, "binary digests[0]", referenceValues.BinarySHA256Digests[0], "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d")
-	testutil.AssertEq(t, "want build cmd", referenceValues.WantBuildCmds, true)
+	testutil.AssertEq(t, "binary digests[0]", referenceValues.BinarySHA256Digests[0], "d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc")
+	testutil.AssertEq(t, "want build cmd", referenceValues.WantBuildCmds, false)
 	testutil.AssertEq(t, "builder image digests[0]", referenceValues.BuilderImageSHA256Digests[0], "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9")
-}
-
-func TestFromProvenance_Amber(t *testing.T) {
-	path := filepath.Join(testdataPath, provenanceExamplePath)
-	provenance, err := amber.ParseProvenanceFile(path)
-	if err != nil {
-		t.Fatalf("couldn't parse the provenance file: %v", err)
-	}
-
-	want := NewProvenanceIR("322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d",
-		amber.AmberBuildTypeV1, "test.txt-9b5f98310dbbad675834474fa68c37d880687cb9",
-		WithBuildCmd([]string{"cp", "testdata/static.txt", "test.txt"}),
-		WithBuilderImageSHA256Digest("9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"),
-		WithRepoURIs([]string{"https://github.com/project-oak/transparent-release"}),
-		WithTrustedBuilder("https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"),
-	)
-
-	got, err := FromValidatedProvenance(provenance)
-	if err != nil {
-		t.Fatalf("couldn't map provenance to ProvenanceIR: %v", err)
-	}
-
-	if diff := cmp.Diff(got, want, cmp.AllowUnexported(ProvenanceIR{})); diff != "" {
-		t.Errorf("unexpected provenanceIR: %s", diff)
-	}
 }
 
 func TestFromProvenance_Slsav02(t *testing.T) {
@@ -214,7 +143,7 @@ func TestFromProvenance_Slsav1(t *testing.T) {
 	}
 
 	// Currently SLSA v1.0 provenances are not supported, so we expect an error.
-	want := fmt.Sprintf("unsupported predicateType (%q) for provenance", "https://slsa.dev/provenance/v1.0")
+	want := fmt.Sprintf("unsupported predicateType (%q) for provenance", "https://slsa.dev/provenance/v1.0?draft")
 	_, err = FromValidatedProvenance(provenance)
 	got := fmt.Sprintf("%v", err)
 

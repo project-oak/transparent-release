@@ -1,55 +1,58 @@
 {
     "_type": "https://in-toto.io/Statement/v0.1",
-    "predicateType": "https://slsa.dev/provenance/v1.0",
     "subject": [
         {
-            "name": "test.txt-9b5f98310dbbad675834474fa68c37d880687cb9",
+            "name": "oak_functions_enclave_app",
             "digest": {
-                "sha256": "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
+                "sha256": "813841dda3818d616aa3e706e49d0286dc825c5dbad4a75cfb37b91ba412238b"
             }
         }
     ],
+    "predicateType": "https://slsa.dev/provenance/v1.0?draft",
     "predicate": {
         "buildDefinition": {
             "buildType": "https://slsa.dev/container-based-build/v0.1?draft",
             "externalParameters": {
-                "artifacts": {
-                    "source": {
-                        "uri": "git+https://github.com/project-oak/transparent-release",
-                        "digest": {
-                            "sha1": "9b5f98310dbbad675834474fa68c37d880687cb9"
-                        }
-                    },
-                    "builderImage": {
-                        "uri": "bash@sha256:9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9",
-                        "digest": {
-                            "sha256": "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
-                        }
+                "source": {
+                    "uri": "git+https://github.com/project-oak/oak",
+                    "digest": {
+                        "sha1": "6bac02b6b0442ed944f57b7cba9a5f1119863ca4"
                     }
                 },
-                "values": {
-                    "configFile": "testdata/build.toml",
-                    "command": [
-                        "cp",
-                        "testdata/static.txt",
-                        "test.txt"
-                    ],
-                    "outputPath": "test.txt"
+                "builderImage": {
+                    "uri": "europe-west2-docker.pkg.dev/oak-ci/oak-development/oak-development@sha256:51532c757d1008bbff696d053a1d05226f6387cf232aa80b6f9c13b0759ccea0",
+                    "digest": {
+                        "sha256": "51532c757d1008bbff696d053a1d05226f6387cf232aa80b6f9c13b0759ccea0"
+                    }
+                },
+                "configPath": "buildconfigs/oak_functions_enclave_app.toml",
+                "buildConfig": {
+                    "ArtifactPath": "./oak_functions_enclave_app/target/x86_64-unknown-none/release/oak_functions_enclave_app",
+                    "Command": [
+                        "env",
+                        "--chdir=oak_functions_enclave_app",
+                        "cargo",
+                        "build",
+                        "--release"
+                    ]
                 }
             },
-            "systemParameters": null,
-            "resolvedDependencies": null
+            "resolvedDependencies": [
+                {
+                    "uri": "git+https://github.com/slsa-framework/slsa-github-generator@refs/tags/v1.6.0-rc.0",
+                    "digest": {
+                        "sha256": "b96aafbb02449d5ff041856cb0cd251ae3a895a51f10a451f5b655e0f27fc33f"
+                    }
+                }
+            ],
+            "systemParameters": {}
         },
         "runDetails": {
             "builder": {
-                "id":  "..whoever ran the build...",
-                "builderDependencies": [
-                    {
-                        "localName": "builderBinary",
-                        "uri": "git+https://github.com/slsa-framework/slsa-github-generator@refs/tags/v1.2.0",
-                        "digest": { "sha1": "bdd89e60dc5387d8f819bebc702987956bcd4913" }
-                    }
-                ]
+                "id": "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/builder_docker-based_slsa3.yml@refs/tags/v1.6.0-rc.0"
+            },
+            "metadata": {
+                "invocationId": "https://github.com/project-oak/oak/actions/runs/4755980100/attempts/1"
             }
         }
     }
