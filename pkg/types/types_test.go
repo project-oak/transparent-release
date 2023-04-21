@@ -15,7 +15,6 @@
 package types
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -24,9 +23,8 @@ import (
 )
 
 const (
-	provenanceExamplePath    = "../../schema/provenance/v1/example.json"
-	wantSHA1HexDigitLength   = 40
-	wantSHA256HexDigitLength = 64
+	provenanceExamplePath  = "../../testdata/slsa_v02_provenance.json"
+	wantSHA1HexDigitLength = 40
 )
 
 func TestParseStatementData(t *testing.T) {
@@ -48,10 +46,8 @@ func TestParseStatementData(t *testing.T) {
 	}
 
 	// Check that the provenance parses correctly
-	testutil.AssertEq(t, "repoURL", predicate.Materials[1].URI, "https://github.com/project-oak/oak")
-	testutil.AssertEq(t, "commitHash length", len(predicate.Materials[1].Digest["sha1"]), wantSHA1HexDigitLength)
-	testutil.AssertEq(t, "builderImageID length", len(predicate.Materials[0].Digest["sha256"]), wantSHA256HexDigitLength)
-	testutil.AssertEq(t, "builderImageURI", predicate.Materials[0].URI, fmt.Sprintf("gcr.io/oak-ci/oak@sha256:%s", predicate.Materials[0].Digest["sha256"]))
-	testutil.AssertEq(t, "subjectName", validatedProvenance.GetBinaryName(), "oak_functions_loader")
+	testutil.AssertEq(t, "repoURL", predicate.Materials[0].URI, "git+https://github.com/project-oak/oak@refs/heads/main")
+	testutil.AssertEq(t, "commitHash length", len(predicate.Materials[0].Digest["sha1"]), wantSHA1HexDigitLength)
+	testutil.AssertEq(t, "subjectName", validatedProvenance.GetBinaryName(), "oak_functions_freestanding_bin")
 	testutil.AssertNonEmpty(t, "builderId", predicate.Builder.ID)
 }
