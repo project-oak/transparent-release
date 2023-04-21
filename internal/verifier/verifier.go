@@ -20,7 +20,6 @@ import (
 	"strings"
 
 	"github.com/project-oak/transparent-release/internal/common"
-	"github.com/project-oak/transparent-release/pkg/types"
 	"go.uber.org/multierr"
 )
 
@@ -29,15 +28,6 @@ import (
 type ProvenanceVerifier interface {
 	// Verifies a provenance.
 	Verify() error
-}
-
-// ReproducibleProvenanceVerifier is a verifier for verifying provenances that
-// are reproducible. The provenance is verified by building the binary as
-// specified in the provenance and checking that the hash of the binary is the
-// same as the digest in the subject of the provenance file.
-type ReproducibleProvenanceVerifier struct {
-	Provenance *types.ValidatedProvenance
-	GitRootDir string
 }
 
 // ProvenanceIRVerifier verifies a provenance against a given reference, by verifying

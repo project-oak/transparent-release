@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package main contains a command-line tool for building binaries.
+// Package main contains a command-line tool for verifying SLSA provenances.
 package main
 
 import (
@@ -27,7 +27,7 @@ import (
 
 func main() {
 	provenancePath := flag.String("provenance_path", "",
-		"Required - Path to SLSA provenance file of the Amber build type.")
+		"Required - Path to a SLSA provenance file.")
 	flag.Parse()
 
 	provenanceBytes, err := os.ReadFile(*provenancePath)
@@ -53,4 +53,6 @@ func main() {
 	if err := provenanceVerifier.Verify(); err != nil {
 		log.Fatalf("error when verifying the provenance: %v", err)
 	}
+
+	log.Print("Verification was successful.")
 }
