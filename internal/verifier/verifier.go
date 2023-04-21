@@ -17,12 +17,9 @@ package verifier
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"strings"
 
 	"github.com/project-oak/transparent-release/internal/common"
-	"github.com/project-oak/transparent-release/pkg/types"
 	"go.uber.org/multierr"
 )
 
@@ -31,70 +28,6 @@ import (
 type ProvenanceVerifier interface {
 	// Verifies a provenance.
 	Verify() error
-}
-
-// ReproducibleProvenanceVerifier is a verifier for verifying provenances that
-// are reproducible. The provenance is verified by building the binary as
-// specified in the provenance and checking that the hash of the binary is the
-// same as the digest in the subject of the provenance file.
-type ReproducibleProvenanceVerifier struct {
-	Provenance *types.ValidatedProvenance
-	GitRootDir string
-}
-
-// Verify verifies a given SLSA provenance file by running the build script in
-// it and verifying that the resulting binary has a hash equal to the one
-// specified in the subject of the given provenance file.
-// If the hashes are different, then `IsVerifed` is set to false.
-// TODO(#126): Refactor and separate verification logic from the logic for reading the file.
-func (verifier *ReproducibleProvenanceVerifier) Verify() error {
-	// Below we change directory to the root of the Git repo. We have to change directory back to
-	// the current directory when we are done.
-	currentDir, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("couldn't get current directory: %v", err)
-	}
-	defer chdir(currentDir)
-
-	buildConfig, err := common.LoadBuildConfigFromProvenance(verifier.Provenance)
-	if err != nil {
-		return fmt.Errorf("couldn't load BuildConfig from provenance: %v", err)
-	}
-
-	// Change to verifier.GitRootDir if it is provided, otherwise, clone the repo.
-	repoInfo, err := buildConfig.ChangeDirToGitRoot(verifier.GitRootDir)
-	if err != nil {
-		return fmt.Errorf("couldn't change to a valid Git repo root: %v", err)
-	}
-	if repoInfo != nil {
-		// If the repo was cloned, remove all the temp files at the end.
-		defer repoInfo.Cleanup()
-	}
-
-	if err := buildConfig.Build(); err != nil {
-		return fmt.Errorf("couldn't build the binary: %v", err)
-	}
-
-	// The provenance is valid, therefore `expectedBinaryHash` is guaranteed to be non-empty.
-	expectedBinarySha256Digest := verifier.Provenance.GetBinarySHA256Digest()
-
-	binarySha256Digest, err := buildConfig.ComputeBinarySHA256Digest()
-	if err != nil {
-		return fmt.Errorf("couldn't get the digest of the binary: %v", err)
-	}
-
-	if binarySha256Digest != expectedBinarySha256Digest {
-		return fmt.Errorf("failed to verify the digest of the built binary; got %s, want %s",
-			binarySha256Digest, expectedBinarySha256Digest)
-	}
-
-	return nil
-}
-
-func chdir(dir string) {
-	if err := os.Chdir(dir); err != nil {
-		log.Printf("Couldn't change directory to %s: %v", dir, err)
-	}
 }
 
 // ProvenanceIRVerifier verifies a provenance against a given reference, by verifying

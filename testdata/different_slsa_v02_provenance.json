@@ -5,7 +5,7 @@
         {
             "name": "oak_functions_freestanding_bin",
             "digest": {
-                "sha256": "d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc"
+                "sha256": "e8e05d1d09af8952919bf6ab38e0cc5a6414ee2b5e21f4765b12421c5db0037e"
             }
         }
     ],
@@ -18,7 +18,7 @@
             "configSource": {
                 "uri": "git+https://github.com/project-oak/oak@refs/heads/main",
                 "digest": {
-                    "sha1": "1b128fb2556e4bdcc4f92552654bfbca9d2fb8c6"
+                    "sha1": "a0c6eeb7850264c3112d79a214e805d9e24db0f5"
                 },
                 "entryPoint": ".github/workflows/provenance.yaml"
             },
@@ -38,7 +38,7 @@
             {
                 "uri": "git+https://github.com/project-oak/oak@refs/heads/main",
                 "digest": {
-                    "sha1": "1b128fb2556e4bdcc4f92552654bfbca9d2fb8c6"
+                    "sha1": "a0c6eeb7850264c3112d79a214e805d9e24db0f5"
                 }
             }
         ]

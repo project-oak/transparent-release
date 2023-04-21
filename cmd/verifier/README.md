@@ -1,34 +1,12 @@
 # Verifying provenances
 
-The [`verifier`](/internal/verifier/) package provides functionality for verifying an input
-provenance file. The provenance file should follow the
-[Amber provenance](./../pkg/amber/schema/v1/provenance.json) format and provide a list of materials
-(including the source code and the build toolchain), and steps for building a binary from the listed
-materials. The verification logic uses the provenance file to build a binary, and checks that the
-binary has a SHA256 hash equal to the expected digest given in the provenance file.
+The [`verifier`](/internal/verifier/) package provides functionality for verifying an input SLSA
+provenance file. Currently the provenance verifier only parses the provenance files, and verifies
+that it contains exactly one subject, containing a SHA256 digest and a binary name.
 
-Note that the Amber provenance format will soon be deprecated (see
-[issue #224](https://github.com/project-oak/transparent-release/issues/224)), and replaced with
-[SLSA v1.0 format](https://slsa.dev/provenance/v1).
-
-To verify a SLSA provenance of the Amber build type run:
+To verify a SLSA v0.2 provenance, run:
 
 ```console
-$ go run cmd/verifier/main.go -provenance_path schema/provenance/v1/example.json
-```
-
-This fetches the sources from the Git repository specified in the SLSA statement file, re-runs the
-build, and verifies that it yields the expected hash.
-
-Check the [`development guidelines`](./../docs/development-guidelines.md) for a quick start to
-[`verifying provenances`](./../docs/development-guidelines.md#verifying-provenances).
-
-To use a local repository you can specify `-git_root_dir`. In this case, the binary will be built
-from the repo, only if the latest commit matches the one specified in the config file fail with an
-error otherwise.
-
-```console
-$ go run cmd/verifier/main.go \
-  -provenance_path schema/provenance/v1/example.json \
-  -git_root_dir <path-to-git-repo-root>
+$ go run cmd/verifier/main.go -provenance_path testdata/slsa_v02_provenance.json
+2023/04/21 14:33:47 Verification was successful.
 ```
