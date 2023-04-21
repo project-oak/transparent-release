@@ -12,20 +12,20 @@
     "predicate": {
         "builder": {
             "id": "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"
-                },
+        },
         "buildType": "https://github.com/slsa-framework/slsa-github-generator/generic@v1",
         "invocation": {
             "configSource": {
                 "uri": "git+https://github.com/project-oak/oak@refs/heads/main",
-                    "digest": {
+                "digest": {
                     "sha1": "a0c6eeb7850264c3112d79a214e805d9e24db0f5"
                 },
                 "entryPoint": ".github/workflows/provenance.yaml"
-        },
+            },
             "parameters": {},
             "environment": {}
-            },
-            "metadata": {
+        },
+        "metadata": {
             "buildInvocationID": "3230206088-1",
             "completeness": {
                 "parameters": true,
@@ -39,8 +39,8 @@
                 "uri": "git+https://github.com/project-oak/oak@refs/heads/main",
                 "digest": {
                     "sha1": "a0c6eeb7850264c3112d79a214e805d9e24db0f5"
+                }
             }
-        }
         ]
     }
 }
