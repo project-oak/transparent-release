@@ -1,8 +1,8 @@
 # Verifying provenances
 
-The [`verifier`](/internal/verifier/) package provides functionality for verifying an input SLSA
-provenance file. Currently the provenance verifier only parses the provenance files, and verifies
-that it contains exactly one subject, containing a SHA256 digest and a binary name.
+The [`verification`](/internal/verification/) package provides functionality for verifying an input
+SLSA provenance file. Currently the provenance verifier only parses the provenance files, and
+verifies that it contains exactly one subject, containing a SHA256 digest and a binary name.
 
 To verify a SLSA v0.2 provenance, run:
 
