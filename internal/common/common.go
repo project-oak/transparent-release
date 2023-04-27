@@ -21,26 +21,11 @@ import (
 	"fmt"
 	"os"
 
-	toml "github.com/pelletier/go-toml"
 	slsav02 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 
 	"github.com/project-oak/transparent-release/pkg/intoto"
 	"github.com/project-oak/transparent-release/pkg/types"
 )
-
-// ReferenceValues given by the product team to verify provenances against.
-type ReferenceValues struct {
-	// The digests of the binaries whose provenance the product team wants to verify.
-	BinarySHA256Digests []string `toml:"binary_sha256_digests"`
-	// If true the product team wants the provenance to have a non-empty build command.
-	WantBuildCmds bool `toml:"want_build_cmds"`
-	// The digests of the builder images the product team trusts to build the binary.
-	BuilderImageSHA256Digests []string `toml:"builder_image_sha256_digests"`
-	// The URI of the repo holding the resources the binary is built from.
-	RepoURI string `toml:"repo_uri"`
-	// The builders a product team trusts to build the binary.
-	TrustedBuilders []string `toml:"trusted_builders"`
-}
 
 // ProvenanceIR is an internal intermediate representation of data from provenances.
 // We want to map different provenances of different build types to ProvenanceIR, so
@@ -211,21 +196,6 @@ func fromSLSAv02(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 		WithTrustedBuilder(builder),
 	)
 	return provenanceIR, nil
-}
-
-// LoadReferenceValuesFromFile loads reference values from a toml file in the given path and returns an instance of ReferenceValues.
-func LoadReferenceValuesFromFile(path string) (*ReferenceValues, error) {
-	tomlTree, err := toml.LoadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("couldn't load toml file: %v", err)
-	}
-
-	referenceValues := ReferenceValues{}
-	if err := tomlTree.Unmarshal(&referenceValues); err != nil {
-		return nil, fmt.Errorf("couldn't unmarshal toml file: %v", err)
-	}
-
-	return &referenceValues, nil
 }
 
 // ComputeSHA256Digest returns the SHA256 digest of the file in the given path, or an error if the

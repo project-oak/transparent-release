@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package verifier
+package verification
 
 import (
 	"fmt"
@@ -32,7 +32,7 @@ func TestVerify_HasNoValues(t *testing.T) {
 	// There are no optional fields set apart from the binary digest and the build type.
 	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName)
 
-	want := common.ReferenceValues{
+	want := ReferenceValues{
 		// We ask for all the optional values in the reference values.
 		WantBuildCmds:             true,
 		BuilderImageSHA256Digests: []string{"builder_image_digest"},
@@ -55,7 +55,7 @@ func TestVerify_HasNoValues(t *testing.T) {
 func TestVerify_HasBuildCmd_HasAndNeedsBuildCmd(t *testing.T) {
 	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, common.WithBuildCmd([]string{"build cmd"}))
 
-	want := common.ReferenceValues{
+	want := ReferenceValues{
 		WantBuildCmds: true,
 	}
 
@@ -73,7 +73,7 @@ func TestVerify_NeedsButCannotHaveNoBuildCmd(t *testing.T) {
 	// No buildCmd is set in the provenance.
 	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName)
 
-	want := common.ReferenceValues{
+	want := ReferenceValues{
 		WantBuildCmds: true,
 	}
 
@@ -91,7 +91,7 @@ func TestVerify_NeedsButHasNoBuildCmd(t *testing.T) {
 	// The build command is empty.
 	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, common.WithBuildCmd([]string{}))
 	// And the reference values ask for a build cmd.
-	want := common.ReferenceValues{
+	want := ReferenceValues{
 		WantBuildCmds: true,
 	}
 
@@ -110,7 +110,7 @@ func TestVerify_HasNoBuildCmdButNotNeeded(t *testing.T) {
 	// The build command is empty.
 	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, common.WithBuildCmd([]string{}))
 	// But the reference values do not ask for a build cmd.
-	want := common.ReferenceValues{
+	want := ReferenceValues{
 		WantBuildCmds: false,
 	}
 
@@ -128,7 +128,7 @@ func TestVerify_HasNoBuildCmdButNotNeeded(t *testing.T) {
 func TestVerify_HasAndNeedsBuilderImageDigest(t *testing.T) {
 	builderDigest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
 	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, common.WithBuilderImageSHA256Digest(builderDigest))
-	want := common.ReferenceValues{
+	want := ReferenceValues{
 		BuilderImageSHA256Digests: []string{"some_other_digest", builderDigest},
 	}
 
@@ -145,7 +145,7 @@ func TestVerify_HasAndNeedsBuilderImageDigest(t *testing.T) {
 func TestVerify_NeedsButBuilderImageDigestNotFound(t *testing.T) {
 	builderDigest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
 	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, common.WithBuilderImageSHA256Digest(builderDigest))
-	want := common.ReferenceValues{
+	want := ReferenceValues{
 		BuilderImageSHA256Digests: []string{"some_other_digest", "and_some_other"},
 	}
 
@@ -164,7 +164,7 @@ func TestVerify_NeedsButBuilderImageDigestNotFound(t *testing.T) {
 
 func TestVerify_NeedsButHasEmptyBuilderImageDigest(t *testing.T) {
 	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, common.WithBuilderImageSHA256Digest(""))
-	want := common.ReferenceValues{
+	want := ReferenceValues{
 		BuilderImageSHA256Digests: []string{"some_digest"},
 	}
 
@@ -184,7 +184,7 @@ func TestVerify_NeedsButHasEmptyBuilderImageDigest(t *testing.T) {
 func TestVerify_HasEmptyBuilderImageDigestButNotNeeded(t *testing.T) {
 	builderImageSHA256Digest := ""
 	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, common.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
-	want := common.ReferenceValues{
+	want := ReferenceValues{
 		// We do not check for the builder image digest.
 	}
 
@@ -204,7 +204,7 @@ func TestVerify_HasFoundRepoURI(t *testing.T) {
 			"git+https://github.com/project-oak/transparent-release@refs/heads/main",
 			"https://github.com/project-oak/transparent-release",
 		}))
-	want := common.ReferenceValues{
+	want := ReferenceValues{
 		RepoURI: "github.com/project-oak/transparent-release",
 	}
 
@@ -227,7 +227,7 @@ func TestVerify_HasWrongRepoURI(t *testing.T) {
 			wrongURI,
 			"https://github.com/project-oak/transparent-release",
 		}))
-	want := common.ReferenceValues{
+	want := ReferenceValues{
 		RepoURI: "github.com/project-oak/transparent-release",
 	}
 
@@ -249,7 +249,7 @@ func TestVerify_HasNoRepoURIs(t *testing.T) {
 	// We have no repo URIs in the provenance.
 	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName,
 		common.WithRepoURIs([]string{}))
-	want := common.ReferenceValues{
+	want := ReferenceValues{
 		RepoURI: "github.com/project-oak/transparent-release",
 	}
 
@@ -268,7 +268,7 @@ func TestVerify_HasAndNeedsTrustedBuilder(t *testing.T) {
 	trustedBuilder := "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"
 	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, common.WithTrustedBuilder(trustedBuilder))
 
-	want := common.ReferenceValues{
+	want := ReferenceValues{
 		TrustedBuilders: []string{trustedBuilder},
 	}
 
@@ -286,7 +286,7 @@ func TestVerify_NeedsButTrustedBuilderNotFound(t *testing.T) {
 	trustedBuilder := "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"
 	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, common.WithTrustedBuilder(trustedBuilder))
 
-	want := common.ReferenceValues{
+	want := ReferenceValues{
 		TrustedBuilders: []string{"other_" + trustedBuilder, "another_" + trustedBuilder},
 	}
 
@@ -306,7 +306,7 @@ func TestVerify_NeedsButTrustedBuilderNotFound(t *testing.T) {
 func TestVerify_NeedsButHasEmptyTrustedBuilder(t *testing.T) {
 	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, common.WithTrustedBuilder(""))
 
-	want := common.ReferenceValues{
+	want := ReferenceValues{
 		TrustedBuilders: []string{"other_trusted_builder", "another_trusted_builder"},
 	}
 
@@ -326,7 +326,7 @@ func TestVerify_NeedsButHasEmptyTrustedBuilder(t *testing.T) {
 func TestVerify_HasEmptyTrustedBuilderButNotNeeded(t *testing.T) {
 	got := common.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, common.WithTrustedBuilder(""))
 
-	want := common.ReferenceValues{
+	want := ReferenceValues{
 		// We do not check the trusted builder.
 	}
 

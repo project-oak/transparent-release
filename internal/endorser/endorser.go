@@ -29,7 +29,7 @@ import (
 	"go.uber.org/multierr"
 
 	"github.com/project-oak/transparent-release/internal/common"
-	"github.com/project-oak/transparent-release/internal/verifier"
+	"github.com/project-oak/transparent-release/internal/verification"
 	"github.com/project-oak/transparent-release/pkg/amber"
 	"github.com/project-oak/transparent-release/pkg/intoto"
 	"github.com/project-oak/transparent-release/pkg/types"
@@ -48,7 +48,7 @@ type ParsedProvenance struct {
 // the given provenances as evidence and reference values to verify them. At least one provenance
 // must be provided. The endorsement statement is generated only if the provenance statements are
 // valid.
-func GenerateEndorsement(referenceValues *common.ReferenceValues, validityDuration amber.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
+func GenerateEndorsement(referenceValues *verification.ReferenceValues, validityDuration amber.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
 	verifiedProvenances, err := verifyAndSummarizeProvenances(referenceValues, provenances)
 	if err != nil {
 		return nil, fmt.Errorf("could not verify and summarize provenances: %v", err)
@@ -62,7 +62,7 @@ func GenerateEndorsement(referenceValues *common.ReferenceValues, validityDurati
 // (1) The list of provenances is empty,
 // (2) Any of the provenances is invalid (see verifyProvenances for details on validity),
 // (3) Provenances do not match (e.g., have different binary names).
-func verifyAndSummarizeProvenances(referenceValues *common.ReferenceValues, provenances []ParsedProvenance) (*amber.VerifiedProvenanceSet, error) {
+func verifyAndSummarizeProvenances(referenceValues *verification.ReferenceValues, provenances []ParsedProvenance) (*amber.VerifiedProvenanceSet, error) {
 	if len(provenances) == 0 {
 		return nil, fmt.Errorf("at least one provenance file must be provided")
 	}
@@ -89,10 +89,10 @@ func verifyAndSummarizeProvenances(referenceValues *common.ReferenceValues, prov
 }
 
 // verifyProvenances verifies the given list of provenances. An error is returned if verification fails for one of them.
-func verifyProvenances(referenceValues *common.ReferenceValues, provenances []common.ProvenanceIR) error {
+func verifyProvenances(referenceValues *verification.ReferenceValues, provenances []common.ProvenanceIR) error {
 	var errs error
 	for index := range provenances {
-		provenanceVerifier := verifier.ProvenanceIRVerifier{
+		provenanceVerifier := verification.ProvenanceIRVerifier{
 			Got:  &provenances[index],
 			Want: referenceValues,
 		}
