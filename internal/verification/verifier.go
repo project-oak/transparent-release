@@ -19,14 +19,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/project-oak/transparent-release/internal/common"
+	"github.com/project-oak/transparent-release/internal/model"
 	"go.uber.org/multierr"
 )
 
 // ProvenanceIRVerifier verifies a provenance against a given reference, by verifying
 // all non-empty fields in got using fields in the reference values. Empty fields will not be verified.
 type ProvenanceIRVerifier struct {
-	Got  *common.ProvenanceIR
+	Got  *model.ProvenanceIR
 	Want *ReferenceValues
 }
 

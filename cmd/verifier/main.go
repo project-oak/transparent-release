@@ -20,7 +20,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/project-oak/transparent-release/internal/common"
+	"github.com/project-oak/transparent-release/internal/model"
 	"github.com/project-oak/transparent-release/internal/verification"
 	"github.com/project-oak/transparent-release/pkg/types"
 )
@@ -40,7 +40,7 @@ func main() {
 		log.Fatalf("couldn't parse bytes from %s into a validated provenance: %v", *provenancePath, err)
 	}
 	// Map to internal provenance representation based on the predicate/build type.
-	provenanceIR, err := common.FromValidatedProvenance(validatedProvenance)
+	provenanceIR, err := model.FromValidatedProvenance(validatedProvenance)
 	if err != nil {
 		log.Fatalf("couldn't map from %s to internal representation: %v", validatedProvenance, err)
 	}

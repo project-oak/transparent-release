@@ -28,7 +28,7 @@ import (
 
 	"go.uber.org/multierr"
 
-	"github.com/project-oak/transparent-release/internal/common"
+	"github.com/project-oak/transparent-release/internal/model"
 	"github.com/project-oak/transparent-release/internal/verification"
 	"github.com/project-oak/transparent-release/pkg/amber"
 	"github.com/project-oak/transparent-release/pkg/intoto"
@@ -40,7 +40,7 @@ import (
 // wrapped in a DSSE envelope, `SourceMetadata` contains the URI and digest of
 // the DSSE document, while `Provenance` contains the provenance itself.
 type ParsedProvenance struct {
-	Provenance     common.ProvenanceIR
+	Provenance     model.ProvenanceIR
 	SourceMetadata amber.ProvenanceData
 }
 
@@ -67,7 +67,7 @@ func verifyAndSummarizeProvenances(referenceValues *verification.ReferenceValues
 		return nil, fmt.Errorf("at least one provenance file must be provided")
 	}
 
-	provenanceIRs := make([]common.ProvenanceIR, 0, len(provenances))
+	provenanceIRs := make([]model.ProvenanceIR, 0, len(provenances))
 	provenancesData := make([]amber.ProvenanceData, 0, len(provenances))
 	for _, p := range provenances {
 		provenanceIRs = append(provenanceIRs, p.Provenance)
@@ -89,7 +89,7 @@ func verifyAndSummarizeProvenances(referenceValues *verification.ReferenceValues
 }
 
 // verifyProvenances verifies the given list of provenances. An error is returned if verification fails for one of them.
-func verifyProvenances(referenceValues *verification.ReferenceValues, provenances []common.ProvenanceIR) error {
+func verifyProvenances(referenceValues *verification.ReferenceValues, provenances []model.ProvenanceIR) error {
 	var errs error
 	for index := range provenances {
 		provenanceVerifier := verification.ProvenanceIRVerifier{
@@ -105,7 +105,7 @@ func verifyProvenances(referenceValues *verification.ReferenceValues, provenance
 
 // verifyConsistency verifies that all provenances have the same binary name and
 // binary digest.
-func verifyConsistency(provenanceIRs []common.ProvenanceIR) error {
+func verifyConsistency(provenanceIRs []model.ProvenanceIR) error {
 	var errs error
 
 	// get the binary digest and binary name of the first provenance as reference
@@ -160,7 +160,7 @@ func LoadProvenance(provenanceURI string) (*ParsedProvenance, error) {
 		return nil, fmt.Errorf("couldn't parse bytes from %s into a validated provenance: %v", provenanceURI, err)
 	}
 	// Map to internal provenance representation based on the predicate/build type.
-	provenanceIR, err := common.FromValidatedProvenance(validatedProvenance)
+	provenanceIR, err := model.FromValidatedProvenance(validatedProvenance)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't map from %s to internal representation: %v", validatedProvenance, err)
 	}

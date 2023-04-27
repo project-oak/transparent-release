@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package common provides utility functions for building and verifying released binaries.
-package common
+// Package provenance provides the internal representation of a provenance
+// statement and utilities for parsing different types of provenances into this
+// internal representation
+package model
 
 import (
 	"crypto/sha256"
