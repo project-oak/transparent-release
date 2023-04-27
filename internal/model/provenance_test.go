@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package common
+package model
 
 import (
 	"fmt"
@@ -21,7 +21,6 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/project-oak/transparent-release/internal/testutil"
 	slsav02 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 	"github.com/project-oak/transparent-release/pkg/types"
 )
@@ -42,18 +41,6 @@ func TestComputeBinarySHA256Digest(t *testing.T) {
 	if got != wantTOMLDigest {
 		t.Errorf("invalid SHA256 digest: got %s, want %s", got, wantTOMLDigest)
 	}
-}
-
-func TestParseReferenceValues(t *testing.T) {
-	path := filepath.Join(testdataPath, "reference_values.toml")
-	referenceValues, err := LoadReferenceValuesFromFile(path)
-	if err != nil {
-		t.Fatalf("couldn't load reference values file: %v", err)
-	}
-
-	testutil.AssertEq(t, "binary digests[0]", referenceValues.BinarySHA256Digests[0], "d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc")
-	testutil.AssertEq(t, "want build cmd", referenceValues.WantBuildCmds, false)
-	testutil.AssertEq(t, "builder image digests[0]", referenceValues.BuilderImageSHA256Digests[0], "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9")
 }
 
 func TestFromProvenance_Slsav02(t *testing.T) {

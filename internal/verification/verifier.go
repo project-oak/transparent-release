@@ -12,29 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package verifier provides a function for verifying a SLSA provenance file.
-package verifier
+// Package verification provides a function for verifying a SLSA provenance file.
+package verification
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/project-oak/transparent-release/internal/common"
+	"github.com/project-oak/transparent-release/internal/model"
 	"go.uber.org/multierr"
 )
-
-// ProvenanceVerifier defines an interface with a single method `Verify` for
-// verifying provenances.
-type ProvenanceVerifier interface {
-	// Verifies a provenance.
-	Verify() error
-}
 
 // ProvenanceIRVerifier verifies a provenance against a given reference, by verifying
 // all non-empty fields in got using fields in the reference values. Empty fields will not be verified.
 type ProvenanceIRVerifier struct {
-	Got  *common.ProvenanceIR
-	Want *common.ReferenceValues
+	Got  *model.ProvenanceIR
+	Want *ReferenceValues
 }
 
 // Verify verifies an instance of ProvenanceIRVerifier by comparing its Got and Want fields.

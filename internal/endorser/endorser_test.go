@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/project-oak/transparent-release/internal/common"
 	"github.com/project-oak/transparent-release/internal/testutil"
+	"github.com/project-oak/transparent-release/internal/verification"
 	"github.com/project-oak/transparent-release/pkg/amber"
 )
 
@@ -50,7 +50,7 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
 
-	referenceValues, err := common.LoadReferenceValuesFromFile("../../testdata/reference_values.toml")
+	referenceValues, err := verification.LoadReferenceValuesFromFile("../../testdata/reference_values.toml")
 	if err != nil {
 		t.Fatalf("Could not load reference values: %v", err)
 	}
@@ -83,7 +83,7 @@ func TestLoadAndVerifyProvenances_MultipleValidEndorsement(t *testing.T) {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
 
-	referenceValues := common.ReferenceValues{
+	referenceValues := verification.ReferenceValues{
 		// Make sure we pick the correct binary hash if there are several reference values.
 		BinarySHA256Digests: []string{binaryHash + "_diff", binaryHash},
 	}
@@ -114,7 +114,7 @@ func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
-	referenceValues := common.ReferenceValues{
+	referenceValues := verification.ReferenceValues{
 		BinarySHA256Digests: []string{binaryHash + "_diff"},
 	}
 
@@ -140,7 +140,7 @@ func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
-	referenceValues := common.ReferenceValues{
+	referenceValues := verification.ReferenceValues{
 		BinarySHA256Digests: []string{"e8e05d1d09af8952919bf6ab38e0cc5a6414ee2b5e21f4765b12421c5db0037e", binaryHash},
 	}
 
@@ -167,7 +167,7 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
-	referenceValues := common.ReferenceValues{
+	referenceValues := verification.ReferenceValues{
 		BinarySHA256Digests: []string{binaryHash + "_diff"},
 	}
 
@@ -192,7 +192,7 @@ func TestLoadAndVerifyProvenances_NotVerified(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
-	referenceValues, err := common.LoadReferenceValuesFromFile("../../testdata/different_reference_values.toml")
+	referenceValues, err := verification.LoadReferenceValuesFromFile("../../testdata/different_reference_values.toml")
 	if err != nil {
 		t.Fatalf("Could not load reference values: %v", err)
 	}

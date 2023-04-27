@@ -28,8 +28,8 @@ import (
 
 	"go.uber.org/multierr"
 
-	"github.com/project-oak/transparent-release/internal/common"
-	"github.com/project-oak/transparent-release/internal/verifier"
+	"github.com/project-oak/transparent-release/internal/model"
+	"github.com/project-oak/transparent-release/internal/verification"
 	"github.com/project-oak/transparent-release/pkg/amber"
 	"github.com/project-oak/transparent-release/pkg/intoto"
 	"github.com/project-oak/transparent-release/pkg/types"
@@ -40,7 +40,7 @@ import (
 // wrapped in a DSSE envelope, `SourceMetadata` contains the URI and digest of
 // the DSSE document, while `Provenance` contains the provenance itself.
 type ParsedProvenance struct {
-	Provenance     common.ProvenanceIR
+	Provenance     model.ProvenanceIR
 	SourceMetadata amber.ProvenanceData
 }
 
@@ -48,7 +48,7 @@ type ParsedProvenance struct {
 // the given provenances as evidence and reference values to verify them. At least one provenance
 // must be provided. The endorsement statement is generated only if the provenance statements are
 // valid.
-func GenerateEndorsement(referenceValues *common.ReferenceValues, validityDuration amber.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
+func GenerateEndorsement(referenceValues *verification.ReferenceValues, validityDuration amber.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
 	verifiedProvenances, err := verifyAndSummarizeProvenances(referenceValues, provenances)
 	if err != nil {
 		return nil, fmt.Errorf("could not verify and summarize provenances: %v", err)
@@ -62,12 +62,12 @@ func GenerateEndorsement(referenceValues *common.ReferenceValues, validityDurati
 // (1) The list of provenances is empty,
 // (2) Any of the provenances is invalid (see verifyProvenances for details on validity),
 // (3) Provenances do not match (e.g., have different binary names).
-func verifyAndSummarizeProvenances(referenceValues *common.ReferenceValues, provenances []ParsedProvenance) (*amber.VerifiedProvenanceSet, error) {
+func verifyAndSummarizeProvenances(referenceValues *verification.ReferenceValues, provenances []ParsedProvenance) (*amber.VerifiedProvenanceSet, error) {
 	if len(provenances) == 0 {
 		return nil, fmt.Errorf("at least one provenance file must be provided")
 	}
 
-	provenanceIRs := make([]common.ProvenanceIR, 0, len(provenances))
+	provenanceIRs := make([]model.ProvenanceIR, 0, len(provenances))
 	provenancesData := make([]amber.ProvenanceData, 0, len(provenances))
 	for _, p := range provenances {
 		provenanceIRs = append(provenanceIRs, p.Provenance)
@@ -89,10 +89,10 @@ func verifyAndSummarizeProvenances(referenceValues *common.ReferenceValues, prov
 }
 
 // verifyProvenances verifies the given list of provenances. An error is returned if verification fails for one of them.
-func verifyProvenances(referenceValues *common.ReferenceValues, provenances []common.ProvenanceIR) error {
+func verifyProvenances(referenceValues *verification.ReferenceValues, provenances []model.ProvenanceIR) error {
 	var errs error
 	for index := range provenances {
-		provenanceVerifier := verifier.ProvenanceIRVerifier{
+		provenanceVerifier := verification.ProvenanceIRVerifier{
 			Got:  &provenances[index],
 			Want: referenceValues,
 		}
@@ -105,7 +105,7 @@ func verifyProvenances(referenceValues *common.ReferenceValues, provenances []co
 
 // verifyConsistency verifies that all provenances have the same binary name and
 // binary digest.
-func verifyConsistency(provenanceIRs []common.ProvenanceIR) error {
+func verifyConsistency(provenanceIRs []model.ProvenanceIR) error {
 	var errs error
 
 	// get the binary digest and binary name of the first provenance as reference
@@ -160,7 +160,7 @@ func LoadProvenance(provenanceURI string) (*ParsedProvenance, error) {
 		return nil, fmt.Errorf("couldn't parse bytes from %s into a validated provenance: %v", provenanceURI, err)
 	}
 	// Map to internal provenance representation based on the predicate/build type.
-	provenanceIR, err := common.FromValidatedProvenance(validatedProvenance)
+	provenanceIR, err := model.FromValidatedProvenance(validatedProvenance)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't map from %s to internal representation: %v", validatedProvenance, err)
 	}
