@@ -20,17 +20,17 @@ import (
 	"github.com/pelletier/go-toml"
 )
 
-// ReferenceValues given by the product team to verify provenances against.
+// ReferenceValues specify expected values to verify provenances against.
 type ReferenceValues struct {
-	// The digests of the binaries whose provenance the product team wants to verify.
+	// Allow list of binary digests.
 	BinarySHA256Digests []string `toml:"binary_sha256_digests"`
-	// If true the product team wants the provenance to have a non-empty build command.
+	// If true, expect that the provenance has a non-empty build command.
 	WantBuildCmds bool `toml:"want_build_cmds"`
-	// The digests of the builder images the product team trusts to build the binary.
+	// Allow list of builder image digests that are trusted for building the binary.
 	BuilderImageSHA256Digests []string `toml:"builder_image_sha256_digests"`
 	// The URI of the repo holding the resources the binary is built from.
 	RepoURI string `toml:"repo_uri"`
-	// The builders a product team trusts to build the binary.
+	// Allow list of builders trusted to build the binary.
 	TrustedBuilders []string `toml:"trusted_builders"`
 }
 
