@@ -15,13 +15,13 @@
 package model
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	slsav02 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
+	slsav1 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v1"
 	"github.com/project-oak/transparent-release/pkg/types"
 )
 
@@ -81,12 +81,26 @@ func TestFromProvenance_Slsav1(t *testing.T) {
 		t.Fatalf("couldn't parse the provenance file: %v", err)
 	}
 
-	// Currently SLSA v1.0 provenances are not supported, so we expect an error.
-	want := fmt.Sprintf("unsupported predicateType (%q) for provenance", "https://slsa.dev/provenance/v1.0?draft")
-	_, err = FromValidatedProvenance(provenance)
-	got := fmt.Sprintf("%v", err)
+	want := NewProvenanceIR("813841dda3818d616aa3e706e49d0286dc825c5dbad4a75cfb37b91ba412238b",
+		slsav1.DockerBasedBuildType, "oak_functions_enclave_app",
+		WithBuildCmd([]string{
+			"env",
+			"--chdir=oak_functions_enclave_app",
+			"cargo",
+			"build",
+			"--release",
+		}),
+		WithBuilderImageSHA256Digest("51532c757d1008bbff696d053a1d05226f6387cf232aa80b6f9c13b0759ccea0"),
+		WithRepoURIs([]string{"git+https://github.com/project-oak/oak"}),
+		WithTrustedBuilder("https://github.com/slsa-framework/slsa-github-generator/.github/workflows/builder_docker-based_slsa3.yml@refs/tags/v1.6.0-rc.0"),
+	)
 
-	if got != want {
-		t.Fatalf("got error %q, want error %q", got, want)
+	got, err := FromValidatedProvenance(provenance)
+	if err != nil {
+		t.Fatalf("couldn't map provenance to ProvenanceIR: %v", err)
+	}
+
+	if diff := cmp.Diff(got, want, cmp.AllowUnexported(ProvenanceIR{})); diff != "" {
+		t.Errorf("unexpected provenanceIR: %s", diff)
 	}
 }
