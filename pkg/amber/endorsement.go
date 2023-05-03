@@ -39,12 +39,13 @@ type VerifiedProvenanceSet struct {
 	Provenances []ProvenanceData
 }
 
-// ProvenanceData contains metadata about a provenance statement. The statement may be wrapped in a
-// DSSE envelope, or a Sigstore Bundle. The metadata identifies the provenance via a URI and a
-// SHA256 digest. The digest may be the SHA256 digest of the provenance content, the DSSE envelope,
-// or the Sigstore Bundle. We don't need to explicitly distinguish between these different media
-// types in the ProvenanceData, because this metadata is used as the evidence of an Endorsement
-// statement, where the media type has no use or relevance.
+// ProvenanceData identifies a provenance statement via a URI and a SHA256
+// digest. The provenance statement may be wrapped in a DSSE envelope, or a
+// Sigstore Bundle. The SHA256 digest may be the digest of the provenance
+// content, the DSSE envelope, or the Sigstore Bundle. We don't need to
+// explicitly distinguish between these different media types in the
+// ProvenanceData, because this information is used as the evidence in an
+// Endorsement statement, where the media type has no use or relevance.
 type ProvenanceData struct {
 	URI          string
 	SHA256Digest string

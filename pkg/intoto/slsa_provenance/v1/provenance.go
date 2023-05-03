@@ -40,7 +40,8 @@ const (
 	DockerBasedBuildType = "https://slsa.dev/container-based-build/v0.1?draft"
 )
 
-// ProvenancePredicate is the provenance predicate definition.
+// ProvenancePredicate defines the structure of a SLSA v1 provenance predicate.
+// See the specification in https://slsa.dev/spec/v1.0/.
 type ProvenancePredicate struct {
 	// The BuildDefinition describes all of the inputs to the build.
 	BuildDefinition ProvenanceBuildDefinition `json:"buildDefinition"`
