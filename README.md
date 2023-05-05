@@ -12,8 +12,8 @@ The goal of release transparency is to generate and transparently publish non-fo
 about a released binary. We refer to this kind of metadata as the endorsement statement. It can be
 used in scenarios where the identity of a binary must be verified before use. One prominent use case
 is remote attestation. See
-[Oak’s remote attestation protocol](https://github.com/project-oak/oak/blob/main/docs/remote-attestation.md)
-for instance.
+[Oak’s remote attestation protocol](https://github.com/project-oak/oak/blob/main/docs/remote-attestation.md),
+and [how release transparency fits into the picture](docs/usecase.md).
 
 The life cycle of an endorsement statement has three phases as shown in the diagram below:
 
