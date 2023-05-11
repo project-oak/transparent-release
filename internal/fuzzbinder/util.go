@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/project-oak/transparent-release/pkg/amber"
+	"github.com/project-oak/transparent-release/pkg/claims"
 )
 
 const (
@@ -70,7 +70,7 @@ func ValidateFuzzingDate(date string, referenceTime time.Time) error {
 
 // GetValidFuzzClaimValidity gets the fuzzing claim validity using
 // the values entered for notBeforeStr and notAfterStr.
-func GetValidFuzzClaimValidity(referenceTime time.Time, notBeforeStr *string, notAfterStr *string) (*amber.ClaimValidity, error) {
+func GetValidFuzzClaimValidity(referenceTime time.Time, notBeforeStr *string, notAfterStr *string) (*claims.ClaimValidity, error) {
 	notAfter, err := parseDate(*notAfterStr)
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -81,7 +81,7 @@ func GetValidFuzzClaimValidity(referenceTime time.Time, notBeforeStr *string, no
 		return nil, fmt.Errorf(
 			"could not parse notBefore to *time.Time: %v", err)
 	}
-	validity := amber.ClaimValidity{
+	validity := claims.ClaimValidity{
 		NotBefore: notBefore,
 		NotAfter:  notAfter,
 	}
@@ -95,7 +95,7 @@ func GetValidFuzzClaimValidity(referenceTime time.Time, notBeforeStr *string, no
 
 // validateFuzzClaimValidity validates the fuzzing claim validity to make
 // sure that NotBefore is after referenceTime and NotAfter is after NotBefore.
-func validateFuzzClaimValidity(validity amber.ClaimValidity, referenceTime time.Time) error {
+func validateFuzzClaimValidity(validity claims.ClaimValidity, referenceTime time.Time) error {
 	if validity.NotBefore.Before(referenceTime) {
 		return fmt.Errorf(
 			"notBefore (%v) is not after referenceTime (%v)", validity.NotBefore, referenceTime)

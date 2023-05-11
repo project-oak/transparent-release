@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package amber
+package claims
 
 import (
 	"encoding/json"
@@ -21,7 +21,7 @@ import (
 	"time"
 )
 
-func TestExampleAmberEndorsement(t *testing.T) {
+func TestExampleEndorsement(t *testing.T) {
 	examplePath := "../../schema/claim/v1/example.json"
 
 	endorsement, err := ParseEndorsementV2File(examplePath)
@@ -29,13 +29,13 @@ func TestExampleAmberEndorsement(t *testing.T) {
 		t.Fatalf("Failed to parse the example endorsement file: %v", err)
 	}
 
-	if endorsement.PredicateType != AmberClaimV1 {
-		t.Errorf("Unexpected PredicateType: got %s, want %s", endorsement.PredicateType, AmberClaimV1)
+	if endorsement.PredicateType != ClaimV1 {
+		t.Errorf("Unexpected PredicateType: got %s, want %s", endorsement.PredicateType, ClaimV1)
 	}
 
 	claimPredicate := endorsement.Predicate.(ClaimPredicate)
-	if claimPredicate.ClaimType != AmberEndorsementV2 {
-		t.Errorf("Unexpected ClaimType: got %s, want %s", claimPredicate.ClaimType, AmberEndorsementV2)
+	if claimPredicate.ClaimType != EndorsementV2 {
+		t.Errorf("Unexpected ClaimType: got %s, want %s", claimPredicate.ClaimType, EndorsementV2)
 	}
 
 	want := time.Date(2022, 7, 8, 10, 20, 50, 32, time.UTC)

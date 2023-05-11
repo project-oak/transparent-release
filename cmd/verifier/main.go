@@ -22,7 +22,6 @@ import (
 
 	"github.com/project-oak/transparent-release/internal/model"
 	"github.com/project-oak/transparent-release/internal/verification"
-	"github.com/project-oak/transparent-release/pkg/types"
 )
 
 func main() {
@@ -35,7 +34,7 @@ func main() {
 		log.Fatalf("couldn't load the provenance bytes from %s: %v", *provenancePath, err)
 	}
 	// Parse into a validated provenance to get the predicate/build type of the provenance.
-	validatedProvenance, err := types.ParseStatementData(provenanceBytes)
+	validatedProvenance, err := model.ParseStatementData(provenanceBytes)
 	if err != nil {
 		log.Fatalf("couldn't parse bytes from %s into a validated provenance: %v", *provenancePath, err)
 	}

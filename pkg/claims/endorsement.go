@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package amber
+package claims
 
 import (
 	"encoding/json"
@@ -23,11 +23,9 @@ import (
 	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
-// AmberEndorsementV2 is the ClaimType for Amber Endorsements V2. This is
-// expected to be used together with the AmberClaimV1 as the predicate type in
-// an in-toto statement. This version of Amber Endorsement replaces the earlier
-// version in `schema/amber-endorsement/v1`.
-const AmberEndorsementV2 = "https://github.com/project-oak/transparent-release/endorsement/v2"
+// EndorsementV2 is the ClaimType for Endorsements. This is expected to be used
+// together with `ClaimV1` as the predicate type in an in-toto statement.
+const EndorsementV2 = "https://github.com/project-oak/transparent-release/endorsement/v2"
 
 // VerifiedProvenanceSet encapsulates metadata about a non-empty list of verified provenances.
 type VerifiedProvenanceSet struct {
@@ -51,8 +49,8 @@ type ProvenanceData struct {
 	SHA256Digest string
 }
 
-// ParseEndorsementV2File reads a JSON file from the given path, and parses it into an
-// instance of intoto.Statement, with the Amber Claim as the predicate type.
+// ParseEndorsementV2File reads a JSON file from the given path, and parses it
+// into an instance of intoto.Statement, with the Claim as the predicate type.
 func ParseEndorsementV2File(path string) (*intoto.Statement, error) {
 	statementBytes, err := os.ReadFile(path)
 	if err != nil {
@@ -62,8 +60,8 @@ func ParseEndorsementV2File(path string) (*intoto.Statement, error) {
 	return ParseEndorsementV2Bytes(statementBytes)
 }
 
-// ParseEndorsementV2Bytes parses a JSON string it into an instance of intoto.Statement,
-// with the Amber Claim as the predicate type.
+// ParseEndorsementV2Bytes parses a JSON string it into an instance of
+// intoto.Statement, with the Claim as the predicate type.
 func ParseEndorsementV2Bytes(statementBytes []byte) (*intoto.Statement, error) {
 	var statement intoto.Statement
 	if err := json.Unmarshal(statementBytes, &statement); err != nil {
@@ -84,24 +82,24 @@ func ParseEndorsementV2Bytes(statementBytes []byte) (*intoto.Statement, error) {
 	// Replace the Predicate map with ClaimPredicate
 	statement.Predicate = predicate
 
-	if err = validateAmberClaim(statement); err != nil {
+	if err = validateClaim(statement); err != nil {
 		return nil, fmt.Errorf("the predicate in the endorsement file is invalid: %v", err)
 	}
 
 	return &statement, nil
 }
 
-func validateAmberClaim(statement intoto.Statement) error {
-	predicate, err := ValidateAmberClaim(statement)
+func validateClaim(statement intoto.Statement) error {
+	predicate, err := ValidateClaim(statement)
 	if err != nil {
 		return err
 	}
 
-	if predicate.ClaimType != AmberEndorsementV2 {
+	if predicate.ClaimType != EndorsementV2 {
 		return fmt.Errorf(
 			"the predicate does not have the expected claim type; got: %s, want: %s",
 			predicate.ClaimType,
-			AmberEndorsementV2)
+			EndorsementV2)
 	}
 
 	return nil
@@ -121,7 +119,7 @@ func GenerateEndorsementStatement(validity ClaimValidity, provenances VerifiedPr
 
 	currentTime := time.Now()
 	predicate := ClaimPredicate{
-		ClaimType: AmberEndorsementV2,
+		ClaimType: EndorsementV2,
 		IssuedOn:  &currentTime,
 		Validity:  &validity,
 		Evidence:  evidence,
@@ -134,7 +132,7 @@ func GenerateEndorsementStatement(validity ClaimValidity, provenances VerifiedPr
 
 	statementHeader := intoto.StatementHeader{
 		Type:          intoto.StatementInTotoV01,
-		PredicateType: AmberClaimV1,
+		PredicateType: ClaimV1,
 		Subject:       []intoto.Subject{subject},
 	}
 

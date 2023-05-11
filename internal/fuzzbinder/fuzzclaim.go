@@ -17,7 +17,7 @@
 package fuzzbinder
 
 // This file provides a custom `ClaimSpec` type, FuzzClaimSpec, to be used
-// for fuzzing claims within the ClaimPredicate (defined in amber package).
+// for fuzzing claims within the ClaimPredicate (defined in claims package).
 // FuzzClaimSpec is intended to be used for providing the user with the
 // needed elements to characterize the security of a revision of the source
 // code based on fuzzing.
@@ -27,12 +27,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/project-oak/transparent-release/pkg/amber"
+	"github.com/project-oak/transparent-release/pkg/claims"
 	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
-// FuzzClaimV1 is the URI that should be used as the ClaimType in V1 Amber
-// Claim representing a V1 Fuzz Claim.
+// FuzzClaimV1 is the URI that should be used as the ClaimType in ClaimV1
+// representing a V1 Fuzz Claim.
 const FuzzClaimV1 = "https://github.com/project-oak/transparent-release/fuzz_claim/v1"
 
 // FuzzClaimSpec gives the `ClaimSpec` definition. It will be included in a
@@ -71,12 +71,12 @@ type FuzzStats struct {
 	NumberFuzzTests int `json:"numberFuzzTests,omitempty"`
 }
 
-// ValidateFuzzClaim validates that an Amber Claim is a Fuzz Claim with a valid ClaimType.
+// ValidateFuzzClaim validates that a Claim is a Fuzz Claim with a valid ClaimType.
 // If valid, the ClaimPredicate object is returned. Otherwise an error is returned.
-func ValidateFuzzClaim(statement intoto.Statement) (*amber.ClaimPredicate, error) {
-	predicate, err := amber.ValidateAmberClaim(statement)
+func ValidateFuzzClaim(statement intoto.Statement) (*claims.ClaimPredicate, error) {
+	predicate, err := claims.ValidateClaim(statement)
 	if err != nil {
-		return nil, fmt.Errorf("could not validate the fuzzing AmberClaim: %v", err)
+		return nil, fmt.Errorf("could not validate the fuzzing Claim: %v", err)
 	}
 	if predicate.ClaimType != FuzzClaimV1 {
 		return nil, fmt.Errorf(
@@ -97,7 +97,7 @@ func ValidateFuzzClaim(statement intoto.Statement) (*amber.ClaimPredicate, error
 }
 
 // validateFuzzClaimSpec validates details about the FuzzClaimSpec.
-func validateFuzzClaimSpec(predicate amber.ClaimPredicate) (*amber.ClaimPredicate, error) {
+func validateFuzzClaimSpec(predicate claims.ClaimPredicate) (*claims.ClaimPredicate, error) {
 	// validate that perProject.fuzzTimeSeconds is the sum of fuzzTimeSeconds for all fuzz-targets
 	// and perProject.numberFuzzTests is the sum of numberFuzzTests for all fuzz-targets.
 	sumTargetsTimeSeconds := 0.0
@@ -132,8 +132,8 @@ func validateFuzzClaimSpec(predicate amber.ClaimPredicate) (*amber.ClaimPredicat
 }
 
 // ParseFuzzClaimFile reads a JSON file from a path, and parses it into an
-// instance of intoto.Statement, with AmberClaimV1 as the PredicateType
-// and FuzzClaimV1 as the ClaimType.
+// instance of intoto.Statement, with ClaimV1 as the PredicateType and
+// FuzzClaimV1 as the ClaimType.
 func ParseFuzzClaimFile(path string) (*intoto.Statement, error) {
 	statementBytes, err := os.ReadFile(path)
 	if err != nil {
@@ -143,7 +143,7 @@ func ParseFuzzClaimFile(path string) (*intoto.Statement, error) {
 }
 
 // ParseFuzzClaimBytes parses a statementBytes into an instance of intoto.Statement,
-// with AmberClaimV1 as the PredicateType and FuzzClaimV1 as the ClaimType.
+// with ClaimV1 as the PredicateType and FuzzClaimV1 as the ClaimType.
 func parseFuzzClaimBytes(statementBytes []byte) (*intoto.Statement, error) {
 	var statement intoto.Statement
 	if err := json.Unmarshal(statementBytes, &statement); err != nil {
@@ -155,7 +155,7 @@ func parseFuzzClaimBytes(statementBytes []byte) (*intoto.Statement, error) {
 		return nil, fmt.Errorf("could not marshal Predicate map into JSON bytes: %v", err)
 	}
 
-	var predicate amber.ClaimPredicate
+	var predicate claims.ClaimPredicate
 	if err = json.Unmarshal(predicateBytes, &predicate); err != nil {
 		return nil, fmt.Errorf("could not unmarshal JSON bytes into a ClaimPredicate: %v", err)
 	}

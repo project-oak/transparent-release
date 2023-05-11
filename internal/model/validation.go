@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package types provides functionality for parsing and validating generic SLSA
-// provenance files.
-package types
+package model
 
 import (
 	"encoding/json"
