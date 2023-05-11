@@ -11,7 +11,7 @@ builds:
       - CGO_ENABLED=0
     goos:
       - linux
-    main: ./cmd/builder
+    main: ./cmd/verifier
 archives:
   - replacements:
       linux: Linux
