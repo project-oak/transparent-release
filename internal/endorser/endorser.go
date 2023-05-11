@@ -32,7 +32,6 @@ import (
 	"github.com/project-oak/transparent-release/internal/verification"
 	"github.com/project-oak/transparent-release/pkg/amber"
 	"github.com/project-oak/transparent-release/pkg/intoto"
-	"github.com/project-oak/transparent-release/pkg/types"
 )
 
 // ParsedProvenance contains a provenance in the internal ProvenanceIR format,
@@ -155,7 +154,7 @@ func LoadProvenance(provenanceURI string) (*ParsedProvenance, error) {
 		return nil, fmt.Errorf("couldn't load the provenance bytes from %s: %v", provenanceURI, err)
 	}
 	// Parse into a validated provenance to get the predicate/build type of the provenance.
-	validatedProvenance, err := types.ParseStatementData(provenanceBytes)
+	validatedProvenance, err := model.ParseStatementData(provenanceBytes)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't parse bytes from %s into a validated provenance: %v", provenanceURI, err)
 	}

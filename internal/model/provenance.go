@@ -27,7 +27,6 @@ import (
 	slsav1 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v1"
 
 	"github.com/project-oak/transparent-release/pkg/intoto"
-	"github.com/project-oak/transparent-release/pkg/types"
 )
 
 // ProvenanceIR is an internal intermediate representation of data from provenances.
@@ -155,7 +154,7 @@ func (p *ProvenanceIR) HasTrustedBuilder() bool {
 // predicate and build type.
 //
 // To add a new mapping from a provenance P write `fromP`, which sets every required field `X` from `ProvenanceIR` using `WithX`.
-func FromValidatedProvenance(prov *types.ValidatedProvenance) (*ProvenanceIR, error) {
+func FromValidatedProvenance(prov *ValidatedProvenance) (*ProvenanceIR, error) {
 	predType := prov.PredicateType()
 	switch predType {
 	case intoto.SLSAV02PredicateType:
@@ -180,8 +179,8 @@ func FromValidatedProvenance(prov *types.ValidatedProvenance) (*ProvenanceIR, er
 // Invariant: for every data `X` in a validated SLSA v0.2 provenance that can
 // be mapped to a field in `ProvenanceIR`, `fromSLSAv02` sets a non-nil value
 // `v` for `X` by using `WithX(v)`.
-func fromSLSAv02(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
-	// A types.ValidatedProvenance contains a SHA256 hash of a single subject.
+func fromSLSAv02(provenance *ValidatedProvenance) (*ProvenanceIR, error) {
+	// A ValidatedProvenance contains a SHA256 hash of a single subject.
 	binarySHA256Digest := provenance.GetBinarySHA256Digest()
 	buildType := slsav02.GenericSLSABuildType
 
@@ -194,7 +193,7 @@ func fromSLSAv02(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 	// that they point to the same reference repo uri.
 	repoURIs := slsav02.GetMaterialsGitURI(*predicate)
 
-	// A types.ValidatedProvenance has a binary name.
+	// A ValidatedProvenance has a binary name.
 	binaryName := provenance.GetBinaryName()
 
 	builder := predicate.Builder.ID
@@ -210,8 +209,8 @@ func fromSLSAv02(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
 // Invariant: for every data `X` in a validated SLSA v1 provenance that can be
 // mapped to a field in `ProvenanceIR`, `fromSLSAv1` sets a non-nil value `v`
 // for `X` by using `WithX(v)`.
-func fromSLSAv1(provenance *types.ValidatedProvenance) (*ProvenanceIR, error) {
-	// A types.ValidatedProvenance contains a SHA256 hash of a single subject.
+func fromSLSAv1(provenance *ValidatedProvenance) (*ProvenanceIR, error) {
+	// A ValidatedProvenance contains a SHA256 hash of a single subject.
 	binarySHA256Digest := provenance.GetBinarySHA256Digest()
 	buildType := slsav1.DockerBasedBuildType
 	binaryName := provenance.GetBinaryName()

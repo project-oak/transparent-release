@@ -22,7 +22,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	slsav02 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
 	slsav1 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v1"
-	"github.com/project-oak/transparent-release/pkg/types"
 )
 
 const (
@@ -49,7 +48,7 @@ func TestFromProvenance_Slsav02(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not read the provenance file: %v", err)
 	}
-	provenance, err := types.ParseStatementData(statementBytes)
+	provenance, err := ParseStatementData(statementBytes)
 	if err != nil {
 		t.Fatalf("couldn't parse the provenance file: %v", err)
 	}
@@ -76,7 +75,7 @@ func TestFromProvenance_Slsav1(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not read the provenance file: %v", err)
 	}
-	provenance, err := types.ParseStatementData(statementBytes)
+	provenance, err := ParseStatementData(statementBytes)
 	if err != nil {
 		t.Fatalf("couldn't parse the provenance file: %v", err)
 	}
