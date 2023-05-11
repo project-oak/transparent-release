@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/project-oak/transparent-release/internal/gcsutil"
-	"github.com/project-oak/transparent-release/pkg/amber"
+	"github.com/project-oak/transparent-release/pkg/claims"
 	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
@@ -107,7 +107,7 @@ func generateFuzzClaimSpec(client *gcsutil.Client, revisionDigest intoto.DigestS
 // with AmberClaimV1 as the PredicateType and FuzzClaimV1 as the ClaimType) using the
 // fuzzing reports of OSS-Fuzz and ClusterFuzz.
 
-func GenerateFuzzClaim(client *gcsutil.Client, fuzzParameters *FuzzParameters, validity amber.ClaimValidity) (*intoto.Statement, error) {
+func GenerateFuzzClaim(client *gcsutil.Client, fuzzParameters *FuzzParameters, validity claims.ClaimValidity) (*intoto.Statement, error) {
 	revisionDigest, err := GetCoverageRevision(client, fuzzParameters)
 
 	if err != nil {
@@ -132,7 +132,7 @@ func GenerateFuzzClaim(client *gcsutil.Client, fuzzParameters *FuzzParameters, v
 	// Current time in UTC time zone since it is used by OSS-Fuzz.
 	currentTime := time.Now().UTC()
 	// Generate Amber predicate
-	predicate := amber.ClaimPredicate{
+	predicate := claims.ClaimPredicate{
 		ClaimType: FuzzClaimV1,
 		ClaimSpec: *fuzzClaimSpec,
 		IssuedOn:  &currentTime,
@@ -146,7 +146,7 @@ func GenerateFuzzClaim(client *gcsutil.Client, fuzzParameters *FuzzParameters, v
 	}
 	statementHeader := intoto.StatementHeader{
 		Type:          intoto.StatementInTotoV01,
-		PredicateType: amber.AmberClaimV1,
+		PredicateType: claims.AmberClaimV1,
 		Subject:       []intoto.Subject{subject},
 	}
 	statement := intoto.Statement{

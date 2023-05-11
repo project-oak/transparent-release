@@ -56,7 +56,7 @@ import (
 	"strings"
 
 	"github.com/project-oak/transparent-release/internal/gcsutil"
-	"github.com/project-oak/transparent-release/pkg/amber"
+	"github.com/project-oak/transparent-release/pkg/claims"
 	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
@@ -396,13 +396,13 @@ func GetFuzzTargets(client *gcsutil.Client, fuzzParameters *FuzzParameters) ([]s
 }
 
 // addClaimEvidence adds an evidence to the list of the evidence files used by the fuzzscraper.
-func addClaimEvidence(client *gcsutil.Client, evidences []amber.ClaimEvidence, blobName string, role string) ([]amber.ClaimEvidence, error) {
+func addClaimEvidence(client *gcsutil.Client, evidences []claims.ClaimEvidence, blobName string, role string) ([]claims.ClaimEvidence, error) {
 	fileBytes, err := client.GetBlobData(CoverageBucket, blobName)
 	if err != nil {
 		return nil, fmt.Errorf("could not get data in evidence file: %v", err)
 	}
 	digest := getGCSFileDigest(fileBytes)
-	evidence := amber.ClaimEvidence{
+	evidence := claims.ClaimEvidence{
 		Role:   role,
 		URI:    fmt.Sprintf("gs://%s/%s", CoverageBucket, blobName),
 		Digest: *digest,
@@ -412,8 +412,8 @@ func addClaimEvidence(client *gcsutil.Client, evidences []amber.ClaimEvidence, b
 }
 
 // GetEvidences gets the list of the evidence files used by the fuzzscraper.
-func GetEvidences(client *gcsutil.Client, fuzzParameters *FuzzParameters, fuzzTargets []string) ([]amber.ClaimEvidence, error) {
-	evidences := make([]amber.ClaimEvidence, 0, len(fuzzTargets)+2)
+func GetEvidences(client *gcsutil.Client, fuzzParameters *FuzzParameters, fuzzTargets []string) ([]claims.ClaimEvidence, error) {
+	evidences := make([]claims.ClaimEvidence, 0, len(fuzzTargets)+2)
 	// TODO(#174): Replace GCS path by Ent path in evidences URI.
 	// The GCS absolute path of the file containing the revision hash of the source code used
 	// in the coverage build on a given day.

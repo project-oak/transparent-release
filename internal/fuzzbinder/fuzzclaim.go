@@ -27,7 +27,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/project-oak/transparent-release/pkg/amber"
+	"github.com/project-oak/transparent-release/pkg/claims"
 	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
@@ -73,8 +73,8 @@ type FuzzStats struct {
 
 // ValidateFuzzClaim validates that an Amber Claim is a Fuzz Claim with a valid ClaimType.
 // If valid, the ClaimPredicate object is returned. Otherwise an error is returned.
-func ValidateFuzzClaim(statement intoto.Statement) (*amber.ClaimPredicate, error) {
-	predicate, err := amber.ValidateAmberClaim(statement)
+func ValidateFuzzClaim(statement intoto.Statement) (*claims.ClaimPredicate, error) {
+	predicate, err := claims.ValidateAmberClaim(statement)
 	if err != nil {
 		return nil, fmt.Errorf("could not validate the fuzzing AmberClaim: %v", err)
 	}
@@ -97,7 +97,7 @@ func ValidateFuzzClaim(statement intoto.Statement) (*amber.ClaimPredicate, error
 }
 
 // validateFuzzClaimSpec validates details about the FuzzClaimSpec.
-func validateFuzzClaimSpec(predicate amber.ClaimPredicate) (*amber.ClaimPredicate, error) {
+func validateFuzzClaimSpec(predicate claims.ClaimPredicate) (*claims.ClaimPredicate, error) {
 	// validate that perProject.fuzzTimeSeconds is the sum of fuzzTimeSeconds for all fuzz-targets
 	// and perProject.numberFuzzTests is the sum of numberFuzzTests for all fuzz-targets.
 	sumTargetsTimeSeconds := 0.0
@@ -155,7 +155,7 @@ func parseFuzzClaimBytes(statementBytes []byte) (*intoto.Statement, error) {
 		return nil, fmt.Errorf("could not marshal Predicate map into JSON bytes: %v", err)
 	}
 
-	var predicate amber.ClaimPredicate
+	var predicate claims.ClaimPredicate
 	if err = json.Unmarshal(predicateBytes, &predicate); err != nil {
 		return nil, fmt.Errorf("could not unmarshal JSON bytes into a ClaimPredicate: %v", err)
 	}

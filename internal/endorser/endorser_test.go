@@ -23,7 +23,7 @@ import (
 
 	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/internal/verification"
-	"github.com/project-oak/transparent-release/pkg/amber"
+	"github.com/project-oak/transparent-release/pkg/claims"
 )
 
 const (
@@ -35,7 +35,7 @@ const (
 func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 	tomorrow := time.Now().AddDate(0, 0, 1)
 	nextWeek := time.Now().AddDate(0, 0, 7)
-	validity := amber.ClaimValidity{
+	validity := claims.ClaimValidity{
 		NotBefore: &tomorrow,
 		NotAfter:  &nextWeek,
 	}
@@ -63,7 +63,7 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 	testutil.AssertEq(t, "binary hash", statement.Subject[0].Digest["sha256"], binaryHash)
 	testutil.AssertEq(t, "binary name", statement.Subject[0].Name, binaryName)
 
-	predicate := statement.Predicate.(amber.ClaimPredicate)
+	predicate := statement.Predicate.(claims.ClaimPredicate)
 
 	testutil.AssertEq(t, "notBefore date", predicate.Validity.NotBefore, &tomorrow)
 	testutil.AssertEq(t, "notAfter date", predicate.Validity.NotAfter, &nextWeek)

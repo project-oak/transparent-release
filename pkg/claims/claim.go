@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package amber
+// Package claims contains structs for specifying a claim about a software
+// artifact.
+package claims
 
 // This file provides a custom predicate type, ClaimPredicate, to be used
 // within an in-toto statement. ClaimPredicate is intended to be used for

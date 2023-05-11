@@ -30,7 +30,7 @@ import (
 
 	"github.com/project-oak/transparent-release/internal/model"
 	"github.com/project-oak/transparent-release/internal/verification"
-	"github.com/project-oak/transparent-release/pkg/amber"
+	"github.com/project-oak/transparent-release/pkg/claims"
 	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
@@ -40,34 +40,34 @@ import (
 // the DSSE document, while `Provenance` contains the provenance itself.
 type ParsedProvenance struct {
 	Provenance     model.ProvenanceIR
-	SourceMetadata amber.ProvenanceData
+	SourceMetadata claims.ProvenanceData
 }
 
 // GenerateEndorsement generates an endorsement statement for the given validity duration, using
 // the given provenances as evidence and reference values to verify them. At least one provenance
 // must be provided. The endorsement statement is generated only if the provenance statements are
 // valid.
-func GenerateEndorsement(referenceValues *verification.ReferenceValues, validityDuration amber.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
+func GenerateEndorsement(referenceValues *verification.ReferenceValues, validityDuration claims.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
 	verifiedProvenances, err := verifyAndSummarizeProvenances(referenceValues, provenances)
 	if err != nil {
 		return nil, fmt.Errorf("could not verify and summarize provenances: %v", err)
 	}
 
-	return amber.GenerateEndorsementStatement(validityDuration, *verifiedProvenances), nil
+	return claims.GenerateEndorsementStatement(validityDuration, *verifiedProvenances), nil
 }
 
-// Returns an instance of amber.VerifiedProvenanceSet, containing metadata about a set of verified
+// Returns an instance of claims.VerifiedProvenanceSet, containing metadata about a set of verified
 // provenances, or an error. An error is returned if any of the following conditions is met:
 // (1) The list of provenances is empty,
 // (2) Any of the provenances is invalid (see verifyProvenances for details on validity),
 // (3) Provenances do not match (e.g., have different binary names).
-func verifyAndSummarizeProvenances(referenceValues *verification.ReferenceValues, provenances []ParsedProvenance) (*amber.VerifiedProvenanceSet, error) {
+func verifyAndSummarizeProvenances(referenceValues *verification.ReferenceValues, provenances []ParsedProvenance) (*claims.VerifiedProvenanceSet, error) {
 	if len(provenances) == 0 {
 		return nil, fmt.Errorf("at least one provenance file must be provided")
 	}
 
 	provenanceIRs := make([]model.ProvenanceIR, 0, len(provenances))
-	provenancesData := make([]amber.ProvenanceData, 0, len(provenances))
+	provenancesData := make([]claims.ProvenanceData, 0, len(provenances))
 	for _, p := range provenances {
 		provenanceIRs = append(provenanceIRs, p.Provenance)
 		provenancesData = append(provenancesData, p.SourceMetadata)
@@ -78,7 +78,7 @@ func verifyAndSummarizeProvenances(referenceValues *verification.ReferenceValues
 		return nil, fmt.Errorf("failed while verifying of provenances: %v", errs)
 	}
 
-	verifiedProvenances := amber.VerifiedProvenanceSet{
+	verifiedProvenances := claims.VerifiedProvenanceSet{
 		BinaryDigest: provenanceIRs[0].BinarySHA256Digest(),
 		BinaryName:   provenanceIRs[0].BinaryName(),
 		Provenances:  provenancesData,
@@ -166,7 +166,7 @@ func LoadProvenance(provenanceURI string) (*ParsedProvenance, error) {
 	sum256 := sha256.Sum256(provenanceBytes)
 	return &ParsedProvenance{
 		Provenance: *provenanceIR,
-		SourceMetadata: amber.ProvenanceData{
+		SourceMetadata: claims.ProvenanceData{
 			URI:          provenanceURI,
 			SHA256Digest: hex.EncodeToString(sum256[:]),
 		},
