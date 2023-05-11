@@ -22,8 +22,7 @@ package claims
 // is meant to be generic and allow specifying many different types of claims.
 // This is achieved via the `ClaimType` and the `ClaimSpec` fields. The latter
 // is an arbitrary object and allows any struct to be used for claim
-// specification. In particular, this format can be used for specifying
-// endorsements, which were previously specified by amber-endorsement/v1 schema.
+// specification.
 
 import (
 	"fmt"
@@ -33,9 +32,9 @@ import (
 	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
-// AmberClaimV1 is the URI that should be used as the PredicateType in in-toto
-// statements representing a V1 Amber Claim.
-const AmberClaimV1 = "https://github.com/project-oak/transparent-release/claim/v1"
+// ClaimV1 is the URI that should be used as the PredicateType in in-toto
+// statements representing a V1 Claim.
+const ClaimV1 = "https://github.com/project-oak/transparent-release/claim/v1"
 
 // ClaimPredicate gives the claim predicate definition.
 type ClaimPredicate struct {
@@ -74,14 +73,15 @@ type ClaimEvidence struct {
 	Digest intoto.DigestSet `json:"digest"`
 }
 
-// ValidateAmberClaim validates that an in-toto statement is an Amber Claim with a valid ClaimPredicate.
-// If valid, the ClaimPredicate object is returned. Otherwise an error is returned.
-func ValidateAmberClaim(statement intoto.Statement) (*ClaimPredicate, error) {
-	if statement.PredicateType != AmberClaimV1 {
+// ValidateClaim validates that an in-toto statement is a Claim with a valid
+// ClaimPredicate. If valid, the ClaimPredicate object is returned. Otherwise
+// an error is returned.
+func ValidateClaim(statement intoto.Statement) (*ClaimPredicate, error) {
+	if statement.PredicateType != ClaimV1 {
 		return nil, fmt.Errorf(
 			"the statement does not have the expected predicate type; got: %s, want: %s",
 			statement.PredicateType,
-			AmberClaimV1)
+			ClaimV1)
 	}
 
 	// Verify the type of the Predicate, and return it if it is of type ClaimPredicate.

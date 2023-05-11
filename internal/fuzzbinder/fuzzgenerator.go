@@ -16,7 +16,7 @@ package fuzzbinder
 // This file provides the generator module that helps to generate
 // fuzzing claims using the extracted data from the fuzzing reports.
 // The generated fuzzing claims are an instance of intoto.Statement
-// with AmberClaimV1 as the PredicateType and FuzzClaimV1 as the ClaimType.
+// with ClaimV1 as the PredicateType and FuzzClaimV1 as the ClaimType.
 
 import (
 	"fmt"
@@ -104,7 +104,7 @@ func generateFuzzClaimSpec(client *gcsutil.Client, revisionDigest intoto.DigestS
 }
 
 // GenerateFuzzClaim generates a fuzzing claim (an instance of intoto.Statement,
-// with AmberClaimV1 as the PredicateType and FuzzClaimV1 as the ClaimType) using the
+// with ClaimV1 as the PredicateType and FuzzClaimV1 as the ClaimType) using the
 // fuzzing reports of OSS-Fuzz and ClusterFuzz.
 
 func GenerateFuzzClaim(client *gcsutil.Client, fuzzParameters *FuzzParameters, validity claims.ClaimValidity) (*intoto.Statement, error) {
@@ -131,7 +131,7 @@ func GenerateFuzzClaim(client *gcsutil.Client, fuzzParameters *FuzzParameters, v
 	}
 	// Current time in UTC time zone since it is used by OSS-Fuzz.
 	currentTime := time.Now().UTC()
-	// Generate Amber predicate
+	// Generate claim predicate
 	predicate := claims.ClaimPredicate{
 		ClaimType: FuzzClaimV1,
 		ClaimSpec: *fuzzClaimSpec,
@@ -146,7 +146,7 @@ func GenerateFuzzClaim(client *gcsutil.Client, fuzzParameters *FuzzParameters, v
 	}
 	statementHeader := intoto.StatementHeader{
 		Type:          intoto.StatementInTotoV01,
-		PredicateType: claims.AmberClaimV1,
+		PredicateType: claims.ClaimV1,
 		Subject:       []intoto.Subject{subject},
 	}
 	statement := intoto.Statement{

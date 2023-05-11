@@ -97,7 +97,7 @@ func TestLoadAndVerifyProvenances_MultipleValidEndorsement(t *testing.T) {
 }
 
 func TestLoadProvenances_FailingSingleRemoteProvenanceEndorsement(t *testing.T) {
-	_, err := LoadProvenances([]string{"https://github.com/project-oak/transparent-release/blob/main/testdata/amber_provenance.json"})
+	_, err := LoadProvenances([]string{"https://github.com/project-oak/transparent-release/blob/main/testdata/missing_provenance.json"})
 	want := "couldn't load the provenance"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
@@ -222,7 +222,7 @@ func copyToTemp(path string) (string, error) {
 		return "", err
 	}
 
-	tmpfile, err := os.CreateTemp("", "amber_provenance.json")
+	tmpfile, err := os.CreateTemp("", "provenance.json")
 	if err != nil {
 		return "", fmt.Errorf("couldn't create tempfile: %v", err)
 	}
