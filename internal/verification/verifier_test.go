@@ -200,12 +200,9 @@ func TestVerify_HasEmptyBuilderImageDigestButNotNeeded(t *testing.T) {
 
 func TestVerify_HasFoundRepoURI(t *testing.T) {
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName,
-		model.WithRepoURIs([]string{
-			"git+https://github.com/project-oak/transparent-release@refs/heads/main",
-			"https://github.com/project-oak/transparent-release",
-		}))
+		model.WithRepoURI("https://github.com/project-oak/transparent-release"))
 	want := ReferenceValues{
-		RepoURI: "github.com/project-oak/transparent-release",
+		RepoURI: "https://github.com/project-oak/transparent-release",
 	}
 
 	verifier := ProvenanceIRVerifier{
@@ -223,10 +220,7 @@ func TestVerify_HasWrongRepoURI(t *testing.T) {
 	wrongURI := "git+https://github.com/project-oak/oak@refs/heads/main"
 	got := model.NewProvenanceIR(binarySHA256Digest,
 		slsav02.GenericSLSABuildType, binaryName,
-		model.WithRepoURIs([]string{
-			wrongURI,
-			"https://github.com/project-oak/transparent-release",
-		}))
+		model.WithRepoURI(wrongURI))
 	want := ReferenceValues{
 		RepoURI: "github.com/project-oak/transparent-release",
 	}
@@ -236,7 +230,7 @@ func TestVerify_HasWrongRepoURI(t *testing.T) {
 		Want: &want,
 	}
 
-	wantErr := fmt.Sprintf("the URI from the provenance (%v) does not contain the repo URI (%v)",
+	wantErr := fmt.Sprintf("the URI from the provenance (%v) is different from the repo URI (%v)",
 		wrongURI,
 		want.RepoURI,
 	)
@@ -247,8 +241,7 @@ func TestVerify_HasWrongRepoURI(t *testing.T) {
 
 func TestVerify_HasNoRepoURIs(t *testing.T) {
 	// We have no repo URIs in the provenance.
-	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName,
-		model.WithRepoURIs([]string{}))
+	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName)
 	want := ReferenceValues{
 		RepoURI: "github.com/project-oak/transparent-release",
 	}

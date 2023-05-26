@@ -212,14 +212,14 @@ func BuilderImageDigest(predicate ProvenancePredicate) (string, error) {
 	return digest, nil
 }
 
-// GitURI returns references to a Git repo.
-func GitURI(predicate ProvenancePredicate) []string {
+// GitURIAndDigest returns the URI of the Git repo and the SHA1 commit hash.
+func GitURIAndDigest(predicate ProvenancePredicate) (*string, *string) {
 	src := predicate.BuildDefinition.ExternalParameters.(DockerBasedExternalParameters).Source
-	gitURIs := []string{}
 	if strings.Contains(src.URI, "git") {
-		gitURIs = append(gitURIs, src.URI)
+		digest := src.Digest["sha1"]
+		return &src.URI, &digest
 	}
-	return gitURIs
+	return nil, nil
 }
 
 // BuilderID extracts and returns the builder ID from the given ProvenancePredicate.
