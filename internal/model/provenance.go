@@ -42,7 +42,8 @@ type ProvenanceIR struct {
 	binaryName               string
 	buildCmd                 *[]string
 	builderImageSHA256Digest *string
-	repoURIs                 *[]string
+	repoURI                  *string
+	commitSHA1Digest         *string
 	trustedBuilder           *string
 }
 
@@ -79,9 +80,14 @@ func (p *ProvenanceIR) BuildCmd() ([]string, error) {
 	return *p.buildCmd, nil
 }
 
-// RepoURIs returns repo URIs in the provenance.
-func (p *ProvenanceIR) RepoURIs() []string {
-	return *p.repoURIs
+// RepoURI returns repo URI in the provenance.
+func (p *ProvenanceIR) RepoURI() string {
+	return *p.repoURI
+}
+
+// CommitSHA1Digest returns the SHA1 commit digest in the provenance.
+func (p *ProvenanceIR) CommitSHA1Digest() string {
+	return *p.commitSHA1Digest
 }
 
 // BuilderImageSHA256Digest returns the builder image sha256 digest, or an
@@ -126,16 +132,28 @@ func (p *ProvenanceIR) HasBuilderImageSHA256Digest() bool {
 	return p.builderImageSHA256Digest != nil
 }
 
-// WithRepoURIs sets repo URIs referenced in the provenance when creating a new ProvenanceIR.
-func WithRepoURIs(repoURIs []string) func(p *ProvenanceIR) {
+// WithRepoURI sets repo URI referenced in the provenance when creating a new ProvenanceIR.
+func WithRepoURI(repoURI string) func(p *ProvenanceIR) {
 	return func(p *ProvenanceIR) {
-		p.repoURIs = &repoURIs
+		p.repoURI = &repoURI
 	}
 }
 
-// HasRepoURIs returns true if repo URIs have been set in the ProvenanceIR.
-func (p *ProvenanceIR) HasRepoURIs() bool {
-	return p.repoURIs != nil
+// WithCommitSHA1Digest sets the commit digest in the provenance when creating a new ProvenanceIR.
+func WithCommitSHA1Digest(commitSHA1Digest string) func(p *ProvenanceIR) {
+	return func(p *ProvenanceIR) {
+		p.commitSHA1Digest = &commitSHA1Digest
+	}
+}
+
+// HasRepoURI returns true if repo URI has been set in the ProvenanceIR.
+func (p *ProvenanceIR) HasRepoURI() bool {
+	return p.repoURI != nil
+}
+
+// HasCommitSHA1Digest returns true if the commit digest has been set in the ProvenanceIR.
+func (p *ProvenanceIR) HasCommitSHA1Digest() bool {
+	return p.commitSHA1Digest != nil
 }
 
 // WithTrustedBuilder sets the trusted builder when creating a new ProvenanceIR.
@@ -189,9 +207,7 @@ func fromSLSAv02(provenance *ValidatedProvenance) (*ProvenanceIR, error) {
 		return nil, fmt.Errorf("could not parse provenance predicate: %v", err)
 	}
 
-	// We collect repo uris from where they appear in the provenance to verify
-	// that they point to the same reference repo uri.
-	repoURIs := slsav02.GetMaterialsGitURI(*predicate)
+	repoURI, commitHash := predicate.RepoURIAndDigest()
 
 	// A ValidatedProvenance has a binary name.
 	binaryName := provenance.GetBinaryName()
@@ -199,7 +215,8 @@ func fromSLSAv02(provenance *ValidatedProvenance) (*ProvenanceIR, error) {
 	builder := predicate.Builder.ID
 
 	provenanceIR := NewProvenanceIR(binarySHA256Digest, buildType, binaryName,
-		WithRepoURIs(repoURIs),
+		WithRepoURI(*repoURI),
+		WithCommitSHA1Digest(*commitHash),
 		WithTrustedBuilder(builder),
 	)
 	return provenanceIR, nil
@@ -220,16 +237,17 @@ func fromSLSAv1(provenance *ValidatedProvenance) (*ProvenanceIR, error) {
 		return nil, fmt.Errorf("parsing SLSA v1 provenance predicate: %v", err)
 	}
 
-	repoURIs := slsav1.GitURI(*predicate)
-	builder := slsav1.BuilderID(*predicate)
-	buildCmd := slsav1.BuildCmd(*predicate)
-	builderImageDigest, err := slsav1.BuilderImageDigest(*predicate)
+	repoURI, commitDigest := predicate.RepoURIAndDigest()
+	builder := predicate.BuilderID()
+	buildCmd := predicate.BuildCmd()
+	builderImageDigest, err := predicate.BuilderImageDigest()
 	if err != nil {
 		return nil, fmt.Errorf("getting builder image digest from SLSA v1 provenance: %v", err)
 	}
 
 	provenanceIR := NewProvenanceIR(binarySHA256Digest, buildType, binaryName,
-		WithRepoURIs(repoURIs),
+		WithRepoURI(*repoURI),
+		WithCommitSHA1Digest(*commitDigest),
 		WithTrustedBuilder(builder),
 		WithBuildCmd(buildCmd),
 		WithBuilderImageSHA256Digest(builderImageDigest),

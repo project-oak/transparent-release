@@ -17,7 +17,6 @@ package verification
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/project-oak/transparent-release/internal/model"
 	"go.uber.org/multierr"
@@ -48,7 +47,7 @@ func (v *ProvenanceIRVerifier) Verify() error {
 	}
 
 	// Verify RepoURIs.
-	multierr.AppendInto(&errs, v.verifyRepoURIs())
+	multierr.AppendInto(&errs, v.verifyRepoURI())
 
 	// Verify TrustedBuilder.
 	if err := v.verifyTrustedBuilder(); err != nil {
@@ -111,21 +110,19 @@ func (v *ProvenanceIRVerifier) verifyBuilderImageDigest() error {
 		gotBuilderImageDigest)
 }
 
-// verifyRepoURIs verifies that the references to URIs in the Got provenance
-// match the repo URI in the Want reference values.
-func (v *ProvenanceIRVerifier) verifyRepoURIs() error {
+// verifyRepoURI verifies that the Git URI in the Got provenance
+// is the same as the repo URI in the Want reference values.
+func (v *ProvenanceIRVerifier) verifyRepoURI() error {
 	var errs error
 
-	if !v.Got.HasRepoURIs() || v.Want.RepoURI == "" {
+	if !v.Got.HasRepoURI() || v.Want.RepoURI == "" {
 		return nil
 	}
 
-	for _, gotRepoURI := range v.Got.RepoURIs() {
-		// We want the want.RepoURI be contained in every repo uri from the provenance.
-		if !strings.Contains(gotRepoURI, v.Want.RepoURI) {
-			multierr.AppendInto(&errs, fmt.Errorf("the URI from the provenance (%v) does not contain the repo URI (%v)", gotRepoURI, v.Want.RepoURI))
-		}
+	if v.Got.RepoURI() != v.Want.RepoURI {
+		multierr.AppendInto(&errs, fmt.Errorf("the URI from the provenance (%v) is different from the repo URI (%v)", v.Got.RepoURI(), v.Want.RepoURI))
 	}
+
 	return errs
 }
 

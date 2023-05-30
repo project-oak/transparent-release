@@ -197,13 +197,13 @@ func ParseContainerBasedSLSAv1Provenance(predicate interface{}) (*ProvenancePred
 }
 
 // BuildCmd extracts and returns the build command from the given ProvenancePredicate.
-func BuildCmd(predicate ProvenancePredicate) []string {
-	return predicate.BuildDefinition.ExternalParameters.(DockerBasedExternalParameters).Config.Command
+func (p *ProvenancePredicate) BuildCmd() []string {
+	return p.BuildDefinition.ExternalParameters.(DockerBasedExternalParameters).Config.Command
 }
 
 // BuilderImageDigest extracts and returns the digest for the Builder Image.
-func BuilderImageDigest(predicate ProvenancePredicate) (string, error) {
-	digestSet := predicate.BuildDefinition.ExternalParameters.(DockerBasedExternalParameters).BuilderImage.Digest
+func (p *ProvenancePredicate) BuilderImageDigest() (string, error) {
+	digestSet := p.BuildDefinition.ExternalParameters.(DockerBasedExternalParameters).BuilderImage.Digest
 	digest, ok := digestSet["sha256"]
 	if !ok {
 		return "", fmt.Errorf("no SHA256 builder image digest in the digest set: %v", digestSet)
@@ -212,17 +212,17 @@ func BuilderImageDigest(predicate ProvenancePredicate) (string, error) {
 	return digest, nil
 }
 
-// GitURI returns references to a Git repo.
-func GitURI(predicate ProvenancePredicate) []string {
-	src := predicate.BuildDefinition.ExternalParameters.(DockerBasedExternalParameters).Source
-	gitURIs := []string{}
+// RepoURIAndDigest returns the URI of the Git repo and the SHA1 commit hash.
+func (p *ProvenancePredicate) RepoURIAndDigest() (*string, *string) {
+	src := p.BuildDefinition.ExternalParameters.(DockerBasedExternalParameters).Source
 	if strings.Contains(src.URI, "git") {
-		gitURIs = append(gitURIs, src.URI)
+		digest := src.Digest["sha1"]
+		return &src.URI, &digest
 	}
-	return gitURIs
+	return nil, nil
 }
 
 // BuilderID extracts and returns the builder ID from the given ProvenancePredicate.
-func BuilderID(predicate ProvenancePredicate) string {
-	return predicate.RunDetails.Builder.ID
+func (p *ProvenancePredicate) BuilderID() string {
+	return p.RunDetails.Builder.ID
 }

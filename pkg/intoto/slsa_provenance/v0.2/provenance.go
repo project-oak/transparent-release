@@ -187,16 +187,15 @@ func ParseSLSAv02Predicate(predicate interface{}) (*ProvenancePredicate, error) 
 	return &pp, nil
 }
 
-// GetMaterialsGitURI returns references to a Git repo.
-func GetMaterialsGitURI(pred ProvenancePredicate) []string {
-	materials := pred.Materials
-	gitURIs := []string{}
+// RepoURIAndDigest returns the URI of the Git repo and the commit hash
+// extracted from materials.
+func (p *ProvenancePredicate) RepoURIAndDigest() (*string, *string) {
+	materials := p.Materials
 	for _, material := range materials {
-		// This may be an overestimation and get too many repositiories.
-		// However, even if we get a "wrong" repository, worst case verifying the provenance fails, when it should not.
 		if strings.Contains(material.URI, "git") {
-			gitURIs = append(gitURIs, material.URI)
+			digest := material.Digest["sha1"]
+			return &material.URI, &digest
 		}
 	}
-	return gitURIs
+	return nil, nil
 }

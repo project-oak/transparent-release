@@ -55,7 +55,8 @@ func TestFromProvenance_Slsav02(t *testing.T) {
 
 	want := NewProvenanceIR("d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc",
 		slsav02.GenericSLSABuildType, "oak_functions_freestanding_bin",
-		WithRepoURIs([]string{"git+https://github.com/project-oak/oak@refs/heads/main"}),
+		WithRepoURI("git+https://github.com/project-oak/oak@refs/heads/main"),
+		WithCommitSHA1Digest("1b128fb2556e4bdcc4f92552654bfbca9d2fb8c6"),
 		WithTrustedBuilder("https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"),
 	)
 
@@ -90,7 +91,8 @@ func TestFromProvenance_Slsav1(t *testing.T) {
 			"--release",
 		}),
 		WithBuilderImageSHA256Digest("51532c757d1008bbff696d053a1d05226f6387cf232aa80b6f9c13b0759ccea0"),
-		WithRepoURIs([]string{"git+https://github.com/project-oak/oak"}),
+		WithRepoURI("git+https://github.com/project-oak/oak"),
+		WithCommitSHA1Digest("6bac02b6b0442ed944f57b7cba9a5f1119863ca4"),
 		WithTrustedBuilder("https://github.com/slsa-framework/slsa-github-generator/.github/workflows/builder_docker-based_slsa3.yml@refs/tags/v1.6.0-rc.0"),
 	)
 

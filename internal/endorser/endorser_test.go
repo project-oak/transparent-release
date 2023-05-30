@@ -208,7 +208,7 @@ func TestLoadAndVerifyProvenances_NotVerified(t *testing.T) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
 	}
 
-	want = "does not contain the repo URI"
+	want = "is different from the repo URI"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
 	}
