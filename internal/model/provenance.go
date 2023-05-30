@@ -207,7 +207,7 @@ func fromSLSAv02(provenance *ValidatedProvenance) (*ProvenanceIR, error) {
 		return nil, fmt.Errorf("could not parse provenance predicate: %v", err)
 	}
 
-	repoURI, commitHash := slsav02.GetGitURIAndDigest(*predicate)
+	repoURI, commitHash := slsav02.RepoURIAndDigest(*predicate)
 
 	// A ValidatedProvenance has a binary name.
 	binaryName := provenance.GetBinaryName()
@@ -237,7 +237,7 @@ func fromSLSAv1(provenance *ValidatedProvenance) (*ProvenanceIR, error) {
 		return nil, fmt.Errorf("parsing SLSA v1 provenance predicate: %v", err)
 	}
 
-	repoURI, commitDigest := slsav1.GitURIAndDigest(*predicate)
+	repoURI, commitDigest := slsav1.RepoURIAndDigest(*predicate)
 	builder := slsav1.BuilderID(*predicate)
 	buildCmd := slsav1.BuildCmd(*predicate)
 	builderImageDigest, err := slsav1.BuilderImageDigest(*predicate)

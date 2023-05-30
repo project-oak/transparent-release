@@ -212,8 +212,8 @@ func BuilderImageDigest(predicate ProvenancePredicate) (string, error) {
 	return digest, nil
 }
 
-// GitURIAndDigest returns the URI of the Git repo and the SHA1 commit hash.
-func GitURIAndDigest(predicate ProvenancePredicate) (*string, *string) {
+// RepoURIAndDigest returns the URI of the Git repo and the SHA1 commit hash.
+func RepoURIAndDigest(predicate ProvenancePredicate) (*string, *string) {
 	src := predicate.BuildDefinition.ExternalParameters.(DockerBasedExternalParameters).Source
 	if strings.Contains(src.URI, "git") {
 		digest := src.Digest["sha1"]

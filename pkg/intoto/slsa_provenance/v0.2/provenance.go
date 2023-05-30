@@ -187,9 +187,9 @@ func ParseSLSAv02Predicate(predicate interface{}) (*ProvenancePredicate, error) 
 	return &pp, nil
 }
 
-// GetGitURIAndDigest returns the URI of the Git repo and the commit hast
+// RepoURIAndDigest returns the URI of the Git repo and the commit hash
 // extracted from materials.
-func GetGitURIAndDigest(pred ProvenancePredicate) (*string, *string) {
+func RepoURIAndDigest(pred ProvenancePredicate) (*string, *string) {
 	materials := pred.Materials
 	for _, material := range materials {
 		if strings.Contains(material.URI, "git") {
