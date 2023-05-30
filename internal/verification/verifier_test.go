@@ -87,7 +87,7 @@ func TestVerify_NeedsCannotHaveDoesNotHaveBuildCmd(t *testing.T) {
 	}
 }
 
-func TestVerify__NeedsCannotHaveHasEmptyBuildCmd(t *testing.T) {
+func TestVerify_NeedsCannotHaveHasEmptyBuildCmd(t *testing.T) {
 	// The build command is empty.
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, model.WithBuildCmd([]string{}))
 	// And the reference values ask for a build cmd.
