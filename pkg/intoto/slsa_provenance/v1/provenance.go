@@ -37,6 +37,8 @@ const (
 	PredicateSLSAProvenanceDraft = "https://slsa.dev/provenance/v1.0?draft"
 
 	// DockerBasedBuildType is the build type of container-based builds.
+	// The `draft` in the URI signals that the format might need to change.
+	// See https://github.com/slsa-framework/github-actions-buildtypes/issues/4.
 	DockerBasedBuildType = "https://slsa.dev/container-based-build/v0.1?draft"
 )
 
