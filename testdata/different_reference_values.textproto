@@ -12,6 +12,6 @@ reference_provenance: {
             value: { values: ["another_different_digest"]}
         }
     }
-    reference_repo_URI: "some_different_repo"
+    reference_repo_uri: "some_different_repo"
 }
   

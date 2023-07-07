@@ -135,7 +135,7 @@ func TestVerify_NeedsHasBuilderImageDigest(t *testing.T) {
 	want := prover.VerificationOptions{
 		ReferenceProvenance: &prover.ProvenanceReferenceValues{
 			ReferenceBuilderImageDigests: &prover.Digests{
-				Digests: map[string]*prover.StringAllowList{"sha256": &prover.StringAllowList{Values: []string{"some_other_digest", builderDigest}}},
+				Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{"some_other_digest", builderDigest}}},
 			},
 		},
 	}
@@ -156,7 +156,7 @@ func TestVerify_NeedsDoesNotHaveBuilderImageDigest(t *testing.T) {
 	want := prover.VerificationOptions{
 		ReferenceProvenance: &prover.ProvenanceReferenceValues{
 			ReferenceBuilderImageDigests: &prover.Digests{
-				Digests: map[string]*prover.StringAllowList{"sha256": &prover.StringAllowList{Values: []string{"some_other_digest", "and_some_other"}}},
+				Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{"some_other_digest", "and_some_other"}}},
 			},
 		},
 	}
@@ -179,7 +179,7 @@ func TestVerify_NeedsHasEmptyBuilderImageDigest(t *testing.T) {
 	want := prover.VerificationOptions{
 		ReferenceProvenance: &prover.ProvenanceReferenceValues{
 			ReferenceBuilderImageDigests: &prover.Digests{
-				Digests: map[string]*prover.StringAllowList{"sha256": &prover.StringAllowList{Values: []string{"some_digest"}}},
+				Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{"some_digest"}}},
 			},
 		},
 	}
@@ -220,7 +220,7 @@ func TestVerify_HasWantedRepoURI(t *testing.T) {
 		model.WithRepoURI("https://github.com/project-oak/transparent-release"))
 	want := prover.VerificationOptions{
 		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			ReferenceRepo_URI: "https://github.com/project-oak/transparent-release",
+			ReferenceRepoUri: "https://github.com/project-oak/transparent-release",
 		},
 	}
 
@@ -242,7 +242,7 @@ func TestVerify_HasWrongRepoURI(t *testing.T) {
 		model.WithRepoURI(wrongURI))
 	want := prover.VerificationOptions{
 		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			ReferenceRepo_URI: "github.com/project-oak/transparent-release",
+			ReferenceRepoUri: "github.com/project-oak/transparent-release",
 		},
 	}
 
@@ -253,7 +253,7 @@ func TestVerify_HasWrongRepoURI(t *testing.T) {
 
 	wantErr := fmt.Sprintf("the repo URI from the provenance (%v) is different from the repo URI (%v)",
 		wrongURI,
-		want.GetReferenceProvenance().GetReferenceRepo_URI(),
+		want.GetReferenceProvenance().GetReferenceRepoUri(),
 	)
 	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
 		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
@@ -265,7 +265,7 @@ func TestVerify_HasNoRepoURIs(t *testing.T) {
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName)
 	want := prover.VerificationOptions{
 		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			ReferenceRepo_URI: "github.com/project-oak/transparent-release",
+			ReferenceRepoUri: "github.com/project-oak/transparent-release",
 		},
 	}
 
@@ -275,7 +275,7 @@ func TestVerify_HasNoRepoURIs(t *testing.T) {
 	}
 
 	wantErr := fmt.Sprintf("no repo URI in the provenance, but want (%v)",
-		want.GetReferenceProvenance().GetReferenceRepo_URI(),
+		want.GetReferenceProvenance().GetReferenceRepoUri(),
 	)
 	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
 		t.Fatalf("got %q, want error message containing %q,", err, wantErr)

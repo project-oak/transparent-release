@@ -110,7 +110,7 @@ func (v *ProvenanceIRVerifier) verifyBuilderImageDigest() error {
 // verifyRepoURI verifies that the Git URI in the Got provenance
 // is the same as the repo URI in the Want reference values.
 func (v *ProvenanceIRVerifier) verifyRepoURI() error {
-	referenceRepoURI := v.Want.GetReferenceProvenance().GetReferenceRepo_URI()
+	referenceRepoURI := v.Want.GetReferenceProvenance().GetReferenceRepoUri()
 	if referenceRepoURI == "" {
 		return nil
 	}

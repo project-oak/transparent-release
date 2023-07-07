@@ -88,7 +88,7 @@ func TestLoadAndVerifyProvenances_MultipleValidEndorsement(t *testing.T) {
 		ReferenceProvenance: &prover.ProvenanceReferenceValues{
 			// Make sure we pick the correct binary hash if there are several reference values.
 			ReferenceBinaryDigests: &prover.Digests{
-				Digests: map[string]*prover.StringAllowList{"sha256": &prover.StringAllowList{Values: []string{binaryHash + "_diff", binaryHash}}},
+				Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{binaryHash + "_diff", binaryHash}}},
 			},
 		},
 	}
@@ -122,7 +122,7 @@ func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
 	referenceValues := prover.VerificationOptions{
 		ReferenceProvenance: &prover.ProvenanceReferenceValues{
 			ReferenceBinaryDigests: &prover.Digests{
-				Digests: map[string]*prover.StringAllowList{"sha256": &prover.StringAllowList{Values: []string{binaryHash + "_diff"}}},
+				Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{binaryHash + "_diff"}}},
 			},
 		},
 	}
@@ -152,7 +152,7 @@ func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
 	referenceValues := prover.VerificationOptions{
 		ReferenceProvenance: &prover.ProvenanceReferenceValues{
 			ReferenceBinaryDigests: &prover.Digests{
-				Digests: map[string]*prover.StringAllowList{"sha256": &prover.StringAllowList{Values: []string{"e8e05d1d09af8952919bf6ab38e0cc5a6414ee2b5e21f4765b12421c5db0037e", binaryHash}}},
+				Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{"e8e05d1d09af8952919bf6ab38e0cc5a6414ee2b5e21f4765b12421c5db0037e", binaryHash}}},
 			},
 		},
 	}
@@ -183,7 +183,7 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 	referenceValues := prover.VerificationOptions{
 		ReferenceProvenance: &prover.ProvenanceReferenceValues{
 			ReferenceBinaryDigests: &prover.Digests{
-				Digests: map[string]*prover.StringAllowList{"sha256": &prover.StringAllowList{Values: []string{binaryHash + "_diff"}}},
+				Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{binaryHash + "_diff"}}},
 			},
 		},
 	}
