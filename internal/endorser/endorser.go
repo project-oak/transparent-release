@@ -32,6 +32,7 @@ import (
 	"github.com/project-oak/transparent-release/internal/verification"
 	"github.com/project-oak/transparent-release/pkg/claims"
 	"github.com/project-oak/transparent-release/pkg/intoto"
+	prover "github.com/project-oak/transparent-release/pkg/proto/verification"
 )
 
 // ParsedProvenance contains a provenance in the internal ProvenanceIR format,
@@ -47,7 +48,7 @@ type ParsedProvenance struct {
 // the given provenances as evidence and reference values to verify them. At least one provenance
 // must be provided. The endorsement statement is generated only if the provenance statements are
 // valid.
-func GenerateEndorsement(referenceValues *verification.ReferenceValues, validityDuration claims.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
+func GenerateEndorsement(referenceValues *prover.VerificationOptions, validityDuration claims.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
 	verifiedProvenances, err := verifyAndSummarizeProvenances(referenceValues, provenances)
 	if err != nil {
 		return nil, fmt.Errorf("could not verify and summarize provenances: %v", err)
@@ -61,7 +62,7 @@ func GenerateEndorsement(referenceValues *verification.ReferenceValues, validity
 // (1) The list of provenances is empty,
 // (2) Any of the provenances is invalid (see verifyProvenances for details on validity),
 // (3) Provenances do not match (e.g., have different binary names).
-func verifyAndSummarizeProvenances(referenceValues *verification.ReferenceValues, provenances []ParsedProvenance) (*claims.VerifiedProvenanceSet, error) {
+func verifyAndSummarizeProvenances(referenceValues *prover.VerificationOptions, provenances []ParsedProvenance) (*claims.VerifiedProvenanceSet, error) {
 	if len(provenances) == 0 {
 		return nil, fmt.Errorf("at least one provenance file must be provided")
 	}
@@ -88,7 +89,7 @@ func verifyAndSummarizeProvenances(referenceValues *verification.ReferenceValues
 }
 
 // verifyProvenances verifies the given list of provenances. An error is returned if verification fails for one of them.
-func verifyProvenances(referenceValues *verification.ReferenceValues, provenances []model.ProvenanceIR) error {
+func verifyProvenances(referenceValues *prover.VerificationOptions, provenances []model.ProvenanceIR) error {
 	var errs error
 	for index := range provenances {
 		provenanceVerifier := verification.ProvenanceIRVerifier{

@@ -22,14 +22,15 @@ import (
 	"time"
 
 	"github.com/project-oak/transparent-release/internal/testutil"
-	"github.com/project-oak/transparent-release/internal/verification"
 	"github.com/project-oak/transparent-release/pkg/claims"
+	prover "github.com/project-oak/transparent-release/pkg/proto/verification"
+	"google.golang.org/protobuf/encoding/prototext"
 )
 
 const (
 	binaryHash        = "d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc"
 	binaryName        = "oak_functions_freestanding_bin"
-	errorBinaryDigest = "do not contain the actual binary SHA256 digest"
+	errorBinaryDigest = "do not contain the actual SHA256 digest"
 )
 
 func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
@@ -50,7 +51,7 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
 
-	referenceValues, err := verification.LoadReferenceValuesFromFile("../../testdata/reference_values.toml")
+	referenceValues, err := loadTextprotoVerificationOptions("../../testdata/reference_values.textproto")
 	if err != nil {
 		t.Fatalf("Could not load reference values: %v", err)
 	}
@@ -83,9 +84,13 @@ func TestLoadAndVerifyProvenances_MultipleValidEndorsement(t *testing.T) {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
 
-	referenceValues := verification.ReferenceValues{
-		// Make sure we pick the correct binary hash if there are several reference values.
-		BinarySHA256Digests: []string{binaryHash + "_diff", binaryHash},
+	referenceValues := prover.VerificationOptions{
+		ReferenceProvenance: &prover.ProvenanceReferenceValues{
+			// Make sure we pick the correct binary hash if there are several reference values.
+			ReferenceBinaryDigests: &prover.Digests{
+				Digests: map[string]*prover.StringAllowList{"sha256": &prover.StringAllowList{Values: []string{binaryHash + "_diff", binaryHash}}},
+			},
+		},
 	}
 	provenanceSet, err := verifyAndSummarizeProvenances(&referenceValues, provenances)
 	if err != nil {
@@ -114,8 +119,12 @@ func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
-	referenceValues := verification.ReferenceValues{
-		BinarySHA256Digests: []string{binaryHash + "_diff"},
+	referenceValues := prover.VerificationOptions{
+		ReferenceProvenance: &prover.ProvenanceReferenceValues{
+			ReferenceBinaryDigests: &prover.Digests{
+				Digests: map[string]*prover.StringAllowList{"sha256": &prover.StringAllowList{Values: []string{binaryHash + "_diff"}}},
+			},
+		},
 	}
 
 	// Provenances do not contain the given reference binary SHA256 digest value, but are consistent.
@@ -140,8 +149,12 @@ func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
-	referenceValues := verification.ReferenceValues{
-		BinarySHA256Digests: []string{"e8e05d1d09af8952919bf6ab38e0cc5a6414ee2b5e21f4765b12421c5db0037e", binaryHash},
+	referenceValues := prover.VerificationOptions{
+		ReferenceProvenance: &prover.ProvenanceReferenceValues{
+			ReferenceBinaryDigests: &prover.Digests{
+				Digests: map[string]*prover.StringAllowList{"sha256": &prover.StringAllowList{Values: []string{"e8e05d1d09af8952919bf6ab38e0cc5a6414ee2b5e21f4765b12421c5db0037e", binaryHash}}},
+			},
+		},
 	}
 
 	// Provenances each contain a (different) given reference binary SHA256 digest value, but are inconsistent.
@@ -167,8 +180,12 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
-	referenceValues := verification.ReferenceValues{
-		BinarySHA256Digests: []string{binaryHash + "_diff"},
+	referenceValues := prover.VerificationOptions{
+		ReferenceProvenance: &prover.ProvenanceReferenceValues{
+			ReferenceBinaryDigests: &prover.Digests{
+				Digests: map[string]*prover.StringAllowList{"sha256": &prover.StringAllowList{Values: []string{binaryHash + "_diff"}}},
+			},
+		},
 	}
 
 	_, err = verifyAndSummarizeProvenances(&referenceValues, provenances)
@@ -192,7 +209,8 @@ func TestLoadAndVerifyProvenances_NotVerified(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
-	referenceValues, err := verification.LoadReferenceValuesFromFile("../../testdata/different_reference_values.toml")
+	// referenceValues, err := verification.LoadReferenceValuesFromFile("../../testdata/different_reference_values.toml")
+	referenceValues, err := loadTextprotoVerificationOptions("../../testdata/different_reference_values.textproto")
 	if err != nil {
 		t.Fatalf("Could not load reference values: %v", err)
 	}
@@ -233,4 +251,16 @@ func copyToTemp(path string) (string, error) {
 	}
 
 	return tmpfile.Name(), nil
+}
+
+func loadTextprotoVerificationOptions(path string) (*prover.VerificationOptions, error) {
+	bytes, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("reading provenance verification options from %q: %v", path, err)
+	}
+	var opt prover.VerificationOptions
+	if err := prototext.Unmarshal(bytes, &opt); err != nil {
+		return nil, fmt.Errorf("unmarshal bytes to VerificationOptions: %v", err)
+	}
+	return &opt, nil
 }
