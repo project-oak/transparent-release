@@ -44,12 +44,15 @@ type ParsedProvenance struct {
 	SourceMetadata claims.ProvenanceData
 }
 
-// GenerateEndorsement generates an endorsement statement for the given validity duration, using
-// the given provenances as evidence and reference values to verify them. At least one provenance
-// must be provided. The endorsement statement is generated only if the provenance statements are
-// valid.
-func GenerateEndorsement(referenceValues *prover.VerificationOptions, validityDuration claims.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
-	verifiedProvenances, err := verifyAndSummarizeProvenances(referenceValues, provenances)
+// GenerateEndorsement generates an endorsement statement for the given binary
+// and the given validity duration, using the given provenances as evidence and
+// reference values to verify them. If more than one provenance statements are
+// provided the endorsement statement is generated only if the provenance
+// statements are valid. If no provenances are provided, a provenance-less
+// endorsement is generated, if the input verification options does not contain
+// a reference provenance.
+func GenerateEndorsement(binaryName, binaryDigest string, verOpt *prover.VerificationOptions, validityDuration claims.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
+	verifiedProvenances, err := verifyAndSummarizeProvenances(binaryName, binaryDigest, verOpt, provenances)
 	if err != nil {
 		return nil, fmt.Errorf("could not verify and summarize provenances: %v", err)
 	}
@@ -57,13 +60,15 @@ func GenerateEndorsement(referenceValues *prover.VerificationOptions, validityDu
 	return claims.GenerateEndorsementStatement(validityDuration, *verifiedProvenances), nil
 }
 
-// Returns an instance of claims.VerifiedProvenanceSet, containing metadata about a set of verified
-// provenances, or an error. An error is returned if any of the following conditions is met:
-// (1) The list of provenances is empty,
-// (2) Any of the provenances is invalid (see verifyProvenances for details on validity),
+// Returns an instance of claims.VerifiedProvenanceSet, containing metadata
+// about a set of verified provenances, or an error. An error is returned if
+// any of the following conditions is met:
+// (1) The list of provenances is empty, but verification options contains a
+// nonempty provenance reference.
+// (2) Any of the provenances is invalid (see verifyProvenances for details),
 // (3) Provenances do not match (e.g., have different binary names).
-func verifyAndSummarizeProvenances(referenceValues *prover.VerificationOptions, provenances []ParsedProvenance) (*claims.VerifiedProvenanceSet, error) {
-	if len(provenances) == 0 {
+func verifyAndSummarizeProvenances(binaryName, binaryDigest string, verOpt *prover.VerificationOptions, provenances []ParsedProvenance) (*claims.VerifiedProvenanceSet, error) {
+	if len(provenances) == 0 && verOpt.GetReferenceProvenance() != nil {
 		return nil, fmt.Errorf("at least one provenance file must be provided")
 	}
 
@@ -74,14 +79,26 @@ func verifyAndSummarizeProvenances(referenceValues *prover.VerificationOptions, 
 		provenancesData = append(provenancesData, p.SourceMetadata)
 	}
 
-	errs := multierr.Append(verifyConsistency(provenanceIRs), verifyProvenances(referenceValues, provenanceIRs))
+	errs := multierr.Append(verifyConsistency(provenanceIRs), verifyProvenances(verOpt.GetReferenceProvenance(), provenanceIRs))
+
+	if len(provenanceIRs) > 0 {
+		if provenanceIRs[0].BinarySHA256Digest() != binaryDigest {
+			errs = multierr.Append(errs, fmt.Errorf("the binary digest in the provenance (%q) does not match the given binary digest (%q)",
+				provenanceIRs[0].BinarySHA256Digest(), binaryDigest))
+		}
+		if provenanceIRs[0].BinaryName() != binaryName {
+			errs = multierr.Append(errs, fmt.Errorf("the binary name in the provenance (%q) does not match the given binary name (%q)",
+				provenanceIRs[0].BinaryName(), binaryName))
+		}
+	}
+
 	if errs != nil {
 		return nil, fmt.Errorf("failed while verifying of provenances: %v", errs)
 	}
 
 	verifiedProvenances := claims.VerifiedProvenanceSet{
-		BinaryDigest: provenanceIRs[0].BinarySHA256Digest(),
-		BinaryName:   provenanceIRs[0].BinaryName(),
+		BinaryDigest: binaryDigest,
+		BinaryName:   binaryName,
 		Provenances:  provenancesData,
 	}
 
@@ -89,7 +106,7 @@ func verifyAndSummarizeProvenances(referenceValues *prover.VerificationOptions, 
 }
 
 // verifyProvenances verifies the given list of provenances. An error is returned if verification fails for one of them.
-func verifyProvenances(referenceValues *prover.VerificationOptions, provenances []model.ProvenanceIR) error {
+func verifyProvenances(referenceValues *prover.ProvenanceReferenceValues, provenances []model.ProvenanceIR) error {
 	var errs error
 	for index := range provenances {
 		provenanceVerifier := verification.ProvenanceIRVerifier{

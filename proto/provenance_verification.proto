@@ -27,7 +27,6 @@ message VerificationOptions {
 
 message ProvenanceReferenceValues {
     bool must_have_build_command = 1;
-    optional Digests reference_binary_digests = 2;
     optional Digests reference_builder_image_digests = 3;
     string reference_repo_uri = 4;
     optional StringAllowList reference_builders = 5;

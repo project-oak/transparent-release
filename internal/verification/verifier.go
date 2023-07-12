@@ -27,21 +27,13 @@ import (
 // all non-empty fields in got using fields in the reference values. Empty fields will not be verified.
 type ProvenanceIRVerifier struct {
 	Got  *model.ProvenanceIR
-	Want *prover.VerificationOptions
+	Want *prover.ProvenanceReferenceValues
 }
 
 // Verify verifies an instance of ProvenanceIRVerifier by comparing its Got and Want fields.
 // Verify checks fields, which (i) are set in Got, i.e., GotHasX is true, and (ii) are set in Want.
 func (v *ProvenanceIRVerifier) Verify() error {
-	if v.Want.GetReferenceProvenance() == nil {
-		return nil
-	}
-
 	var errs error
-
-	if err := v.verifyBinarySHA256Digest(); err != nil {
-		multierr.AppendInto(&errs, fmt.Errorf("failed to verify binary SHA256 digest: %v", err))
-	}
 
 	// Verify HasBuildCmd.
 	multierr.AppendInto(&errs, v.verifyBuildCmd())
@@ -62,22 +54,10 @@ func (v *ProvenanceIRVerifier) Verify() error {
 	return errs
 }
 
-// verifyBinarySHA256Digest verifies that the binary SHA256 Got in this
-// verifier is among the Wanted digests.
-func (v *ProvenanceIRVerifier) verifyBinarySHA256Digest() error {
-	referenceDigests := v.Want.GetReferenceProvenance().GetReferenceBinaryDigests()
-	gotBinarySHA256Digest := v.Got.BinarySHA256Digest()
-
-	if err := verifySHA256Digest(gotBinarySHA256Digest, referenceDigests); err != nil {
-		return fmt.Errorf("verifying binary SHA356 digest: %v", err)
-	}
-	return nil
-}
-
 // verifyBuildCmd verifies the build cmd. Returns an error if a build command is
 // needed in the Want reference values, but is not present in the Got provenance.
 func (v *ProvenanceIRVerifier) verifyBuildCmd() error {
-	mustHaveBuildCommand := v.Want.GetReferenceProvenance().GetMustHaveBuildCommand()
+	mustHaveBuildCommand := v.Want.GetMustHaveBuildCommand()
 	if mustHaveBuildCommand && v.Got.HasBuildCmd() {
 		if buildCmd, err := v.Got.BuildCmd(); err != nil || len(buildCmd) == 0 {
 			return fmt.Errorf("no build cmd found")
@@ -89,15 +69,15 @@ func (v *ProvenanceIRVerifier) verifyBuildCmd() error {
 // verifyBuilderImageDigest verifies that the builder image digest in the Got
 // provenance matches a builder image digest in the Want reference values.
 func (v *ProvenanceIRVerifier) verifyBuilderImageDigest() error {
-	if !v.Got.HasBuilderImageSHA256Digest() {
+	referenceDigests := v.Want.GetReferenceBuilderImageDigests()
+	if !v.Got.HasBuilderImageSHA256Digest() || referenceDigests == nil {
 		// A valid provenance that is missing a builder image digest passes the
 		// verification.
 		return nil
 	}
 
-	referenceDigests := v.Want.GetReferenceProvenance().GetReferenceBuilderImageDigests()
 	gotBuilderImageDigest, err := v.Got.BuilderImageSHA256Digest()
-	if err != nil && referenceDigests != nil {
+	if err != nil {
 		return fmt.Errorf("no builder image digest set")
 	}
 
@@ -110,7 +90,7 @@ func (v *ProvenanceIRVerifier) verifyBuilderImageDigest() error {
 // verifyRepoURI verifies that the Git URI in the Got provenance
 // is the same as the repo URI in the Want reference values.
 func (v *ProvenanceIRVerifier) verifyRepoURI() error {
-	referenceRepoURI := v.Want.GetReferenceProvenance().GetReferenceRepoUri()
+	referenceRepoURI := v.Want.GetReferenceRepoUri()
 	if referenceRepoURI == "" {
 		return nil
 	}
@@ -128,8 +108,8 @@ func (v *ProvenanceIRVerifier) verifyRepoURI() error {
 
 // verifyTrustedBuilder verifies that the given trusted builder matches a trusted builder in the reference values.
 func (v *ProvenanceIRVerifier) verifyTrustedBuilder() error {
-	referenceRepoURI := v.Want.GetReferenceProvenance().GetReferenceBuilders()
-	if referenceRepoURI == nil {
+	referenceBuilders := v.Want.GetReferenceBuilders()
+	if referenceBuilders == nil {
 		return nil
 	}
 
@@ -138,14 +118,14 @@ func (v *ProvenanceIRVerifier) verifyTrustedBuilder() error {
 		return fmt.Errorf("no trusted builder set")
 	}
 
-	for _, wantTrustedBuilder := range referenceRepoURI.GetValues() {
+	for _, wantTrustedBuilder := range referenceBuilders.GetValues() {
 		if wantTrustedBuilder == gotTrustedBuilder {
 			return nil
 		}
 	}
 
 	return fmt.Errorf("the reference trusted builders (%v) do not contain the actual trusted builder (%v)",
-		referenceRepoURI.GetValues(),
+		referenceBuilders.GetValues(),
 		gotTrustedBuilder)
 }
 

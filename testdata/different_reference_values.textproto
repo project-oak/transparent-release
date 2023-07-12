@@ -1,11 +1,5 @@
 reference_provenance: {
     must_have_build_command: true
-    reference_binary_digests: {
-        digests: {
-            key: "sha256"
-            value: { values: ["a_different_digest"]}
-        }
-    }
     reference_builder_image_digests: {
         digests: {
             key: "sha256"
@@ -14,4 +8,4 @@ reference_provenance: {
     }
     reference_repo_uri: "some_different_repo"
 }
-  
+ 

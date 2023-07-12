@@ -33,13 +33,9 @@ func TestVerify_HasNoValues(t *testing.T) {
 	// There are no optional fields set apart from the binary digest and the build type.
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName)
 
-	want := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{},
-	}
-
 	verifier := ProvenanceIRVerifier{
 		Got:  got,
-		Want: &want,
+		Want: &prover.ProvenanceReferenceValues{},
 	}
 
 	// We don't expect any verification to happen.
@@ -51,10 +47,8 @@ func TestVerify_HasNoValues(t *testing.T) {
 func TestVerify_NeedsCanHaveHasBuildCmd(t *testing.T) {
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, model.WithBuildCmd([]string{"build cmd"}))
 
-	want := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			MustHaveBuildCommand: true,
-		},
+	want := prover.ProvenanceReferenceValues{
+		MustHaveBuildCommand: true,
 	}
 
 	verifier := ProvenanceIRVerifier{
@@ -71,10 +65,8 @@ func TestVerify_NeedsCannotHaveDoesNotHaveBuildCmd(t *testing.T) {
 	// No buildCmd is set in the provenance.
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName)
 
-	want := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			MustHaveBuildCommand: true,
-		},
+	want := prover.ProvenanceReferenceValues{
+		MustHaveBuildCommand: true,
 	}
 
 	verifier := ProvenanceIRVerifier{
@@ -91,10 +83,8 @@ func TestVerify_NeedsCannotHaveHasEmptyBuildCmd(t *testing.T) {
 	// The build command is empty.
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, model.WithBuildCmd([]string{}))
 	// And the reference values ask for a build cmd.
-	want := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			MustHaveBuildCommand: true,
-		},
+	want := prover.ProvenanceReferenceValues{
+		MustHaveBuildCommand: true,
 	}
 
 	verifier := ProvenanceIRVerifier{
@@ -112,10 +102,8 @@ func TestVerify_DoesNotNeedCannotHaveHasEmptyBuildCmd(t *testing.T) {
 	// The build command is empty.
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, model.WithBuildCmd([]string{}))
 	// But the reference values do not ask for a build cmd.
-	want := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			MustHaveBuildCommand: false,
-		},
+	want := prover.ProvenanceReferenceValues{
+		MustHaveBuildCommand: false,
 	}
 
 	verifier := ProvenanceIRVerifier{
@@ -132,11 +120,9 @@ func TestVerify_DoesNotNeedCannotHaveHasEmptyBuildCmd(t *testing.T) {
 func TestVerify_NeedsHasBuilderImageDigest(t *testing.T) {
 	builderDigest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, model.WithBuilderImageSHA256Digest(builderDigest))
-	want := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			ReferenceBuilderImageDigests: &prover.Digests{
-				Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{"some_other_digest", builderDigest}}},
-			},
+	want := prover.ProvenanceReferenceValues{
+		ReferenceBuilderImageDigests: &prover.Digests{
+			Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{"some_other_digest", builderDigest}}},
 		},
 	}
 
@@ -153,11 +139,9 @@ func TestVerify_NeedsHasBuilderImageDigest(t *testing.T) {
 func TestVerify_NeedsDoesNotHaveBuilderImageDigest(t *testing.T) {
 	builderDigest := "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, model.WithBuilderImageSHA256Digest(builderDigest))
-	want := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			ReferenceBuilderImageDigests: &prover.Digests{
-				Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{"some_other_digest", "and_some_other"}}},
-			},
+	want := prover.ProvenanceReferenceValues{
+		ReferenceBuilderImageDigests: &prover.Digests{
+			Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{"some_other_digest", "and_some_other"}}},
 		},
 	}
 
@@ -167,7 +151,7 @@ func TestVerify_NeedsDoesNotHaveBuilderImageDigest(t *testing.T) {
 	}
 
 	wantErr := fmt.Sprintf("the reference SHA256 digests (%v) do not contain the actual SHA256 digest (%v)",
-		want.GetReferenceProvenance().GetReferenceBuilderImageDigests().GetDigests()["sha256"].GetValues(),
+		want.GetReferenceBuilderImageDigests().GetDigests()["sha256"].GetValues(),
 		builderDigest)
 	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
 		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
@@ -176,11 +160,9 @@ func TestVerify_NeedsDoesNotHaveBuilderImageDigest(t *testing.T) {
 
 func TestVerify_NeedsHasEmptyBuilderImageDigest(t *testing.T) {
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, model.WithBuilderImageSHA256Digest(""))
-	want := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			ReferenceBuilderImageDigests: &prover.Digests{
-				Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{"some_digest"}}},
-			},
+	want := prover.ProvenanceReferenceValues{
+		ReferenceBuilderImageDigests: &prover.Digests{
+			Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{"some_digest"}}},
 		},
 	}
 
@@ -190,7 +172,7 @@ func TestVerify_NeedsHasEmptyBuilderImageDigest(t *testing.T) {
 	}
 
 	wantErr := fmt.Sprintf("the reference SHA256 digests (%v) do not contain the actual SHA256 digest (%v)",
-		want.GetReferenceProvenance().GetReferenceBuilderImageDigests().GetDigests()["sha256"].GetValues(),
+		want.GetReferenceBuilderImageDigests().GetDigests()["sha256"].GetValues(),
 		"")
 	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
 		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
@@ -200,14 +182,11 @@ func TestVerify_NeedsHasEmptyBuilderImageDigest(t *testing.T) {
 func TestVerify_DoesNotNeedHasEmptyBuilderImageDigest(t *testing.T) {
 	builderImageSHA256Digest := ""
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, model.WithBuilderImageSHA256Digest(builderImageSHA256Digest))
-	want := prover.VerificationOptions{
-		// We do not check for the builder image digest.
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{},
-	}
 
 	verifier := ProvenanceIRVerifier{
-		Got:  got,
-		Want: &want,
+		Got: got,
+		// We do not check for the builder image digest.
+		Want: &prover.ProvenanceReferenceValues{},
 	}
 
 	if err := verifier.Verify(); err != nil {
@@ -218,10 +197,8 @@ func TestVerify_DoesNotNeedHasEmptyBuilderImageDigest(t *testing.T) {
 func TestVerify_HasWantedRepoURI(t *testing.T) {
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName,
 		model.WithRepoURI("https://github.com/project-oak/transparent-release"))
-	want := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			ReferenceRepoUri: "https://github.com/project-oak/transparent-release",
-		},
+	want := prover.ProvenanceReferenceValues{
+		ReferenceRepoUri: "https://github.com/project-oak/transparent-release",
 	}
 
 	verifier := ProvenanceIRVerifier{
@@ -240,10 +217,8 @@ func TestVerify_HasWrongRepoURI(t *testing.T) {
 	got := model.NewProvenanceIR(binarySHA256Digest,
 		slsav02.GenericSLSABuildType, binaryName,
 		model.WithRepoURI(wrongURI))
-	want := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			ReferenceRepoUri: "github.com/project-oak/transparent-release",
-		},
+	want := prover.ProvenanceReferenceValues{
+		ReferenceRepoUri: "github.com/project-oak/transparent-release",
 	}
 
 	verifier := ProvenanceIRVerifier{
@@ -253,7 +228,7 @@ func TestVerify_HasWrongRepoURI(t *testing.T) {
 
 	wantErr := fmt.Sprintf("the repo URI from the provenance (%v) is different from the repo URI (%v)",
 		wrongURI,
-		want.GetReferenceProvenance().GetReferenceRepoUri(),
+		want.GetReferenceRepoUri(),
 	)
 	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
 		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
@@ -263,10 +238,8 @@ func TestVerify_HasWrongRepoURI(t *testing.T) {
 func TestVerify_HasNoRepoURIs(t *testing.T) {
 	// We have no repo URIs in the provenance.
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName)
-	want := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			ReferenceRepoUri: "github.com/project-oak/transparent-release",
-		},
+	want := prover.ProvenanceReferenceValues{
+		ReferenceRepoUri: "github.com/project-oak/transparent-release",
 	}
 
 	verifier := ProvenanceIRVerifier{
@@ -275,7 +248,7 @@ func TestVerify_HasNoRepoURIs(t *testing.T) {
 	}
 
 	wantErr := fmt.Sprintf("no repo URI in the provenance, but want (%v)",
-		want.GetReferenceProvenance().GetReferenceRepoUri(),
+		want.GetReferenceRepoUri(),
 	)
 	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
 		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
@@ -286,11 +259,9 @@ func TestVerify_NeedsHasTrustedBuilder(t *testing.T) {
 	trustedBuilder := "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, model.WithTrustedBuilder(trustedBuilder))
 
-	want := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			ReferenceBuilders: &prover.StringAllowList{
-				Values: []string{trustedBuilder},
-			},
+	want := prover.ProvenanceReferenceValues{
+		ReferenceBuilders: &prover.StringAllowList{
+			Values: []string{trustedBuilder},
 		},
 	}
 
@@ -308,11 +279,9 @@ func TestVerify_NeedsDoesNotHaveTrustedBuilder(t *testing.T) {
 	trustedBuilder := "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, model.WithTrustedBuilder(trustedBuilder))
 
-	want := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			ReferenceBuilders: &prover.StringAllowList{
-				Values: []string{"other_" + trustedBuilder, "another_" + trustedBuilder},
-			},
+	want := prover.ProvenanceReferenceValues{
+		ReferenceBuilders: &prover.StringAllowList{
+			Values: []string{"other_" + trustedBuilder, "another_" + trustedBuilder},
 		},
 	}
 
@@ -322,7 +291,7 @@ func TestVerify_NeedsDoesNotHaveTrustedBuilder(t *testing.T) {
 	}
 
 	wantErr := fmt.Sprintf("the reference trusted builders (%v) do not contain the actual trusted builder (%v)",
-		want.GetReferenceProvenance().GetReferenceBuilders().GetValues(),
+		want.GetReferenceBuilders().GetValues(),
 		trustedBuilder)
 	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
 		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
@@ -332,11 +301,9 @@ func TestVerify_NeedsDoesNotHaveTrustedBuilder(t *testing.T) {
 func TestVerify_NeedsHasEmptyTrustedBuilder(t *testing.T) {
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, model.WithTrustedBuilder(""))
 
-	want := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			ReferenceBuilders: &prover.StringAllowList{
-				Values: []string{"other_trusted_builder", "another_trusted_builder"},
-			},
+	want := prover.ProvenanceReferenceValues{
+		ReferenceBuilders: &prover.StringAllowList{
+			Values: []string{"other_trusted_builder", "another_trusted_builder"},
 		},
 	}
 
@@ -346,7 +313,7 @@ func TestVerify_NeedsHasEmptyTrustedBuilder(t *testing.T) {
 	}
 
 	wantErr := fmt.Sprintf("the reference trusted builders (%v) do not contain the actual trusted builder (%v)",
-		want.GetReferenceProvenance().GetReferenceBuilders().GetValues(),
+		want.GetReferenceBuilders().GetValues(),
 		"")
 	if err := verifier.Verify(); err == nil || !strings.Contains(err.Error(), wantErr) {
 		t.Fatalf("got %q, want error message containing %q,", err, wantErr)
@@ -356,14 +323,10 @@ func TestVerify_NeedsHasEmptyTrustedBuilder(t *testing.T) {
 func TestVerify_DoesNotNeedHasEmptyTrustedBuilder(t *testing.T) {
 	got := model.NewProvenanceIR(binarySHA256Digest, slsav02.GenericSLSABuildType, binaryName, model.WithTrustedBuilder(""))
 
-	want := prover.VerificationOptions{
-		// We do not check the trusted builder.
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{},
-	}
-
 	verifier := ProvenanceIRVerifier{
-		Got:  got,
-		Want: &want,
+		Got: got,
+		// We do not check the trusted builder.
+		Want: &prover.ProvenanceReferenceValues{},
 	}
 
 	if err := verifier.Verify(); err != nil {

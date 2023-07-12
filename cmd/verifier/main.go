@@ -47,7 +47,7 @@ func main() {
 
 	provenanceVerifier := verification.ProvenanceIRVerifier{
 		Got:  provenanceIR,
-		Want: &prover.VerificationOptions{},
+		Want: &prover.ProvenanceReferenceValues{},
 	}
 
 	if err := provenanceVerifier.Verify(); err != nil {

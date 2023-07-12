@@ -28,9 +28,10 @@ import (
 )
 
 const (
-	binaryHash        = "d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc"
-	binaryName        = "oak_functions_freestanding_bin"
-	errorBinaryDigest = "do not contain the actual SHA256 digest"
+	binaryHash                   = "d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc"
+	binaryName                   = "oak_functions_freestanding_bin"
+	errorBinaryDigest            = "does not match the given binary digest"
+	errorInconsistentProvenances = "provenances are not consistent"
 )
 
 func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
@@ -51,12 +52,12 @@ func TestGenerateEndorsement_SingleValidEndorsement(t *testing.T) {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
 
-	referenceValues, err := loadTextprotoVerificationOptions("../../testdata/reference_values.textproto")
+	verOpt, err := loadTextprotoVerificationOptions("../../testdata/reference_values.textproto")
 	if err != nil {
 		t.Fatalf("Could not load reference values: %v", err)
 	}
 
-	statement, err := GenerateEndorsement(referenceValues, validity, provenances)
+	statement, err := GenerateEndorsement(binaryName, binaryHash, verOpt, validity, provenances)
 	if err != nil {
 		t.Fatalf("Could not generate endorsement from %q: %v", provenances[0].SourceMetadata.URI, err)
 	}
@@ -85,14 +86,9 @@ func TestLoadAndVerifyProvenances_MultipleValidEndorsement(t *testing.T) {
 	}
 
 	referenceValues := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			// Make sure we pick the correct binary hash if there are several reference values.
-			ReferenceBinaryDigests: &prover.Digests{
-				Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{binaryHash + "_diff", binaryHash}}},
-			},
-		},
+		ReferenceProvenance: &prover.ProvenanceReferenceValues{},
 	}
-	provenanceSet, err := verifyAndSummarizeProvenances(&referenceValues, provenances)
+	provenanceSet, err := verifyAndSummarizeProvenances(binaryName, binaryHash, &referenceValues, provenances)
 	if err != nil {
 		t.Fatalf("Could not generate endorsement from %q: %v", provenances[0].SourceMetadata.URI, err)
 	}
@@ -119,16 +115,12 @@ func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
-	referenceValues := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			ReferenceBinaryDigests: &prover.Digests{
-				Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{binaryHash + "_diff"}}},
-			},
-		},
+	verOpts := prover.VerificationOptions{
+		ReferenceProvenance: &prover.ProvenanceReferenceValues{},
 	}
 
 	// Provenances do not contain the given reference binary SHA256 digest value, but are consistent.
-	_, err = verifyAndSummarizeProvenances(&referenceValues, provenances)
+	_, err = verifyAndSummarizeProvenances(binaryName, binaryHash+"_diff", &verOpts, provenances)
 	if err == nil || !strings.Contains(err.Error(), errorBinaryDigest) {
 		t.Fatalf("got %q, want error message containing %q,", err, errorBinaryDigest)
 	}
@@ -149,19 +141,14 @@ func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
-	referenceValues := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			ReferenceBinaryDigests: &prover.Digests{
-				Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{"e8e05d1d09af8952919bf6ab38e0cc5a6414ee2b5e21f4765b12421c5db0037e", binaryHash}}},
-			},
-		},
+	verOpt := prover.VerificationOptions{
+		ReferenceProvenance: &prover.ProvenanceReferenceValues{},
 	}
 
 	// Provenances each contain a (different) given reference binary SHA256 digest value, but are inconsistent.
-	_, err = verifyAndSummarizeProvenances(&referenceValues, provenances)
-	want := "provenances are not consistent"
-	if err == nil || !strings.Contains(err.Error(), want) {
-		t.Fatalf("got %q, want error message containing %q,", err, want)
+	_, err = verifyAndSummarizeProvenances(binaryName, binaryHash, &verOpt, provenances)
+	if err == nil || !strings.Contains(err.Error(), errorInconsistentProvenances) {
+		t.Fatalf("got %q, want error message containing %q,", err, errorInconsistentProvenances)
 	}
 }
 
@@ -180,22 +167,17 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
-	referenceValues := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{
-			ReferenceBinaryDigests: &prover.Digests{
-				Digests: map[string]*prover.StringAllowList{"sha256": {Values: []string{binaryHash + "_diff"}}},
-			},
-		},
+	verOpt := prover.VerificationOptions{
+		ReferenceProvenance: &prover.ProvenanceReferenceValues{},
 	}
 
-	_, err = verifyAndSummarizeProvenances(&referenceValues, provenances)
+	_, err = verifyAndSummarizeProvenances(binaryName, binaryHash+"_diff", &verOpt, provenances)
 	if err == nil || !strings.Contains(err.Error(), errorBinaryDigest) {
 		t.Fatalf("got %q, want error message containing %q,", err, errorBinaryDigest)
 	}
 
-	want2 := "provenances are not consistent"
-	if err == nil || !strings.Contains(err.Error(), want2) {
-		t.Fatalf("got %q, want error message containing %q,", err, want2)
+	if err == nil || !strings.Contains(err.Error(), errorInconsistentProvenances) {
+		t.Fatalf("got %q, want error message containing %q,", err, errorInconsistentProvenances)
 	}
 }
 
@@ -209,24 +191,17 @@ func TestLoadAndVerifyProvenances_NotVerified(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
-	// referenceValues, err := verification.LoadReferenceValuesFromFile("../../testdata/different_reference_values.toml")
-	referenceValues, err := loadTextprotoVerificationOptions("../../testdata/different_reference_values.textproto")
+	verOpts, err := loadTextprotoVerificationOptions("../../testdata/different_reference_values.textproto")
 	if err != nil {
 		t.Fatalf("Could not load reference values: %v", err)
 	}
 
-	_, err = verifyAndSummarizeProvenances(referenceValues, provenances)
-
+	_, err = verifyAndSummarizeProvenances(binaryName, "a_different_digest", verOpts, provenances)
 	if err == nil || !strings.Contains(err.Error(), errorBinaryDigest) {
 		t.Fatalf("got %q, want error message containing %q,", err, errorBinaryDigest)
 	}
 
-	want := "failed to verify binary SHA256 digest"
-	if err == nil || !strings.Contains(err.Error(), want) {
-		t.Fatalf("got %q, want error message containing %q,", err, want)
-	}
-
-	want = "is different from the repo URI"
+	want := "is different from the repo URI"
 	if err == nil || !strings.Contains(err.Error(), want) {
 		t.Fatalf("got %q, want error message containing %q,", err, want)
 	}
