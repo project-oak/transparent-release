@@ -21,6 +21,7 @@ package verification.provenance.v1;
 option go_package = "proto/verification";
 
 message VerificationOptions {
+    // The absence of a reference provenance indicates that provenance verification can be skipped.
     optional ProvenanceReferenceValues reference_provenance = 1;
 }
 

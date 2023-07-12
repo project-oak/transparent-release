@@ -33,7 +33,7 @@ type VerifiedProvenanceSet struct {
 	BinaryName string
 	// SHA256 digest of the binary that all validated provenances agree on.
 	BinaryDigest string
-	// Provenances contains metadata about provenances
+	// Provenances is a possibly empty list of provenance metadata objects.
 	Provenances []ProvenanceData
 }
 
