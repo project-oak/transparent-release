@@ -79,9 +79,10 @@ func verifyAndSummarizeProvenances(binaryName, binaryDigest string, verOpt *prov
 		provenancesData = append(provenancesData, p.SourceMetadata)
 	}
 
-	errs := multierr.Append(verifyConsistency(provenanceIRs), verifyProvenances(verOpt.GetReferenceProvenance(), provenanceIRs))
-
+	var errs error
 	if len(provenanceIRs) > 0 {
+		errs = multierr.Append(verifyConsistency(provenanceIRs), verifyProvenances(verOpt.GetReferenceProvenance(), provenanceIRs))
+
 		if provenanceIRs[0].BinarySHA256Digest() != binaryDigest {
 			errs = multierr.Append(errs, fmt.Errorf("the binary digest in the provenance (%q) does not match the given binary digest (%q)",
 				provenanceIRs[0].BinarySHA256Digest(), binaryDigest))
