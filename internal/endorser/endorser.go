@@ -46,12 +46,16 @@ type ParsedProvenance struct {
 
 // GenerateEndorsement generates an endorsement statement for the given binary
 // and the given validity duration, using the given provenances as evidence and
-// reference values to verify them. If more than one provenance statements are
-// provided the endorsement statement is generated only if the provenance
-// statements are valid. If no provenances are provided, a provenance-less
-// endorsement is generated, if the input verification options does not contain
+// VerificationOptions to verify them. If more than one provenance statements
+// are provided the endorsement statement is generated only if the provenance
+// statements are consistent and valid according to the input
+// VerificationOptions. If no provenances are provided, a provenance-less
+// endorsement is generated, if the input VerificationOptions does not contain
 // a reference provenance.
 func GenerateEndorsement(binaryName, binaryDigest string, verOpt *prover.VerificationOptions, validityDuration claims.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
+	if (verOpt.GetSkipProvenanceVerification() == nil) && (verOpt.GetReferenceProvenance() == nil) {
+		return nil, fmt.Errorf("invalid VerificationOptions: exactly one of SkipProvenanceVerification and ReferenceProvenance must be set")
+	}
 	verifiedProvenances, err := verifyAndSummarizeProvenances(binaryName, binaryDigest, verOpt, provenances)
 	if err != nil {
 		return nil, fmt.Errorf("could not verify and summarize provenances: %v", err)
@@ -63,12 +67,12 @@ func GenerateEndorsement(binaryName, binaryDigest string, verOpt *prover.Verific
 // Returns an instance of claims.VerifiedProvenanceSet, containing metadata
 // about a set of verified provenances, or an error. An error is returned if
 // any of the following conditions is met:
-// (1) The list of provenances is empty, but verification options contains a
-// nonempty provenance reference.
+// (1) The list of provenances is empty, but VerificationOptions does not have
+// its SkipProvenanceVerification field set.
 // (2) Any of the provenances is invalid (see verifyProvenances for details),
 // (3) Provenances do not match (e.g., have different binary names).
 func verifyAndSummarizeProvenances(binaryName, binaryDigest string, verOpt *prover.VerificationOptions, provenances []ParsedProvenance) (*claims.VerifiedProvenanceSet, error) {
-	if len(provenances) == 0 && verOpt.GetReferenceProvenance() != nil {
+	if len(provenances) == 0 && verOpt.GetSkipProvenanceVerification() == nil {
 		return nil, fmt.Errorf("at least one provenance file must be provided")
 	}
 

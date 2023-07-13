@@ -54,7 +54,7 @@ func TestGenerateEndorsement_SingleValidProvenance(t *testing.T) {
 
 	verOpt, err := loadTextprotoVerificationOptions("../../testdata/reference_values.textproto")
 	if err != nil {
-		t.Fatalf("Could not load reference values: %v", err)
+		t.Fatalf("Could not load verification options: %v", err)
 	}
 
 	statement, err := GenerateEndorsement(binaryName, binaryHash, verOpt, validity, provenances)
@@ -73,7 +73,10 @@ func TestGenerateEndorsement_SingleValidProvenance(t *testing.T) {
 
 func TestGenerateEndorsement_NoProvenance(t *testing.T) {
 	verOpts := &prover.VerificationOptions{
-		// No ProvenanceReferenceValues to allow provenance-less endorsement generation.
+		// Skip verification to allow provenance-less endorsement generation.
+		Option: &prover.VerificationOptions_SkipProvenanceVerification{
+			SkipProvenanceVerification: &prover.SkipVerification{},
+		},
 	}
 	tomorrow := time.Now().AddDate(0, 0, 1)
 	nextWeek := time.Now().AddDate(0, 0, 7)
@@ -93,6 +96,39 @@ func TestGenerateEndorsement_NoProvenance(t *testing.T) {
 
 	testutil.AssertEq(t, "notBefore date", predicate.Validity.NotBefore, &tomorrow)
 	testutil.AssertEq(t, "notAfter date", predicate.Validity.NotAfter, &nextWeek)
+
+	// Repeat the same with verification options loaded from file.
+	verOpts, err = loadTextprotoVerificationOptions("../../testdata/skip_verification.textproto")
+	if err != nil {
+		t.Fatalf("Could not load verification options: %v", err)
+	}
+	statement, err = GenerateEndorsement(binaryName, binaryHash, verOpts, validity, []ParsedProvenance{})
+	if err != nil {
+		t.Fatalf("Could not generate provenance-less endorsement: %v", err)
+	}
+
+	testutil.AssertEq(t, "binary hash", statement.Subject[0].Digest["sha256"], binaryHash)
+	testutil.AssertEq(t, "binary name", statement.Subject[0].Name, binaryName)
+
+	predicate = statement.Predicate.(claims.ClaimPredicate)
+
+	testutil.AssertEq(t, "notBefore date", predicate.Validity.NotBefore, &tomorrow)
+	testutil.AssertEq(t, "notAfter date", predicate.Validity.NotAfter, &nextWeek)
+}
+
+func TestGenerateEndorsement_InvalidVerificationOptions(t *testing.T) {
+	tomorrow := time.Now().AddDate(0, 0, 1)
+	nextWeek := time.Now().AddDate(0, 0, 7)
+	validity := claims.ClaimValidity{
+		NotBefore: &tomorrow,
+		NotAfter:  &nextWeek,
+	}
+
+	verOpts := &prover.VerificationOptions{}
+	_, err := GenerateEndorsement(binaryName, binaryHash, verOpts, validity, []ParsedProvenance{})
+	if err == nil || !strings.Contains(err.Error(), "invalid VerificationOptions") {
+		t.Fatalf("got %q, want error message containing %q,", err, "invalid VerificationOptions:")
+	}
 }
 
 func TestLoadAndVerifyProvenances_MultipleValidProvenances(t *testing.T) {
@@ -110,7 +146,9 @@ func TestLoadAndVerifyProvenances_MultipleValidProvenances(t *testing.T) {
 	}
 
 	verOpts := &prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{},
+		Option: &prover.VerificationOptions_ReferenceProvenance{
+			ReferenceProvenance: &prover.ProvenanceReferenceValues{},
+		},
 	}
 	provenanceSet, err := verifyAndSummarizeProvenances(binaryName, binaryHash, verOpts, provenances)
 	if err != nil {
@@ -140,7 +178,9 @@ func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
 	verOpts := &prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{},
+		Option: &prover.VerificationOptions_ReferenceProvenance{
+			ReferenceProvenance: &prover.ProvenanceReferenceValues{},
+		},
 	}
 
 	// Provenances do not contain the given reference binary SHA256 digest value, but are consistent.
@@ -166,7 +206,9 @@ func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
 	verOpt := prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{},
+		Option: &prover.VerificationOptions_ReferenceProvenance{
+			ReferenceProvenance: &prover.ProvenanceReferenceValues{},
+		},
 	}
 
 	// Provenances each contain a (different) given reference binary SHA256 digest value, but are inconsistent.
@@ -192,7 +234,9 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
 	verOpt := &prover.VerificationOptions{
-		ReferenceProvenance: &prover.ProvenanceReferenceValues{},
+		Option: &prover.VerificationOptions_ReferenceProvenance{
+			ReferenceProvenance: &prover.ProvenanceReferenceValues{},
+		},
 	}
 
 	_, err = verifyAndSummarizeProvenances(binaryName, binaryHash+"_diff", verOpt, provenances)
@@ -217,7 +261,7 @@ func TestLoadAndVerifyProvenances_NotVerified(t *testing.T) {
 	}
 	verOpts, err := loadTextprotoVerificationOptions("../../testdata/different_reference_values.textproto")
 	if err != nil {
-		t.Fatalf("Could not load reference values: %v", err)
+		t.Fatalf("Could not load verification options: %v", err)
 	}
 
 	_, err = verifyAndSummarizeProvenances(binaryName, "a_different_digest", verOpts, provenances)

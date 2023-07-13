@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package main contains a command-line tool for verifying SLSA provenances.
-
 syntax = "proto3";
 
 package verification.provenance.v1;
@@ -21,10 +19,16 @@ package verification.provenance.v1;
 option go_package = "proto/verification";
 
 message VerificationOptions {
-    // The absence of a reference provenance indicates that provenance verification can be skipped.
-    optional ProvenanceReferenceValues reference_provenance = 1;
+    oneof option {
+        SkipVerification skip_provenance_verification = 1;
+        ProvenanceReferenceValues reference_provenance = 2;
+    }
 }
 
+// A singleton value to indicate that verification can be skipped.
+message SkipVerification{}
+
+// A collection of reference values for verifying provenance statements.
 message ProvenanceReferenceValues {
     bool must_have_build_command = 1;
     optional Digests reference_builder_image_digests = 3;
@@ -32,14 +36,15 @@ message ProvenanceReferenceValues {
     optional StringAllowList reference_builders = 5;
 }
 
-// Represents an allow listed map of digests. 
+// An allow list of digests, represented as a mapping from cryptographic hash
+// function names, to their allow listed values. 
 message Digests {
     // Keys are cryptographic hash algorithms (e.g., sha256).
     // Values are acceptable digests.
     map<string, StringAllowList> digests = 1;
 }
 
-// Represents an allow list of values.
+// An allow list of string values.
 message StringAllowList {
     repeated string values = 1;
 }

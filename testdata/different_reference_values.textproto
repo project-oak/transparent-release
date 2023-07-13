@@ -1,5 +1,4 @@
 reference_provenance: {
-    must_have_build_command: true
     reference_builder_image_digests: {
         digests: {
             key: "sha256"
