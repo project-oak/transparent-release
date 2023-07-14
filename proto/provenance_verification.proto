@@ -31,9 +31,9 @@ message SkipVerification{}
 // A collection of reference values for verifying provenance statements.
 message ProvenanceReferenceValues {
     bool must_have_build_command = 1;
-    optional Digests reference_builder_image_digests = 3;
+    Digests reference_builder_image_digests = 3;
     string reference_repo_uri = 4;
-    optional StringAllowList reference_builders = 5;
+    StringAllowList reference_builders = 5;
 }
 
 // An allow list of digests, represented as a mapping from cryptographic hash
