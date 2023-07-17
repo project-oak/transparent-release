@@ -29,7 +29,7 @@ import (
 	"go.uber.org/multierr"
 
 	"github.com/project-oak/transparent-release/internal/model"
-	"github.com/project-oak/transparent-release/internal/verification"
+	"github.com/project-oak/transparent-release/internal/verifier"
 	"github.com/project-oak/transparent-release/pkg/claims"
 	"github.com/project-oak/transparent-release/pkg/intoto"
 	prover "github.com/project-oak/transparent-release/pkg/proto/verification"
@@ -117,7 +117,7 @@ func verifyAndSummarizeProvenances(binaryName, binaryDigest string, verOpt *prov
 func verifyProvenances(referenceValues *prover.ProvenanceReferenceValues, provenances []model.ProvenanceIR) error {
 	var errs error
 	for index := range provenances {
-		provenanceVerifier := verification.ProvenanceIRVerifier{
+		provenanceVerifier := verifier.ProvenanceIRVerifier{
 			Got:  &provenances[index],
 			Want: referenceValues,
 		}

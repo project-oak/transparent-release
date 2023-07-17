@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package verification provides a function for verifying a SLSA provenance file.
-package verification
+package verifier
 
 import (
 	"fmt"
