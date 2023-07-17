@@ -1,5 +1,0 @@
-binary_sha256_digests = ["d059c38cea82047ad316a1c6c6fbd13ecf7a0abdcc375463920bd25bf5c142cc"]
-want_build_cmds = false
-builder_image_sha256_digests = ["9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"]
-repo_uri = "git+https://github.com/project-oak/oak@refs/heads/main"
-trusted_builders = ["https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"]

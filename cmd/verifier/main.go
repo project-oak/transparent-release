@@ -21,7 +21,8 @@ import (
 	"os"
 
 	"github.com/project-oak/transparent-release/internal/model"
-	"github.com/project-oak/transparent-release/internal/verification"
+	"github.com/project-oak/transparent-release/internal/verifier"
+	prover "github.com/project-oak/transparent-release/pkg/proto/verification"
 )
 
 func main() {
@@ -44,9 +45,9 @@ func main() {
 		log.Fatalf("couldn't map from %s to internal representation: %v", validatedProvenance, err)
 	}
 
-	provenanceVerifier := verification.ProvenanceIRVerifier{
+	provenanceVerifier := verifier.ProvenanceIRVerifier{
 		Got:  provenanceIR,
-		Want: &verification.ReferenceValues{},
+		Want: &prover.ProvenanceReferenceValues{},
 	}
 
 	if err := provenanceVerifier.Verify(); err != nil {

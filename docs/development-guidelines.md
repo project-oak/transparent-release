@@ -23,3 +23,27 @@ You need to have:
 - Format files: `./scripts/formatting.sh`
 - Check linting: `./scripts/linting.sh`
 - Additional checks: `go vet ./...`
+
+## Using protocol buffers
+
+See instructions for compiling protocol buffers in the
+[original guide](https://protobuf.dev/getting-started/gotutorial/#compiling-protocol-buffers). Here
+is a summary:
+
+1. If you haven’t installed the compiler, [download the package](https://protobuf.dev/downloads) and
+   follow the instructions in the README.
+
+2. Run the following command to install the Go protocol buffers plugin:
+
+```bash
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+```
+
+3. Run the compiler to generate the go code. Specify the source directory (where your application’s
+   source code lives – the current directory is used if you don’t provide a value), the destination
+   directory (where you want the generated code to go; often the same as $SRC_DIR), and the path to
+   your .proto:
+
+```bash
+protoc -I=$SRC_DIR --go_out=$DST_DIR $SRC_DIR/provenance_verification.proto
+```

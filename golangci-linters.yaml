@@ -65,7 +65,7 @@ linters:
     - noctx
     - nolintlint
     - nonamedreturns
-    - nosnakecase
+    # - nosnakecase
     - nosprintfhostport
     # Might be nice to enable it later.
     # - paralleltest
@@ -160,7 +160,7 @@ linters:
     # - noctx
     # - nolintlint
     # - nonamedreturns
-    # - nosnakecase
+    - nosnakecase
     # - nosprintfhostport
     - paralleltest
     # - prealloc

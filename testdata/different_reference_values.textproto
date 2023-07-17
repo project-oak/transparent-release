@@ -1,0 +1,9 @@
+reference_provenance: {
+    reference_builder_image_digests: {
+        digests: {
+            key: "sha256"
+            value: { values: ["another_different_digest"]}
+        }
+    }
+    reference_repo_uri: "some_different_repo"
+}

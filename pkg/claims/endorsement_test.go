@@ -68,6 +68,25 @@ func TestNotAfterBeforeNotBeforeEndorsement(t *testing.T) {
 	}
 }
 
+func TestGenerateProvenanceLessEndorsement(t *testing.T) {
+	newNotBefore := time.Now().AddDate(0, 0, 1)
+	newNotAfter := time.Now().AddDate(0, 0, 3)
+
+	validity := ClaimValidity{
+		NotBefore: &newNotBefore,
+		NotAfter:  &newNotAfter,
+	}
+
+	provenances := VerifiedProvenanceSet{
+		BinaryName:   "SomeBinary",
+		BinaryDigest: "813841dda3818d616aa3e706e49d0286dc825c5dbad4a75cfb37b91ba412238b",
+	}
+	endorsement := GenerateEndorsementStatement(validity, provenances)
+	if err := validateClaim(*endorsement); err != nil {
+		t.Fatalf("Invalid endorsement: %v", err)
+	}
+}
+
 // Helper function for creating new test cases from the hard-coded one.
 func tweakValidity(t *testing.T, daysAddedToNotBefore, daysAddedToNotAfter int) []byte {
 	examplePath := "../../schema/claim/v1/example.json"
