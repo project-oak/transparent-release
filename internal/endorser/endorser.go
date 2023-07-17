@@ -48,10 +48,13 @@ type ParsedProvenance struct {
 // and the given validity duration, using the given provenances as evidence and
 // VerificationOptions to verify them. If more than one provenance statements
 // are provided the endorsement statement is generated only if the provenance
-// statements are consistent and valid according to the input
-// VerificationOptions. If no provenances are provided, a provenance-less
+// statements are consistent. If VerificationOptions contains a
+// ReferenceProvenance, the input provenances must as well be valid according
+// to the reference values provided in it to pass the verification. If the
+// verification is passed, the input provenances are included as evidence in
+// the generated endorsement. If no provenances are provided, a provenance-less
 // endorsement is generated, if the input VerificationOptions does not contain
-// a reference provenance.
+// a ReferenceProvenance.
 func GenerateEndorsement(binaryName, binaryDigest string, verOpt *prover.VerificationOptions, validityDuration claims.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
 	if (verOpt.GetSkipProvenanceVerification() == nil) && (verOpt.GetReferenceProvenance() == nil) {
 		return nil, fmt.Errorf("invalid VerificationOptions: exactly one of SkipProvenanceVerification and ReferenceProvenance must be set")

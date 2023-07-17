@@ -116,6 +116,116 @@ func TestGenerateEndorsement_NoProvenance(t *testing.T) {
 	testutil.AssertEq(t, "notAfter date", predicate.Validity.NotAfter, &nextWeek)
 }
 
+func TestGenerateEndorsement_SingleProvenance_SkipVerification(t *testing.T) {
+	verOpts := &prover.VerificationOptions{
+		// Skip verification against reference values.
+		Option: &prover.VerificationOptions_SkipProvenanceVerification{
+			SkipProvenanceVerification: &prover.SkipVerification{},
+		},
+	}
+	tomorrow := time.Now().AddDate(0, 0, 1)
+	nextWeek := time.Now().AddDate(0, 0, 7)
+	validity := claims.ClaimValidity{
+		NotBefore: &tomorrow,
+		NotAfter:  &nextWeek,
+	}
+
+	tempPath, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
+	if err != nil {
+		t.Fatalf("Could not load provenance: %v", err)
+	}
+	tempURI := "file://" + tempPath
+	provenances, err := LoadProvenances([]string{tempURI})
+	if err != nil {
+		t.Fatalf("Could not load provenances: %v", err)
+	}
+
+	statement, err := GenerateEndorsement(binaryName, binaryHash, verOpts, validity, provenances)
+	if err != nil {
+		t.Fatalf("Could not generate provenance-less endorsement: %v", err)
+	}
+
+	testutil.AssertEq(t, "binary hash", statement.Subject[0].Digest["sha256"], binaryHash)
+	testutil.AssertEq(t, "binary name", statement.Subject[0].Name, binaryName)
+
+	predicate := statement.Predicate.(claims.ClaimPredicate)
+
+	testutil.AssertEq(t, "notBefore date", predicate.Validity.NotBefore, &tomorrow)
+	testutil.AssertEq(t, "notAfter date", predicate.Validity.NotAfter, &nextWeek)
+	testutil.AssertEq(t, "evidence length", len(predicate.Evidence), 1)
+}
+
+func TestGenerateEndorsement_SingleInvalidProvenance_SkipVerification(t *testing.T) {
+	verOpts := &prover.VerificationOptions{
+		// Skip verification against reference values.
+		Option: &prover.VerificationOptions_SkipProvenanceVerification{
+			SkipProvenanceVerification: &prover.SkipVerification{},
+		},
+	}
+	tomorrow := time.Now().AddDate(0, 0, 1)
+	nextWeek := time.Now().AddDate(0, 0, 7)
+	validity := claims.ClaimValidity{
+		NotBefore: &tomorrow,
+		NotAfter:  &nextWeek,
+	}
+
+	tempPath, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
+	if err != nil {
+		t.Fatalf("Could not load provenance: %v", err)
+	}
+	tempURI := "file://" + tempPath
+	provenances, err := LoadProvenances([]string{tempURI})
+	if err != nil {
+		t.Fatalf("Could not load provenances: %v", err)
+	}
+
+	_, err = GenerateEndorsement(binaryName+"_diff", binaryHash, verOpts, validity, provenances)
+	if err == nil || !strings.Contains(err.Error(), "does not match the given binary name") {
+		t.Fatalf("got %q, want error message containing %q,", err, "does not match the given binary name")
+	}
+}
+
+func TestLoadAndVerifyProvenances_MultipleValidProvenances_SkipVerification(t *testing.T) {
+	tempPath1, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
+	if err != nil {
+		t.Fatalf("Could not load provenance: %v", err)
+	}
+	tempPath2, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
+	if err != nil {
+		t.Fatalf("Could not load provenance: %v", err)
+	}
+	provenances, err := LoadProvenances([]string{"file://" + tempPath1, "file://" + tempPath2})
+	if err != nil {
+		t.Fatalf("Could not load provenances: %v", err)
+	}
+	tomorrow := time.Now().AddDate(0, 0, 1)
+	nextWeek := time.Now().AddDate(0, 0, 7)
+	validity := claims.ClaimValidity{
+		NotBefore: &tomorrow,
+		NotAfter:  &nextWeek,
+	}
+
+	verOpts := &prover.VerificationOptions{
+		// Skip verification.
+		Option: &prover.VerificationOptions_SkipProvenanceVerification{
+			SkipProvenanceVerification: &prover.SkipVerification{},
+		},
+	}
+	statement, err := GenerateEndorsement(binaryName, binaryHash, verOpts, validity, provenances)
+	if err != nil {
+		t.Fatalf("Could not generate provenance-less endorsement: %v", err)
+	}
+
+	testutil.AssertEq(t, "binary hash", statement.Subject[0].Digest["sha256"], binaryHash)
+	testutil.AssertEq(t, "binary name", statement.Subject[0].Name, binaryName)
+
+	predicate := statement.Predicate.(claims.ClaimPredicate)
+
+	testutil.AssertEq(t, "notBefore date", predicate.Validity.NotBefore, &tomorrow)
+	testutil.AssertEq(t, "notAfter date", predicate.Validity.NotAfter, &nextWeek)
+	testutil.AssertEq(t, "evidence length", len(predicate.Evidence), 2)
+}
+
 func TestGenerateEndorsement_InvalidVerificationOptions(t *testing.T) {
 	tomorrow := time.Now().AddDate(0, 0, 1)
 	nextWeek := time.Now().AddDate(0, 0, 7)

@@ -20,12 +20,13 @@ option go_package = "proto/verification";
 
 message VerificationOptions {
     oneof option {
+        // If this is set, and no provenances are provided, the verification does not result in any errors.
         SkipVerification skip_provenance_verification = 1;
         ProvenanceReferenceValues reference_provenance = 2;
     }
 }
 
-// A singleton value to indicate that verification can be skipped.
+// A singleton value to indicate that verification against reference values can be skipped.
 message SkipVerification{}
 
 // A collection of reference values for verifying provenance statements.
