@@ -56,8 +56,7 @@ func (v *ProvenanceIRVerifier) Verify() error {
 // verifyBuildCmd verifies the build cmd. Returns an error if a build command is
 // needed in the Want reference values, but is not present in the Got provenance.
 func (v *ProvenanceIRVerifier) verifyBuildCmd() error {
-	mustHaveBuildCommand := v.Want.GetMustHaveBuildCommand()
-	if mustHaveBuildCommand && v.Got.HasBuildCmd() {
+	if v.Want.GetMustHaveBuildCommand() && v.Got.HasBuildCmd() {
 		if buildCmd, err := v.Got.BuildCmd(); err != nil || len(buildCmd) == 0 {
 			return fmt.Errorf("no build cmd found")
 		}
@@ -81,7 +80,7 @@ func (v *ProvenanceIRVerifier) verifyBuilderImageDigest() error {
 	}
 
 	if err := verifySHA256Digest(gotBuilderImageDigest, referenceDigests); err != nil {
-		return fmt.Errorf("verifying builder image SHA356 digest: %v", err)
+		return fmt.Errorf("verifying builder image SHA256 digest: %v", err)
 	}
 	return nil
 }

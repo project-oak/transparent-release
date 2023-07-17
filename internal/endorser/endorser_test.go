@@ -59,32 +59,17 @@ func createProvenanceList(t *testing.T, paths []string) []ParsedProvenance {
 	return provenances
 }
 
-func TestGenerateEndorsement_SingleValidProvenance(t *testing.T) {
-	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json"})
-	validity := createClaimValidity(7)
-
-	verOpt, err := loadTextprotoVerificationOptions("../../testdata/reference_values.textproto")
-	if err != nil {
-		t.Fatalf("Could not load verification options: %v", err)
+func TestGenerateEndorsement_InvalidVerificationOptions(t *testing.T) {
+	verOpts := &prover.VerificationOptions{}
+	_, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(7), []ParsedProvenance{})
+	if err == nil || !strings.Contains(err.Error(), "invalid VerificationOptions") {
+		t.Fatalf("got %q, want error message containing %q,", err, "invalid VerificationOptions:")
 	}
-
-	statement, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpt, validity, provenances)
-	if err != nil {
-		t.Fatalf("Could not generate endorsement from %q: %v", provenances[0].SourceMetadata.URI, err)
-	}
-
-	testutil.AssertEq(t, "binary hash", statement.Subject[0].Digest["sha256"], binaryDigestSha256)
-	testutil.AssertEq(t, "binary name", statement.Subject[0].Name, binaryName)
-
-	predicate := statement.Predicate.(claims.ClaimPredicate)
-
-	testutil.AssertEq(t, "notBefore date", predicate.Validity.NotBefore, validity.NotBefore)
-	testutil.AssertEq(t, "notAfter date", predicate.Validity.NotAfter, validity.NotAfter)
 }
 
 func TestGenerateEndorsement_NoProvenance_EndorseProvenanceLess(t *testing.T) {
 	verOpts := &prover.VerificationOptions{
-		// Skip verification to allow provenance-less endorsement generation.
+		// Allow provenance-less endorsement generation.
 		Option: &prover.VerificationOptions_EndorseProvenanceLess{
 			EndorseProvenanceLess: &prover.EndorseProvenanceLess{},
 		},
@@ -113,7 +98,6 @@ func TestGenerateEndorsement_NoProvenance_EndorseProvenanceLess(t *testing.T) {
 
 func TestGenerateEndorsement_SingleProvenance_EndorseProvenanceLess(t *testing.T) {
 	verOpts := &prover.VerificationOptions{
-		// Skip verification against reference values.
 		Option: &prover.VerificationOptions_EndorseProvenanceLess{
 			EndorseProvenanceLess: &prover.EndorseProvenanceLess{},
 		},
@@ -134,7 +118,6 @@ func TestGenerateEndorsement_SingleProvenance_EndorseProvenanceLess(t *testing.T
 
 func TestGenerateEndorsement_SingleInvalidProvenance_EndorseProvenanceLess(t *testing.T) {
 	verOpts := &prover.VerificationOptions{
-		// Skip verification against reference values.
 		Option: &prover.VerificationOptions_EndorseProvenanceLess{
 			EndorseProvenanceLess: &prover.EndorseProvenanceLess{},
 		},
@@ -183,12 +166,27 @@ func TestLoadAndVerify_MultipleInconsistentProvenances_EndorseProvenanceLess(t *
 	}
 }
 
-func TestGenerateEndorsement_InvalidVerificationOptions(t *testing.T) {
-	verOpts := &prover.VerificationOptions{}
-	_, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(7), []ParsedProvenance{})
-	if err == nil || !strings.Contains(err.Error(), "invalid VerificationOptions") {
-		t.Fatalf("got %q, want error message containing %q,", err, "invalid VerificationOptions:")
+func TestGenerateEndorsement_SingleValidProvenance(t *testing.T) {
+	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json"})
+	validity := createClaimValidity(7)
+
+	verOpt, err := loadTextprotoVerificationOptions("../../testdata/reference_values.textproto")
+	if err != nil {
+		t.Fatalf("Could not load verification options: %v", err)
 	}
+
+	statement, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpt, validity, provenances)
+	if err != nil {
+		t.Fatalf("Could not generate endorsement from %q: %v", provenances[0].SourceMetadata.URI, err)
+	}
+
+	testutil.AssertEq(t, "binary hash", statement.Subject[0].Digest["sha256"], binaryDigestSha256)
+	testutil.AssertEq(t, "binary name", statement.Subject[0].Name, binaryName)
+
+	predicate := statement.Predicate.(claims.ClaimPredicate)
+
+	testutil.AssertEq(t, "notBefore date", predicate.Validity.NotBefore, validity.NotBefore)
+	testutil.AssertEq(t, "notAfter date", predicate.Validity.NotAfter, validity.NotAfter)
 }
 
 func TestLoadAndVerifyProvenances_MultipleValidProvenances(t *testing.T) {
