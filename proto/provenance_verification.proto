@@ -18,16 +18,19 @@ package verification.provenance.v1;
 
 option go_package = "proto/verification";
 
+// Options for verifying provenances when generating an endorsement statement.
 message VerificationOptions {
     oneof option {
-        // If this is set, and no provenances are provided, the verification does not result in any errors.
-        SkipVerification skip_provenance_verification = 1;
+        // Allows generating endorsements without any provenances as evidence.
+        // If one or more provenances are provided, the presence of this value
+        // is the same as having an empty reference provenance.
+        EndorseProvenanceLess endorse_provenance_less = 1;
         ProvenanceReferenceValues reference_provenance = 2;
     }
 }
 
-// A singleton value to indicate that verification against reference values can be skipped.
-message SkipVerification{}
+// A singleton value to allow provenance-less endorsement generation.
+message EndorseProvenanceLess{}
 
 // A collection of reference values for verifying provenance statements.
 message ProvenanceReferenceValues {

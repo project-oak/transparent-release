@@ -56,8 +56,8 @@ type ParsedProvenance struct {
 // endorsement is generated, if the input VerificationOptions does not contain
 // a ReferenceProvenance.
 func GenerateEndorsement(binaryName, binaryDigest string, verOpt *prover.VerificationOptions, validityDuration claims.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
-	if (verOpt.GetSkipProvenanceVerification() == nil) && (verOpt.GetReferenceProvenance() == nil) {
-		return nil, fmt.Errorf("invalid VerificationOptions: exactly one of SkipProvenanceVerification and ReferenceProvenance must be set")
+	if (verOpt.GetEndorseProvenanceLess() == nil) && (verOpt.GetReferenceProvenance() == nil) {
+		return nil, fmt.Errorf("invalid VerificationOptions: exactly one of EndorseProvenanceLess and ReferenceProvenance must be set")
 	}
 	verifiedProvenances, err := verifyAndSummarizeProvenances(binaryName, binaryDigest, verOpt, provenances)
 	if err != nil {
@@ -75,7 +75,7 @@ func GenerateEndorsement(binaryName, binaryDigest string, verOpt *prover.Verific
 // (2) Any of the provenances is invalid (see verifyProvenances for details),
 // (3) Provenances do not match (e.g., have different binary names).
 func verifyAndSummarizeProvenances(binaryName, binaryDigest string, verOpt *prover.VerificationOptions, provenances []ParsedProvenance) (*claims.VerifiedProvenanceSet, error) {
-	if len(provenances) == 0 && verOpt.GetSkipProvenanceVerification() == nil {
+	if len(provenances) == 0 && verOpt.GetEndorseProvenanceLess() == nil {
 		return nil, fmt.Errorf("at least one provenance file must be provided")
 	}
 
@@ -113,9 +113,15 @@ func verifyAndSummarizeProvenances(binaryName, binaryDigest string, verOpt *prov
 	return &verifiedProvenances, nil
 }
 
-// verifyProvenances verifies the given list of provenances. An error is returned if verification fails for one of them.
+// verifyProvenances verifies the given list of provenances against the given
+// ProvenanceReferenceValues. An error is returned if verification fails for
+// one of them. No verification is performed if the provided
+// ProvenanceReferenceValues is nil.
 func verifyProvenances(referenceValues *prover.ProvenanceReferenceValues, provenances []model.ProvenanceIR) error {
 	var errs error
+	if referenceValues == nil {
+		return nil
+	}
 	for index := range provenances {
 		provenanceVerifier := verifier.ProvenanceIRVerifier{
 			Got:  &provenances[index],

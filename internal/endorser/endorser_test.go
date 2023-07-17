@@ -34,23 +34,34 @@ const (
 	errorInconsistentProvenances = "provenances are not consistent"
 )
 
-func TestGenerateEndorsement_SingleValidProvenance(t *testing.T) {
+func createClaimValidity(days int) claims.ClaimValidity {
 	tomorrow := time.Now().AddDate(0, 0, 1)
-	nextWeek := time.Now().AddDate(0, 0, 7)
-	validity := claims.ClaimValidity{
+	nextWeek := time.Now().AddDate(0, 0, days)
+	return claims.ClaimValidity{
 		NotBefore: &tomorrow,
 		NotAfter:  &nextWeek,
 	}
+}
 
-	tempPath, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
-	if err != nil {
-		t.Fatalf("Could not load provenance: %v", err)
+func createProvenanceList(t *testing.T, paths []string) []ParsedProvenance {
+	tempURIs := make([]string, 0, len(paths))
+	for _, p := range paths {
+		tempPath, err := copyToTemp(p)
+		if err != nil {
+			t.Fatalf("Could not load provenance: %v", err)
+		}
+		tempURIs = append(tempURIs, "file://"+tempPath)
 	}
-	tempURI := "file://" + tempPath
-	provenances, err := LoadProvenances([]string{tempURI})
+	provenances, err := LoadProvenances(tempURIs)
 	if err != nil {
 		t.Fatalf("Could not load provenances: %v", err)
 	}
+	return provenances
+}
+
+func TestGenerateEndorsement_SingleValidProvenance(t *testing.T) {
+	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json"})
+	validity := createClaimValidity(7)
 
 	verOpt, err := loadTextprotoVerificationOptions("../../testdata/reference_values.textproto")
 	if err != nil {
@@ -67,80 +78,49 @@ func TestGenerateEndorsement_SingleValidProvenance(t *testing.T) {
 
 	predicate := statement.Predicate.(claims.ClaimPredicate)
 
-	testutil.AssertEq(t, "notBefore date", predicate.Validity.NotBefore, &tomorrow)
-	testutil.AssertEq(t, "notAfter date", predicate.Validity.NotAfter, &nextWeek)
+	testutil.AssertEq(t, "notBefore date", predicate.Validity.NotBefore, validity.NotBefore)
+	testutil.AssertEq(t, "notAfter date", predicate.Validity.NotAfter, validity.NotAfter)
 }
 
-func TestGenerateEndorsement_NoProvenance(t *testing.T) {
+func TestGenerateEndorsement_NoProvenance_EndorseProvenanceLess(t *testing.T) {
 	verOpts := &prover.VerificationOptions{
 		// Skip verification to allow provenance-less endorsement generation.
-		Option: &prover.VerificationOptions_SkipProvenanceVerification{
-			SkipProvenanceVerification: &prover.SkipVerification{},
+		Option: &prover.VerificationOptions_EndorseProvenanceLess{
+			EndorseProvenanceLess: &prover.EndorseProvenanceLess{},
 		},
 	}
-	tomorrow := time.Now().AddDate(0, 0, 1)
-	nextWeek := time.Now().AddDate(0, 0, 7)
-	validity := claims.ClaimValidity{
-		NotBefore: &tomorrow,
-		NotAfter:  &nextWeek,
-	}
-	statement, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, validity, []ParsedProvenance{})
+	statement, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(7), []ParsedProvenance{})
 	if err != nil {
 		t.Fatalf("Could not generate provenance-less endorsement: %v", err)
 	}
 
 	testutil.AssertEq(t, "binary hash", statement.Subject[0].Digest["sha256"], binaryDigestSha256)
 	testutil.AssertEq(t, "binary name", statement.Subject[0].Name, binaryName)
-
-	predicate := statement.Predicate.(claims.ClaimPredicate)
-
-	testutil.AssertEq(t, "notBefore date", predicate.Validity.NotBefore, &tomorrow)
-	testutil.AssertEq(t, "notAfter date", predicate.Validity.NotAfter, &nextWeek)
 
 	// Repeat the same with verification options loaded from file.
 	verOpts, err = loadTextprotoVerificationOptions("../../testdata/skip_verification.textproto")
 	if err != nil {
 		t.Fatalf("Could not load verification options: %v", err)
 	}
-	statement, err = GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, validity, []ParsedProvenance{})
+	statement, err = GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(7), []ParsedProvenance{})
 	if err != nil {
 		t.Fatalf("Could not generate provenance-less endorsement: %v", err)
 	}
 
 	testutil.AssertEq(t, "binary hash", statement.Subject[0].Digest["sha256"], binaryDigestSha256)
 	testutil.AssertEq(t, "binary name", statement.Subject[0].Name, binaryName)
-
-	predicate = statement.Predicate.(claims.ClaimPredicate)
-
-	testutil.AssertEq(t, "notBefore date", predicate.Validity.NotBefore, &tomorrow)
-	testutil.AssertEq(t, "notAfter date", predicate.Validity.NotAfter, &nextWeek)
 }
 
-func TestGenerateEndorsement_SingleProvenance_SkipVerification(t *testing.T) {
+func TestGenerateEndorsement_SingleProvenance_EndorseProvenanceLess(t *testing.T) {
 	verOpts := &prover.VerificationOptions{
 		// Skip verification against reference values.
-		Option: &prover.VerificationOptions_SkipProvenanceVerification{
-			SkipProvenanceVerification: &prover.SkipVerification{},
+		Option: &prover.VerificationOptions_EndorseProvenanceLess{
+			EndorseProvenanceLess: &prover.EndorseProvenanceLess{},
 		},
 	}
-	tomorrow := time.Now().AddDate(0, 0, 1)
-	nextWeek := time.Now().AddDate(0, 0, 7)
-	validity := claims.ClaimValidity{
-		NotBefore: &tomorrow,
-		NotAfter:  &nextWeek,
-	}
+	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json"})
 
-	tempPath, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
-	if err != nil {
-		t.Fatalf("Could not load provenance: %v", err)
-	}
-	tempURI := "file://" + tempPath
-	provenances, err := LoadProvenances([]string{tempURI})
-	if err != nil {
-		t.Fatalf("Could not load provenances: %v", err)
-	}
-
-	statement, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, validity, provenances)
+	statement, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(7), provenances)
 	if err != nil {
 		t.Fatalf("Could not generate provenance-less endorsement: %v", err)
 	}
@@ -149,69 +129,33 @@ func TestGenerateEndorsement_SingleProvenance_SkipVerification(t *testing.T) {
 	testutil.AssertEq(t, "binary name", statement.Subject[0].Name, binaryName)
 
 	predicate := statement.Predicate.(claims.ClaimPredicate)
-
-	testutil.AssertEq(t, "notBefore date", predicate.Validity.NotBefore, &tomorrow)
-	testutil.AssertEq(t, "notAfter date", predicate.Validity.NotAfter, &nextWeek)
 	testutil.AssertEq(t, "evidence length", len(predicate.Evidence), 1)
 }
 
-func TestGenerateEndorsement_SingleInvalidProvenance_SkipVerification(t *testing.T) {
+func TestGenerateEndorsement_SingleInvalidProvenance_EndorseProvenanceLess(t *testing.T) {
 	verOpts := &prover.VerificationOptions{
 		// Skip verification against reference values.
-		Option: &prover.VerificationOptions_SkipProvenanceVerification{
-			SkipProvenanceVerification: &prover.SkipVerification{},
+		Option: &prover.VerificationOptions_EndorseProvenanceLess{
+			EndorseProvenanceLess: &prover.EndorseProvenanceLess{},
 		},
 	}
-	tomorrow := time.Now().AddDate(0, 0, 1)
-	nextWeek := time.Now().AddDate(0, 0, 7)
-	validity := claims.ClaimValidity{
-		NotBefore: &tomorrow,
-		NotAfter:  &nextWeek,
-	}
 
-	tempPath, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
-	if err != nil {
-		t.Fatalf("Could not load provenance: %v", err)
-	}
-	tempURI := "file://" + tempPath
-	provenances, err := LoadProvenances([]string{tempURI})
-	if err != nil {
-		t.Fatalf("Could not load provenances: %v", err)
-	}
+	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json"})
 
-	_, err = GenerateEndorsement(binaryName+"_diff", binaryDigestSha256, verOpts, validity, provenances)
+	_, err := GenerateEndorsement(binaryName+"_diff", binaryDigestSha256, verOpts, createClaimValidity(7), provenances)
 	if err == nil || !strings.Contains(err.Error(), "does not match the given binary name") {
 		t.Fatalf("got %q, want error message containing %q,", err, "does not match the given binary name")
 	}
 }
 
-func TestLoadAndVerifyProvenances_MultipleValidProvenances_SkipVerification(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
-	if err != nil {
-		t.Fatalf("Could not load provenance: %v", err)
-	}
-	tempPath2, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
-	if err != nil {
-		t.Fatalf("Could not load provenance: %v", err)
-	}
-	provenances, err := LoadProvenances([]string{"file://" + tempPath1, "file://" + tempPath2})
-	if err != nil {
-		t.Fatalf("Could not load provenances: %v", err)
-	}
-	tomorrow := time.Now().AddDate(0, 0, 1)
-	nextWeek := time.Now().AddDate(0, 0, 7)
-	validity := claims.ClaimValidity{
-		NotBefore: &tomorrow,
-		NotAfter:  &nextWeek,
-	}
-
+func TestLoadAndVerifyProvenances_MultipleValidProvenances_EndorseProvenanceLess(t *testing.T) {
+	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json", "../../testdata/slsa_v02_provenance.json"})
 	verOpts := &prover.VerificationOptions{
-		// Skip verification.
-		Option: &prover.VerificationOptions_SkipProvenanceVerification{
-			SkipProvenanceVerification: &prover.SkipVerification{},
+		Option: &prover.VerificationOptions_EndorseProvenanceLess{
+			EndorseProvenanceLess: &prover.EndorseProvenanceLess{},
 		},
 	}
-	statement, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, validity, provenances)
+	statement, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(7), provenances)
 	if err != nil {
 		t.Fatalf("Could not generate provenance-less endorsement: %v", err)
 	}
@@ -220,40 +164,35 @@ func TestLoadAndVerifyProvenances_MultipleValidProvenances_SkipVerification(t *t
 	testutil.AssertEq(t, "binary name", statement.Subject[0].Name, binaryName)
 
 	predicate := statement.Predicate.(claims.ClaimPredicate)
-
-	testutil.AssertEq(t, "notBefore date", predicate.Validity.NotBefore, &tomorrow)
-	testutil.AssertEq(t, "notAfter date", predicate.Validity.NotAfter, &nextWeek)
 	testutil.AssertEq(t, "evidence length", len(predicate.Evidence), 2)
 }
 
-func TestGenerateEndorsement_InvalidVerificationOptions(t *testing.T) {
-	tomorrow := time.Now().AddDate(0, 0, 1)
-	nextWeek := time.Now().AddDate(0, 0, 7)
-	validity := claims.ClaimValidity{
-		NotBefore: &tomorrow,
-		NotAfter:  &nextWeek,
+func TestLoadAndVerify_MultipleInconsistentProvenances_EndorseProvenanceLess(t *testing.T) {
+	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json", "../../testdata/different_slsa_v02_provenance.json"})
+
+	verOpts := &prover.VerificationOptions{
+		Option: &prover.VerificationOptions_EndorseProvenanceLess{
+			EndorseProvenanceLess: &prover.EndorseProvenanceLess{},
+		},
 	}
 
+	// Provenances each contain a (different) given reference binary SHA256 digest value, but are inconsistent.
+	_, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(3), provenances)
+	if err == nil || !strings.Contains(err.Error(), errorInconsistentProvenances) {
+		t.Fatalf("got %q, want error message containing %q,", err, errorInconsistentProvenances)
+	}
+}
+
+func TestGenerateEndorsement_InvalidVerificationOptions(t *testing.T) {
 	verOpts := &prover.VerificationOptions{}
-	_, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, validity, []ParsedProvenance{})
+	_, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(7), []ParsedProvenance{})
 	if err == nil || !strings.Contains(err.Error(), "invalid VerificationOptions") {
 		t.Fatalf("got %q, want error message containing %q,", err, "invalid VerificationOptions:")
 	}
 }
 
 func TestLoadAndVerifyProvenances_MultipleValidProvenances(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
-	if err != nil {
-		t.Fatalf("Could not load provenance: %v", err)
-	}
-	tempPath2, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
-	if err != nil {
-		t.Fatalf("Could not load provenance: %v", err)
-	}
-	provenances, err := LoadProvenances([]string{"file://" + tempPath1, "file://" + tempPath2})
-	if err != nil {
-		t.Fatalf("Could not load provenances: %v", err)
-	}
+	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json", "../../testdata/slsa_v02_provenance.json"})
 
 	verOpts := &prover.VerificationOptions{
 		Option: &prover.VerificationOptions_ReferenceProvenance{
@@ -278,15 +217,8 @@ func TestLoadProvenances_FailingSingleRemoteProvenanceEndorsement(t *testing.T) 
 }
 
 func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
-	if err != nil {
-		t.Fatalf("Could not load provenance: %v", err)
-	}
+	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json", "../../testdata/slsa_v02_provenance.json"})
 
-	provenances, err := LoadProvenances([]string{"file://" + tempPath1, "file://" + tempPath1})
-	if err != nil {
-		t.Fatalf("Could not load provenances: %v", err)
-	}
 	verOpts := &prover.VerificationOptions{
 		Option: &prover.VerificationOptions_ReferenceProvenance{
 			ReferenceProvenance: &prover.ProvenanceReferenceValues{},
@@ -294,27 +226,15 @@ func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
 	}
 
 	// Provenances do not contain the given reference binary SHA256 digest value, but are consistent.
-	_, err = verifyAndSummarizeProvenances(binaryName, binaryDigestSha256+"_diff", verOpts, provenances)
+	_, err := verifyAndSummarizeProvenances(binaryName, binaryDigestSha256+"_diff", verOpts, provenances)
 	if err == nil || !strings.Contains(err.Error(), errorBinaryDigest) {
 		t.Fatalf("got %q, want error message containing %q,", err, errorBinaryDigest)
 	}
 }
 
 func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
-	if err != nil {
-		t.Fatalf("Could not load provenance: %v", err)
-	}
+	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json", "../../testdata/different_slsa_v02_provenance.json"})
 
-	tempPath2, err := copyToTemp("../../testdata/different_slsa_v02_provenance.json")
-	if err != nil {
-		t.Fatalf("Could not load provenance: %v", err)
-	}
-
-	provenances, err := LoadProvenances([]string{"file://" + tempPath1, "file://" + tempPath2})
-	if err != nil {
-		t.Fatalf("Could not load provenances: %v", err)
-	}
 	verOpt := prover.VerificationOptions{
 		Option: &prover.VerificationOptions_ReferenceProvenance{
 			ReferenceProvenance: &prover.ProvenanceReferenceValues{},
@@ -322,34 +242,22 @@ func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
 	}
 
 	// Provenances each contain a (different) given reference binary SHA256 digest value, but are inconsistent.
-	_, err = verifyAndSummarizeProvenances(binaryName, binaryDigestSha256, &verOpt, provenances)
+	_, err := verifyAndSummarizeProvenances(binaryName, binaryDigestSha256, &verOpt, provenances)
 	if err == nil || !strings.Contains(err.Error(), errorInconsistentProvenances) {
 		t.Fatalf("got %q, want error message containing %q,", err, errorInconsistentProvenances)
 	}
 }
 
 func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
-	if err != nil {
-		t.Fatalf("Could not load provenance: %v", err)
-	}
+	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json", "../../testdata/different_slsa_v02_provenance.json"})
 
-	tempPath2, err := copyToTemp("../../testdata/different_slsa_v02_provenance.json")
-	if err != nil {
-		t.Fatalf("Could not load provenance: %v", err)
-	}
-
-	provenances, err := LoadProvenances([]string{"file://" + tempPath1, "file://" + tempPath2})
-	if err != nil {
-		t.Fatalf("Could not load provenances: %v", err)
-	}
 	verOpt := &prover.VerificationOptions{
 		Option: &prover.VerificationOptions_ReferenceProvenance{
 			ReferenceProvenance: &prover.ProvenanceReferenceValues{},
 		},
 	}
 
-	_, err = verifyAndSummarizeProvenances(binaryName, binaryDigestSha256+"_diff", verOpt, provenances)
+	_, err := verifyAndSummarizeProvenances(binaryName, binaryDigestSha256+"_diff", verOpt, provenances)
 	if err == nil || !strings.Contains(err.Error(), errorBinaryDigest) {
 		t.Fatalf("got %q, want error message containing %q,", err, errorBinaryDigest)
 	}
@@ -360,15 +268,8 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 }
 
 func TestLoadAndVerifyProvenances_NotVerified(t *testing.T) {
-	tempPath1, err := copyToTemp("../../testdata/slsa_v02_provenance.json")
-	if err != nil {
-		t.Fatalf("Could not load provenance: %v", err)
-	}
+	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json"})
 
-	provenances, err := LoadProvenances([]string{"file://" + tempPath1})
-	if err != nil {
-		t.Fatalf("Could not load provenances: %v", err)
-	}
 	verOpts, err := loadTextprotoVerificationOptions("../../testdata/different_reference_values.textproto")
 	if err != nil {
 		t.Fatalf("Could not load verification options: %v", err)

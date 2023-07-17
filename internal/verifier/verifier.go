@@ -34,7 +34,6 @@ type ProvenanceIRVerifier struct {
 // Verify checks fields, which (i) are set in Got, i.e., GotHasX is true, and (ii) are set in Want.
 func (v *ProvenanceIRVerifier) Verify() error {
 	var errs error
-
 	// Verify HasBuildCmd.
 	multierr.AppendInto(&errs, v.verifyBuildCmd())
 
