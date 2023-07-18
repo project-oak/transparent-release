@@ -41,7 +41,7 @@ message ProvenanceReferenceValues {
 }
 
 // An allow list of digests, represented as a mapping from cryptographic hash
-// function names, to their allow listed values. 
+// function names, to their allow listed values.
 message Digests {
     // Keys are cryptographic hash algorithms (e.g., sha256).
     // Values are acceptable digests.

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package verification provides a function for verifying a SLSA provenance file.
+// Package verifier provides a function for verifying a SLSA provenance file.
 package verifier
 
 import (
