@@ -19,7 +19,14 @@ import (
 	"fmt"
 
 	"github.com/project-oak/transparent-release/pkg/intoto"
+	"github.com/secure-systems-lab/go-securesystemslib/dsse"
 )
+
+// sigstoreBundle is a partial representation of a Sigstore Bundle.
+// See https://github.com/sigstore/protobuf-specs/blob/main/protos/sigstore_bundle.proto
+type sigstoreBundle struct {
+	DSSEEnvelope *dsse.Envelope `json:"dsseEnvelope"`
+}
 
 // ValidatedProvenance wraps an intoto.Statement representing a valid SLSA provenance statement.
 // A provenance statement is valid if it contains a single subject, with a SHA256 hash.
@@ -84,4 +91,50 @@ func ParseStatementData(statementBytes []byte) (*ValidatedProvenance, error) {
 	}
 
 	return &ValidatedProvenance{provenance: statement}, nil
+}
+
+// ParseEnvelope (1) parses the given bytes as a DSSE envelope; (2) if that is
+// successful, parses the envelope payload into an intoto.Statement; (3) if
+// that is successful, parses the statement into a ValidatedProvenance; (4) and
+// returns it if the operation is successful, or an error otherwise.
+// If step(1) fails, parses the given bytes into a Sigstore bundle, and if
+// successful, performs the rest of the steps with the envelope inside the
+// bundle. Returns with an error otherwise.
+func ParseEnvelope(bytes []byte) (*ValidatedProvenance, error) {
+	var envelope dsse.Envelope
+	if err := json.Unmarshal(bytes, &envelope); err != nil {
+		return nil, fmt.Errorf("unmarshal bytes as a DSSE envelope: %w", err)
+	}
+
+	if envelope.Payload == "" {
+		e, err := parseSigstoreBundle(bytes)
+		if err != nil {
+			return nil, fmt.Errorf("parsing bytes as a SigstoreBundle: %w", err)
+		}
+		envelope = *e
+	}
+
+	payload, err := envelope.DecodeB64Payload()
+	if err != nil {
+		return nil, fmt.Errorf("decode payload: %w", err)
+	}
+
+	vp, err := ParseStatementData(payload)
+	if err != nil {
+		return nil, fmt.Errorf("parsing DSSE payload: %w", err)
+	}
+
+	return vp, nil
+}
+
+// parseSigstoreBundle parses the given bytes into a Sigstore bundle, and
+// extracts the DSSE envelope from it.
+// See https://github.com/slsa-framework/slsa-verifier/blob/623cf20a23f3360549eafac6efe1a158960f15f9/verifiers/internal/gha/bundle.go#L64-L80
+func parseSigstoreBundle(bytes []byte) (*dsse.Envelope, error) {
+	var bundle sigstoreBundle
+	if err := json.Unmarshal(bytes, &bundle); err != nil {
+		return nil, fmt.Errorf("unmarshal bytes as a sigstore bundle: %w", err)
+	}
+
+	return bundle.DSSEEnvelope, nil
 }

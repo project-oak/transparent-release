@@ -27,6 +27,7 @@ import (
 	"os"
 
 	"go.uber.org/multierr"
+	"google.golang.org/protobuf/encoding/prototext"
 
 	"github.com/project-oak/transparent-release/internal/model"
 	"github.com/project-oak/transparent-release/internal/verifier"
@@ -187,11 +188,16 @@ func LoadProvenance(provenanceURI string) (*ParsedProvenance, error) {
 	if err != nil {
 		return nil, fmt.Errorf("couldn't load the provenance bytes from %s: %v", provenanceURI, err)
 	}
+
 	// Parse into a validated provenance to get the predicate/build type of the provenance.
 	validatedProvenance, err := model.ParseStatementData(provenanceBytes)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't parse bytes from %s into a validated provenance: %v", provenanceURI, err)
+		validatedProvenance, err = model.ParseEnvelope(provenanceBytes)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't parse bytes from %s into a validated provenance: %v", provenanceURI, err)
+		}
 	}
+
 	// Map to internal provenance representation based on the predicate/build type.
 	provenanceIR, err := model.FromValidatedProvenance(validatedProvenance)
 	if err != nil {
@@ -222,6 +228,20 @@ func GetProvenanceBytes(provenanceURI string) ([]byte, error) {
 	}
 
 	return nil, fmt.Errorf("unsupported URI scheme (%q)", uri.Scheme)
+}
+
+// LoadTextprotoVerificationOptions loads VerificationOptions from a .textproto
+// file in the given path.
+func LoadTextprotoVerificationOptions(path string) (*prover.VerificationOptions, error) {
+	bytes, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("reading provenance verification options from %q: %v", path, err)
+	}
+	var opt prover.VerificationOptions
+	if err := prototext.Unmarshal(bytes, &opt); err != nil {
+		return nil, fmt.Errorf("unmarshal bytes to VerificationOptions: %v", err)
+	}
+	return &opt, nil
 }
 
 func getJSONOverHTTP(uri string) ([]byte, error) {
