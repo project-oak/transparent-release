@@ -23,7 +23,7 @@ import (
 
 	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/claims"
-	prover "github.com/project-oak/transparent-release/pkg/proto/verification"
+	pb "github.com/project-oak/transparent-release/pkg/proto/verification"
 )
 
 const (
@@ -59,7 +59,7 @@ func createProvenanceList(t *testing.T, paths []string) []ParsedProvenance {
 }
 
 func TestGenerateEndorsement_InvalidVerificationOptions(t *testing.T) {
-	verOpts := &prover.VerificationOptions{}
+	verOpts := &pb.VerificationOptions{}
 	_, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(7), []ParsedProvenance{})
 	if err == nil || !strings.Contains(err.Error(), "invalid VerificationOptions") {
 		t.Fatalf("got %q, want error message containing %q,", err, "invalid VerificationOptions:")
@@ -67,10 +67,10 @@ func TestGenerateEndorsement_InvalidVerificationOptions(t *testing.T) {
 }
 
 func TestGenerateEndorsement_NoProvenance_EndorseProvenanceLess(t *testing.T) {
-	verOpts := &prover.VerificationOptions{
+	verOpts := &pb.VerificationOptions{
 		// Allow provenance-less endorsement generation.
-		Option: &prover.VerificationOptions_EndorseProvenanceLess{
-			EndorseProvenanceLess: &prover.EndorseProvenanceLess{},
+		Option: &pb.VerificationOptions_EndorseProvenanceLess{
+			EndorseProvenanceLess: &pb.EndorseProvenanceLess{},
 		},
 	}
 	statement, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(7), []ParsedProvenance{})
@@ -96,9 +96,9 @@ func TestGenerateEndorsement_NoProvenance_EndorseProvenanceLess(t *testing.T) {
 }
 
 func TestGenerateEndorsement_SingleProvenance_EndorseProvenanceLess(t *testing.T) {
-	verOpts := &prover.VerificationOptions{
-		Option: &prover.VerificationOptions_EndorseProvenanceLess{
-			EndorseProvenanceLess: &prover.EndorseProvenanceLess{},
+	verOpts := &pb.VerificationOptions{
+		Option: &pb.VerificationOptions_EndorseProvenanceLess{
+			EndorseProvenanceLess: &pb.EndorseProvenanceLess{},
 		},
 	}
 	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json"})
@@ -116,9 +116,9 @@ func TestGenerateEndorsement_SingleProvenance_EndorseProvenanceLess(t *testing.T
 }
 
 func TestGenerateEndorsement_SingleInvalidProvenance_EndorseProvenanceLess(t *testing.T) {
-	verOpts := &prover.VerificationOptions{
-		Option: &prover.VerificationOptions_EndorseProvenanceLess{
-			EndorseProvenanceLess: &prover.EndorseProvenanceLess{},
+	verOpts := &pb.VerificationOptions{
+		Option: &pb.VerificationOptions_EndorseProvenanceLess{
+			EndorseProvenanceLess: &pb.EndorseProvenanceLess{},
 		},
 	}
 
@@ -132,9 +132,9 @@ func TestGenerateEndorsement_SingleInvalidProvenance_EndorseProvenanceLess(t *te
 
 func TestLoadAndVerifyProvenances_MultipleValidProvenances_EndorseProvenanceLess(t *testing.T) {
 	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json", "../../testdata/slsa_v02_provenance.json"})
-	verOpts := &prover.VerificationOptions{
-		Option: &prover.VerificationOptions_EndorseProvenanceLess{
-			EndorseProvenanceLess: &prover.EndorseProvenanceLess{},
+	verOpts := &pb.VerificationOptions{
+		Option: &pb.VerificationOptions_EndorseProvenanceLess{
+			EndorseProvenanceLess: &pb.EndorseProvenanceLess{},
 		},
 	}
 	statement, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(7), provenances)
@@ -152,9 +152,9 @@ func TestLoadAndVerifyProvenances_MultipleValidProvenances_EndorseProvenanceLess
 func TestLoadAndVerify_MultipleInconsistentProvenances_EndorseProvenanceLess(t *testing.T) {
 	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json", "../../testdata/different_slsa_v02_provenance.json"})
 
-	verOpts := &prover.VerificationOptions{
-		Option: &prover.VerificationOptions_EndorseProvenanceLess{
-			EndorseProvenanceLess: &prover.EndorseProvenanceLess{},
+	verOpts := &pb.VerificationOptions{
+		Option: &pb.VerificationOptions_EndorseProvenanceLess{
+			EndorseProvenanceLess: &pb.EndorseProvenanceLess{},
 		},
 	}
 
@@ -191,9 +191,9 @@ func TestGenerateEndorsement_SingleValidProvenance(t *testing.T) {
 func TestLoadAndVerifyProvenances_MultipleValidProvenances(t *testing.T) {
 	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json", "../../testdata/slsa_v02_provenance.json"})
 
-	verOpts := &prover.VerificationOptions{
-		Option: &prover.VerificationOptions_ReferenceProvenance{
-			ReferenceProvenance: &prover.ProvenanceReferenceValues{},
+	verOpts := &pb.VerificationOptions{
+		Option: &pb.VerificationOptions_ReferenceProvenance{
+			ReferenceProvenance: &pb.ProvenanceReferenceValues{},
 		},
 	}
 	provenanceSet, err := verifyAndSummarizeProvenances(binaryName, binaryDigestSha256, verOpts, provenances)
@@ -216,9 +216,9 @@ func TestLoadProvenances_FailingSingleRemoteProvenanceEndorsement(t *testing.T) 
 func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
 	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json", "../../testdata/slsa_v02_provenance.json"})
 
-	verOpts := &prover.VerificationOptions{
-		Option: &prover.VerificationOptions_ReferenceProvenance{
-			ReferenceProvenance: &prover.ProvenanceReferenceValues{},
+	verOpts := &pb.VerificationOptions{
+		Option: &pb.VerificationOptions_ReferenceProvenance{
+			ReferenceProvenance: &pb.ProvenanceReferenceValues{},
 		},
 	}
 
@@ -232,9 +232,9 @@ func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
 func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
 	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json", "../../testdata/different_slsa_v02_provenance.json"})
 
-	verOpt := prover.VerificationOptions{
-		Option: &prover.VerificationOptions_ReferenceProvenance{
-			ReferenceProvenance: &prover.ProvenanceReferenceValues{},
+	verOpt := pb.VerificationOptions{
+		Option: &pb.VerificationOptions_ReferenceProvenance{
+			ReferenceProvenance: &pb.ProvenanceReferenceValues{},
 		},
 	}
 
@@ -248,9 +248,9 @@ func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
 func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json", "../../testdata/different_slsa_v02_provenance.json"})
 
-	verOpt := &prover.VerificationOptions{
-		Option: &prover.VerificationOptions_ReferenceProvenance{
-			ReferenceProvenance: &prover.ProvenanceReferenceValues{},
+	verOpt := &pb.VerificationOptions{
+		Option: &pb.VerificationOptions_ReferenceProvenance{
+			ReferenceProvenance: &pb.ProvenanceReferenceValues{},
 		},
 	}
 

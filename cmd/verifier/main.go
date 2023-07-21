@@ -22,7 +22,7 @@ import (
 
 	"github.com/project-oak/transparent-release/internal/model"
 	"github.com/project-oak/transparent-release/internal/verifier"
-	prover "github.com/project-oak/transparent-release/pkg/proto/verification"
+	pb "github.com/project-oak/transparent-release/pkg/proto/verification"
 )
 
 func main() {
@@ -47,7 +47,7 @@ func main() {
 
 	provenanceVerifier := verifier.ProvenanceIRVerifier{
 		Got:  provenanceIR,
-		Want: &prover.ProvenanceReferenceValues{},
+		Want: &pb.ProvenanceReferenceValues{},
 	}
 
 	if err := provenanceVerifier.Verify(); err != nil {

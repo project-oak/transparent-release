@@ -19,7 +19,7 @@ import (
 	"fmt"
 
 	"github.com/project-oak/transparent-release/internal/model"
-	prover "github.com/project-oak/transparent-release/pkg/proto/verification"
+	pb "github.com/project-oak/transparent-release/pkg/proto/verification"
 	"go.uber.org/multierr"
 )
 
@@ -27,7 +27,7 @@ import (
 // all non-empty fields in got using fields in the reference values. Empty fields will not be verified.
 type ProvenanceIRVerifier struct {
 	Got  *model.ProvenanceIR
-	Want *prover.ProvenanceReferenceValues
+	Want *pb.ProvenanceReferenceValues
 }
 
 // Verify verifies an instance of ProvenanceIRVerifier by comparing its Got and Want fields.
@@ -128,7 +128,7 @@ func (v *ProvenanceIRVerifier) verifyTrustedBuilder() error {
 }
 
 // verifySHA256Digest verifies that a given SHA256 is among the given digests.
-func verifySHA256Digest(got string, want *prover.Digests) error {
+func verifySHA256Digest(got string, want *pb.Digests) error {
 	if want == nil {
 		return nil
 	}
