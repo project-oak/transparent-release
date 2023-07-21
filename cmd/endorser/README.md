@@ -16,7 +16,7 @@ to the options in the provided verification options file, and if the verificatio
 generates an endorsement statement, with the given provenances listed in the endorsement statement's
 evidence field.
 
-Example execution with not provenances:
+Example execution without provenances:
 
 ```bash
 go run cmd/endorser/main.go \

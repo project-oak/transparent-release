@@ -28,8 +28,8 @@ import (
 	"github.com/project-oak/transparent-release/pkg/claims"
 )
 
-// layout represents the expected date format.
-const layout = "20060102"
+// ISO 8601 layout for representing input dates.
+const layout = "2006-01-02"
 
 type provenanceURIsFlag []string
 
@@ -47,22 +47,18 @@ type digest struct {
 	value string
 }
 
-func main() {
-	// Current time in UTC time zone since it is used by OSS-Fuzz.
-	currentTime := time.Now().UTC()
-	defaultNotBefore := currentTime.AddDate(0, 0, 1).Format(layout)
-	defaultNotAfter := currentTime.AddDate(0, 0, 90).Format(layout)
+var (
+	binaryDigest        = flag.String("binary_digest", "", "Digest of the binary to endorse, of the form alg:value. Accepted values for alg include sha256, and sha2-256")
+	binaryName          = flag.String("binary_name", "", "Name of the binary to endorse. Should match the name in provenances, if provenance URIs are provided.")
+	verificationOptions = flag.String("verification_options", "", "Path to a textproto file containing verification options.")
+	endorsementPath     = flag.String("endorsement_path", "endorsement.json", "Output path to store the generated endorsement statement.")
+	notBefore           = flag.String("not_before", "", "The date from which the endorsement is effective, formatted as YYYY-MM-DD. Defaults to 1 day after the issuance date.")
+	notAfter            = flag.String("not_after", "", "The expiry date of the endorsement, formatted as YYYY-MM-DD. Defaults to 90 day after the issuance date.")
+)
 
+func main() {
 	var provenanceURIs provenanceURIsFlag
 
-	binaryDigest := flag.String("binary_digest", "", "Digest of the binary to endorse, of the form alg:value. Accepted values for alg include sha256, and sha2-256")
-	binaryName := flag.String("binary_name", "", "Name of the binary to endorse. Should match the name in provenances, if provenance URIs are provided.")
-	verificationOptions := flag.String("verification_options", "", "Output path to a textproto file containing verification options.")
-	endorsementPath := flag.String("endorsement_path", "endorsement.json", "Output path to store the generated endorsement statement in.")
-	notBefore := flag.String("not_before", defaultNotBefore,
-		"Optional -  The date from which the endorsement is effective. The expected date format is YYYYMMDD. Defaults to 1 day after the issuance date.")
-	notAfter := flag.String("not_after", defaultNotAfter,
-		"Required - The expiry date of the endorsement. The expected date format is YYYYMMDD. Defaults to 90 day after the issuance date.")
 	flag.Var(&provenanceURIs, "provenance_uris", "URIs of the provenances.")
 	flag.Parse()
 
@@ -93,28 +89,41 @@ func main() {
 
 	bytes, err := json.MarshalIndent(endorsement, "", "    ")
 	if err != nil {
-		log.Fatalf("could not marshal the fuzzing claim: %v", err)
+		log.Fatalf("could not marshal the endorsement: %v", err)
 	}
 
 	if err := os.WriteFile(*endorsementPath, bytes, 0600); err != nil {
-		log.Fatalf("could not write the fuzzing claim file: %v", err)
+		log.Fatalf("could not write the endorsement statement to file: %v", err)
 	}
 	log.Printf("The endorsement statement is successfully stored in %s", *endorsementPath)
 }
 
 func getClaimValidity(notBefore, notAfter string) (*claims.ClaimValidity, error) {
-	notBeforeDate, err := time.Parse(layout, notBefore)
+	// We only care about the date, but we want to format it with RFC3339,
+	// so we need a time object, with only the date part.
+	currentTime := time.Now().UTC().Truncate(24 * time.Hour)
+
+	notBeforeDate, err := parseOrDefaultDate(notBefore, currentTime.AddDate(0, 0, 1))
 	if err != nil {
 		return nil, fmt.Errorf("parsing notBefore date (%q): %v", notBefore, err)
 	}
-	notAfterDate, err := time.Parse(layout, notAfter)
+
+	notAfterDate, err := parseOrDefaultDate(notAfter, currentTime.AddDate(0, 0, 90))
 	if err != nil {
 		return nil, fmt.Errorf("parsing notAfter date (%q): %v", notAfter, err)
 	}
+
 	return &claims.ClaimValidity{
 		NotBefore: &notBeforeDate,
 		NotAfter:  &notAfterDate,
 	}, nil
+}
+
+func parseOrDefaultDate(date string, value time.Time) (time.Time, error) {
+	if date == "" {
+		return value, nil
+	}
+	return time.Parse(layout, date)
 }
 
 func parseDigest(input string) (*digest, error) {
