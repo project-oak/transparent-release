@@ -47,42 +47,52 @@ type digest struct {
 	value string
 }
 
-var (
-	binaryDigest        = flag.String("binary_digest", "", "Digest of the binary to endorse, of the form alg:value. Accepted values for alg include sha256, and sha2-256")
-	binaryName          = flag.String("binary_name", "", "Name of the binary to endorse. Should match the name in provenances, if provenance URIs are provided.")
-	verificationOptions = flag.String("verification_options", "", "Path to a textproto file containing verification options.")
-	endorsementPath     = flag.String("endorsement_path", "endorsement.json", "Output path to store the generated endorsement statement.")
-	notBefore           = flag.String("not_before", "", "The date from which the endorsement is effective, formatted as YYYY-MM-DD. Defaults to 1 day after the issuance date.")
-	notAfter            = flag.String("not_after", "", "The expiry date of the endorsement, formatted as YYYY-MM-DD. Defaults to 90 day after the issuance date.")
-)
+type inputOptions struct {
+	binaryDigest        string
+	binaryName          string
+	verificationOptions string
+	endorsementPath     string
+	notBefore           string
+	notAfter            string
+	provenanceURIs      provenanceURIsFlag
+}
+
+func (i *inputOptions) init() {
+	flag.StringVar(&i.binaryDigest, "binary_digest", "", "Digest of the binary to endorse, of the form alg:value. Accepted values for alg include sha256, and sha2-256")
+	flag.StringVar(&i.binaryName, "binary_name", "", "Name of the binary to endorse. Should match the name in provenances, if provenance URIs are provided.")
+	flag.StringVar(&i.verificationOptions, "verification_options", "", "Path to a textproto file containing verification options.")
+	flag.StringVar(&i.endorsementPath, "endorsement_path", "endorsement.json", "Output path to store the generated endorsement statement.")
+	flag.StringVar(&i.notBefore, "not_before", "", "The date from which the endorsement is effective, formatted as YYYY-MM-DD. Defaults to 1 day after the issuance date.")
+	flag.StringVar(&i.notAfter, "not_after", "", "The expiry date of the endorsement, formatted as YYYY-MM-DD. Defaults to 90 day after the issuance date.")
+	flag.Var(&i.provenanceURIs, "provenance_uris", "URIs of the provenances.")
+	flag.Parse()
+}
 
 func main() {
-	var provenanceURIs provenanceURIsFlag
+	opt := inputOptions{}
+	opt.init()
 
-	flag.Var(&provenanceURIs, "provenance_uris", "URIs of the provenances.")
-	flag.Parse()
-
-	digest, err := parseDigest(*binaryDigest)
+	digest, err := parseDigest(opt.binaryDigest)
 	if err != nil {
 		log.Fatalf("parsing binaryDigest: %v", err)
 	}
 
-	validity, err := getClaimValidity(*notBefore, *notAfter)
+	validity, err := getClaimValidity(opt.notBefore, opt.notAfter)
 	if err != nil {
 		log.Fatalf("creating claimValidity: %v", err)
 	}
 
-	verOpts, err := endorser.LoadTextprotoVerificationOptions(*verificationOptions)
+	verOpts, err := endorser.LoadTextprotoVerificationOptions(opt.verificationOptions)
 	if err != nil {
-		log.Fatalf("couldn't load the verification options from %s: %v", *verificationOptions, err)
+		log.Fatalf("couldn't load the verification options from %s: %v", opt.verificationOptions, err)
 	}
 
-	provenances, err := endorser.LoadProvenances(provenanceURIs)
+	provenances, err := endorser.LoadProvenances(opt.provenanceURIs)
 	if err != nil {
 		log.Fatalf("Could not load provenances: %v", err)
 	}
 
-	endorsement, err := endorser.GenerateEndorsement(*binaryName, digest.value, verOpts, *validity, provenances)
+	endorsement, err := endorser.GenerateEndorsement(opt.binaryName, digest.value, verOpts, *validity, provenances)
 	if err != nil {
 		log.Fatalf("couldn't generate endorsement statement %v", err)
 	}
@@ -92,10 +102,10 @@ func main() {
 		log.Fatalf("could not marshal the endorsement: %v", err)
 	}
 
-	if err := os.WriteFile(*endorsementPath, bytes, 0600); err != nil {
+	if err := os.WriteFile(opt.endorsementPath, bytes, 0600); err != nil {
 		log.Fatalf("could not write the endorsement statement to file: %v", err)
 	}
-	log.Printf("The endorsement statement is successfully stored in %s", *endorsementPath)
+	log.Printf("The endorsement statement is successfully stored in %s", opt.endorsementPath)
 }
 
 func getClaimValidity(notBefore, notAfter string) (*claims.ClaimValidity, error) {
