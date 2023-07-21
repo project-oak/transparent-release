@@ -24,7 +24,6 @@ import (
 	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/claims"
 	prover "github.com/project-oak/transparent-release/pkg/proto/verification"
-	"google.golang.org/protobuf/encoding/prototext"
 )
 
 const (
@@ -83,7 +82,7 @@ func TestGenerateEndorsement_NoProvenance_EndorseProvenanceLess(t *testing.T) {
 	testutil.AssertEq(t, "binary name", statement.Subject[0].Name, binaryName)
 
 	// Repeat the same with verification options loaded from file.
-	verOpts, err = loadTextprotoVerificationOptions("../../testdata/skip_verification.textproto")
+	verOpts, err = LoadTextprotoVerificationOptions("../../testdata/skip_verification.textproto")
 	if err != nil {
 		t.Fatalf("Could not load verification options: %v", err)
 	}
@@ -170,7 +169,7 @@ func TestGenerateEndorsement_SingleValidProvenance(t *testing.T) {
 	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json"})
 	validity := createClaimValidity(7)
 
-	verOpt, err := loadTextprotoVerificationOptions("../../testdata/reference_values.textproto")
+	verOpt, err := LoadTextprotoVerificationOptions("../../testdata/reference_values.textproto")
 	if err != nil {
 		t.Fatalf("Could not load verification options: %v", err)
 	}
@@ -268,7 +267,7 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 func TestLoadAndVerifyProvenances_NotVerified(t *testing.T) {
 	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json"})
 
-	verOpts, err := loadTextprotoVerificationOptions("../../testdata/different_reference_values.textproto")
+	verOpts, err := LoadTextprotoVerificationOptions("../../testdata/different_reference_values.textproto")
 	if err != nil {
 		t.Fatalf("Could not load verification options: %v", err)
 	}
@@ -303,16 +302,4 @@ func copyToTemp(path string) (string, error) {
 	}
 
 	return tmpfile.Name(), nil
-}
-
-func loadTextprotoVerificationOptions(path string) (*prover.VerificationOptions, error) {
-	bytes, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("reading provenance verification options from %q: %v", path, err)
-	}
-	var opt prover.VerificationOptions
-	if err := prototext.Unmarshal(bytes, &opt); err != nil {
-		return nil, fmt.Errorf("unmarshal bytes to VerificationOptions: %v", err)
-	}
-	return &opt, nil
 }
