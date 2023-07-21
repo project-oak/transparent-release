@@ -33,7 +33,7 @@ import (
 	"github.com/project-oak/transparent-release/internal/verifier"
 	"github.com/project-oak/transparent-release/pkg/claims"
 	"github.com/project-oak/transparent-release/pkg/intoto"
-	prover "github.com/project-oak/transparent-release/pkg/proto/verification"
+	pb "github.com/project-oak/transparent-release/pkg/proto/verification"
 )
 
 // ParsedProvenance contains a provenance in the internal ProvenanceIR format,
@@ -57,7 +57,7 @@ type ParsedProvenance struct {
 // provided, a provenance-less endorsement is generated, only if the input
 // VerificationOptions has the EndorseProvenanceLess field set. An error is
 // returned in all other cases.
-func GenerateEndorsement(binaryName, binaryDigest string, verOpt *prover.VerificationOptions, validityDuration claims.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
+func GenerateEndorsement(binaryName, binaryDigest string, verOpt *pb.VerificationOptions, validityDuration claims.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
 	if (verOpt.GetEndorseProvenanceLess() == nil) && (verOpt.GetReferenceProvenance() == nil) {
 		return nil, fmt.Errorf("invalid VerificationOptions: exactly one of EndorseProvenanceLess and ReferenceProvenance must be set")
 	}
@@ -77,7 +77,7 @@ func GenerateEndorsement(binaryName, binaryDigest string, verOpt *prover.Verific
 // (2) Any of the provenances is invalid (see verifyProvenances for details),
 // (3) Provenances do not match (e.g., have different binary names).
 // (4) Provenances match but don't match the input binary name or digest.
-func verifyAndSummarizeProvenances(binaryName, binaryDigest string, verOpt *prover.VerificationOptions, provenances []ParsedProvenance) (*claims.VerifiedProvenanceSet, error) {
+func verifyAndSummarizeProvenances(binaryName, binaryDigest string, verOpt *pb.VerificationOptions, provenances []ParsedProvenance) (*claims.VerifiedProvenanceSet, error) {
 	if len(provenances) == 0 && verOpt.GetEndorseProvenanceLess() == nil {
 		return nil, fmt.Errorf("at least one provenance file must be provided")
 	}
@@ -120,7 +120,7 @@ func verifyAndSummarizeProvenances(binaryName, binaryDigest string, verOpt *prov
 // ProvenanceReferenceValues. An error is returned if verification fails for
 // one of them. No verification is performed if the provided
 // ProvenanceReferenceValues is nil.
-func verifyProvenances(referenceValues *prover.ProvenanceReferenceValues, provenances []model.ProvenanceIR) error {
+func verifyProvenances(referenceValues *pb.ProvenanceReferenceValues, provenances []model.ProvenanceIR) error {
 	var errs error
 	if referenceValues == nil {
 		return nil
@@ -235,12 +235,12 @@ func GetProvenanceBytes(provenanceURI string) ([]byte, error) {
 
 // LoadTextprotoVerificationOptions loads VerificationOptions from a .textproto
 // file in the given path.
-func LoadTextprotoVerificationOptions(path string) (*prover.VerificationOptions, error) {
+func LoadTextprotoVerificationOptions(path string) (*pb.VerificationOptions, error) {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("reading provenance verification options from %q: %v", path, err)
 	}
-	var opt prover.VerificationOptions
+	var opt pb.VerificationOptions
 	if err := prototext.Unmarshal(bytes, &opt); err != nil {
 		return nil, fmt.Errorf("unmarshal bytes to VerificationOptions: %v", err)
 	}
