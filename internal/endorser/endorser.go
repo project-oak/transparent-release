@@ -190,11 +190,14 @@ func LoadProvenance(provenanceURI string) (*ParsedProvenance, error) {
 	}
 
 	// Parse into a validated provenance to get the predicate/build type of the provenance.
+	var errs error
 	validatedProvenance, err := model.ParseStatementData(provenanceBytes)
 	if err != nil {
+		errs = multierr.Append(errs, fmt.Errorf("parsing bytes as an in-toto statement: %v", err))
 		validatedProvenance, err = model.ParseEnvelope(provenanceBytes)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't parse bytes from %s into a validated provenance: %v", provenanceURI, err)
+			errs = multierr.Append(errs, fmt.Errorf("parsing bytes as a DSSE envelop: %v", err))
+			return nil, fmt.Errorf("couldn't parse bytes from %s into a validated provenance: %v", provenanceURI, errs)
 		}
 	}
 

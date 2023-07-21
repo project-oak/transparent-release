@@ -58,12 +58,18 @@ type inputOptions struct {
 }
 
 func (i *inputOptions) init() {
-	flag.StringVar(&i.binaryDigest, "binary_digest", "", "Digest of the binary to endorse, of the form alg:value. Accepted values for alg include sha256, and sha2-256")
-	flag.StringVar(&i.binaryName, "binary_name", "", "Name of the binary to endorse. Should match the name in provenances, if provenance URIs are provided.")
-	flag.StringVar(&i.verificationOptions, "verification_options", "", "Path to a textproto file containing verification options.")
-	flag.StringVar(&i.endorsementPath, "endorsement_path", "endorsement.json", "Output path to store the generated endorsement statement.")
-	flag.StringVar(&i.notBefore, "not_before", "", "The date from which the endorsement is effective, formatted as YYYY-MM-DD. Defaults to 1 day after the issuance date.")
-	flag.StringVar(&i.notAfter, "not_after", "", "The expiry date of the endorsement, formatted as YYYY-MM-DD. Defaults to 90 day after the issuance date.")
+	flag.StringVar(&i.binaryDigest, "binary_digest", "",
+		"Digest of the binary to endorse, of the form alg:value. Accepted values for alg include sha256, and sha2-256")
+	flag.StringVar(&i.binaryName, "binary_name", "",
+		"Name of the binary to endorse. Should match the name in provenances, if provenance URIs are provided.")
+	flag.StringVar(&i.verificationOptions, "verification_options", "",
+		"Path to a textproto file containing verification options.")
+	flag.StringVar(&i.endorsementPath, "endorsement_path", "endorsement.json",
+		"Output path to store the generated endorsement statement.")
+	flag.StringVar(&i.notBefore, "not_before", "",
+		"The date from which the endorsement is effective, formatted as YYYY-MM-DD. Defaults to 1 day after the issuance date.")
+	flag.StringVar(&i.notAfter, "not_after", "",
+		"The expiry date of the endorsement, formatted as YYYY-MM-DD. Defaults to 90 day after the issuance date.")
 	flag.Var(&i.provenanceURIs, "provenance_uris", "URIs of the provenances.")
 	flag.Parse()
 }
@@ -74,51 +80,53 @@ func main() {
 
 	digest, err := parseDigest(opt.binaryDigest)
 	if err != nil {
-		log.Fatalf("parsing binaryDigest: %v", err)
+		log.Fatalf("Failed parsing binaryDigest: %v", err)
 	}
 
 	validity, err := getClaimValidity(opt.notBefore, opt.notAfter)
 	if err != nil {
-		log.Fatalf("creating claimValidity: %v", err)
+		log.Fatalf("Failed creating claimValidity: %v", err)
 	}
 
 	verOpts, err := endorser.LoadTextprotoVerificationOptions(opt.verificationOptions)
 	if err != nil {
-		log.Fatalf("couldn't load the verification options from %s: %v", opt.verificationOptions, err)
+		log.Fatalf("Failed loading the verification options from %s: %v", opt.verificationOptions, err)
 	}
 
 	provenances, err := endorser.LoadProvenances(opt.provenanceURIs)
 	if err != nil {
-		log.Fatalf("Could not load provenances: %v", err)
+		log.Fatalf("Failed loading provenances: %v", err)
 	}
 
 	endorsement, err := endorser.GenerateEndorsement(opt.binaryName, digest.value, verOpts, *validity, provenances)
 	if err != nil {
-		log.Fatalf("couldn't generate endorsement statement %v", err)
+		log.Fatalf("Failed generating endorsement statement %v", err)
 	}
 
 	bytes, err := json.MarshalIndent(endorsement, "", "    ")
 	if err != nil {
-		log.Fatalf("could not marshal the endorsement: %v", err)
+		log.Fatalf("Failed marshalling the endorsement: %v", err)
 	}
 
 	if err := os.WriteFile(opt.endorsementPath, bytes, 0600); err != nil {
-		log.Fatalf("could not write the endorsement statement to file: %v", err)
+		log.Fatalf("Failed writing the endorsement statement to file: %v", err)
 	}
+
 	log.Printf("The endorsement statement is successfully stored in %s", opt.endorsementPath)
 }
 
 func getClaimValidity(notBefore, notAfter string) (*claims.ClaimValidity, error) {
-	// We only care about the date, but we want to format it with RFC3339,
-	// so we need a time object, with only the date part.
+	// We only care about the date, but we want to store it as an
+	// RFC3339-encoded timestamp. So we need a Time object, but with only the
+	// date part.
 	currentTime := time.Now().UTC().Truncate(24 * time.Hour)
 
-	notBeforeDate, err := parseOrDefaultDate(notBefore, currentTime.AddDate(0, 0, 1))
+	notBeforeDate, err := parseDateOrDefault(notBefore, currentTime.AddDate(0, 0, 1))
 	if err != nil {
 		return nil, fmt.Errorf("parsing notBefore date (%q): %v", notBefore, err)
 	}
 
-	notAfterDate, err := parseOrDefaultDate(notAfter, currentTime.AddDate(0, 0, 90))
+	notAfterDate, err := parseDateOrDefault(notAfter, currentTime.AddDate(0, 0, 90))
 	if err != nil {
 		return nil, fmt.Errorf("parsing notAfter date (%q): %v", notAfter, err)
 	}
@@ -129,7 +137,7 @@ func getClaimValidity(notBefore, notAfter string) (*claims.ClaimValidity, error)
 	}, nil
 }
 
-func parseOrDefaultDate(date string, value time.Time) (time.Time, error) {
+func parseDateOrDefault(date string, value time.Time) (time.Time, error) {
 	if date == "" {
 		return value, nil
 	}
@@ -137,7 +145,7 @@ func parseOrDefaultDate(date string, value time.Time) (time.Time, error) {
 }
 
 func parseDigest(input string) (*digest, error) {
-	// We expect the input to be of the form ALG:VALUE
+	// We expect the input to be of the ALG:VALUE form.
 	parts := strings.Split(input, ":")
 	if len(parts) != 2 {
 		return nil, fmt.Errorf("got %s, want ALG:VALUE format", input)

@@ -20,11 +20,13 @@ import (
 
 	"github.com/project-oak/transparent-release/pkg/intoto"
 	"github.com/secure-systems-lab/go-securesystemslib/dsse"
+	"go.uber.org/multierr"
 )
 
 // sigstoreBundle is a partial representation of a Sigstore Bundle.
 // See https://github.com/sigstore/protobuf-specs/blob/main/protos/sigstore_bundle.proto
 type sigstoreBundle struct {
+	// DSSEEnvelope is made public to allow unmarshalling
 	DSSEEnvelope *dsse.Envelope `json:"dsseEnvelope"`
 }
 
@@ -102,14 +104,16 @@ func ParseStatementData(statementBytes []byte) (*ValidatedProvenance, error) {
 // bundle. Returns with an error otherwise.
 func ParseEnvelope(bytes []byte) (*ValidatedProvenance, error) {
 	var envelope dsse.Envelope
+	var errs error
 	if err := json.Unmarshal(bytes, &envelope); err != nil {
-		return nil, fmt.Errorf("unmarshal bytes as a DSSE envelope: %w", err)
+		errs = multierr.Append(errs, fmt.Errorf("unmarshal bytes as a DSSE envelope: %w", err))
 	}
 
 	if envelope.Payload == "" {
 		e, err := parseSigstoreBundle(bytes)
 		if err != nil {
-			return nil, fmt.Errorf("parsing bytes as a SigstoreBundle: %w", err)
+			errs = multierr.Append(errs, fmt.Errorf("parse bytes as a sigstore bundle: %w", err))
+			return nil, fmt.Errorf("getting the DSSE envelope: %w", errs)
 		}
 		envelope = *e
 	}
