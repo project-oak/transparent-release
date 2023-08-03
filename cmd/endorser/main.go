@@ -108,6 +108,9 @@ func main() {
 		log.Fatalf("Failed marshalling the endorsement: %v", err)
 	}
 
+	// Add a newline at the end of the file.
+	newline := byte('\n')
+	bytes = append(bytes, newline)
 	if err := os.WriteFile(opt.endorsementPath, bytes, 0600); err != nil {
 		log.Fatalf("Failed writing the endorsement statement to file: %v", err)
 	}
