@@ -109,7 +109,7 @@ func main() {
 	}
 
 	// Add a newline at the end of the file.
-	newline := []byte("\n")[0]
+	newline := byte('\n')
 	bytes = append(bytes, newline)
 	if err := os.WriteFile(opt.endorsementPath, bytes, 0600); err != nil {
 		log.Fatalf("Failed writing the endorsement statement to file: %v", err)
