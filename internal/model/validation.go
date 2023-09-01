@@ -32,7 +32,7 @@ type sigstoreBundle struct {
 
 // ValidatedProvenance wraps an intoto.Statement representing a valid SLSA
 // provenance statement. A provenance statement is valid if it contains a
-// single subject, with a SHA256 hash.
+// single subject, with a SHA2-256 hash.
 type ValidatedProvenance struct {
 	// The field is private so that invalid instances cannot be created.
 	provenance intoto.Statement
