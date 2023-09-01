@@ -156,7 +156,7 @@ func computeBinaryDigests(path string) (*intoto.DigestSet, error) {
 	sum384 := sha512.Sum384(bytes)
 
 	digestSet := intoto.DigestSet{
-		"sha256":   hex.EncodeToString(sum256[:]),
+		"sha2-256": hex.EncodeToString(sum256[:]),
 		"sha2-512": hex.EncodeToString(sum512[:]),
 		"sha2-384": hex.EncodeToString(sum384[:]),
 	}
