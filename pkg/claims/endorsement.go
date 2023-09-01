@@ -27,12 +27,15 @@ import (
 // together with `ClaimV1` as the predicate type in an in-toto statement.
 const EndorsementV2 = "https://github.com/project-oak/transparent-release/endorsement/v2"
 
-// VerifiedProvenanceSet encapsulates metadata about a non-empty list of verified provenances.
+// VerifiedProvenanceSet encapsulates metadata about a non-empty list of
+// verified provenances.
 type VerifiedProvenanceSet struct {
 	// Name of the binary that all validated provenances agree on.
 	BinaryName string
-	// SHA256 digest of the binary that all validated provenances agree on.
-	BinaryDigest string
+	// DigestSet containing one or more digests of the binary. Must at least
+	// contain one SHA256 (or SHA2-256) entry that all validated provenances
+	// agree on.
+	Digests intoto.DigestSet
 	// Provenances is a possibly empty list of provenance metadata objects.
 	Provenances []ProvenanceData
 }
@@ -127,7 +130,7 @@ func GenerateEndorsementStatement(validity ClaimValidity, provenances VerifiedPr
 
 	subject := intoto.Subject{
 		Name:   provenances.BinaryName,
-		Digest: intoto.DigestSet{"sha256": provenances.BinaryDigest},
+		Digest: provenances.Digests,
 	}
 
 	statementHeader := intoto.StatementHeader{

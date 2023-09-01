@@ -19,6 +19,8 @@ import (
 	"log"
 	"testing"
 	"time"
+
+	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
 func TestExampleEndorsement(t *testing.T) {
@@ -78,8 +80,8 @@ func TestGenerateProvenanceLessEndorsement(t *testing.T) {
 	}
 
 	provenances := VerifiedProvenanceSet{
-		BinaryName:   "SomeBinary",
-		BinaryDigest: "813841dda3818d616aa3e706e49d0286dc825c5dbad4a75cfb37b91ba412238b",
+		BinaryName: "SomeBinary",
+		Digests:    intoto.DigestSet{"sha256": "813841dda3818d616aa3e706e49d0286dc825c5dbad4a75cfb37b91ba412238b"},
 	}
 	endorsement := GenerateEndorsementStatement(validity, provenances)
 	if err := validateClaim(*endorsement); err != nil {

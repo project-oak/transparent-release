@@ -16,16 +16,19 @@
 package main
 
 import (
+	"crypto/sha256"
+	"crypto/sha512"
+	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/project-oak/transparent-release/internal/endorser"
 	"github.com/project-oak/transparent-release/pkg/claims"
+	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
 // ISO 8601 layout for representing input dates.
@@ -42,13 +45,8 @@ func (f *provenanceURIsFlag) Set(value string) error {
 	return nil
 }
 
-type digest struct {
-	alg   string
-	value string
-}
-
 type inputOptions struct {
-	binaryDigest        string
+	binaryPath          string
 	binaryName          string
 	verificationOptions string
 	endorsementPath     string
@@ -58,8 +56,8 @@ type inputOptions struct {
 }
 
 func (i *inputOptions) init() {
-	flag.StringVar(&i.binaryDigest, "binary_digest", "",
-		"Digest of the binary to endorse, of the form alg:value. Accepted values for alg include sha256, and sha2-256")
+	flag.StringVar(&i.binaryPath, "binary_path", "",
+		"Location of the binary in the local file system. This is required for computing various digests.")
 	flag.StringVar(&i.binaryName, "binary_name", "",
 		"Name of the binary to endorse. Should match the name in provenances, if provenance URIs are provided.")
 	flag.StringVar(&i.verificationOptions, "verification_options", "",
@@ -78,7 +76,7 @@ func main() {
 	opt := inputOptions{}
 	opt.init()
 
-	digest, err := parseDigest(opt.binaryDigest)
+	digests, err := computeBinaryDigests(opt.binaryPath)
 	if err != nil {
 		log.Fatalf("Failed parsing binaryDigest: %v", err)
 	}
@@ -98,7 +96,7 @@ func main() {
 		log.Fatalf("Failed loading provenances: %v", err)
 	}
 
-	endorsement, err := endorser.GenerateEndorsement(opt.binaryName, digest.value, verOpts, *validity, provenances)
+	endorsement, err := endorser.GenerateEndorsement(opt.binaryName, *digests, verOpts, *validity, provenances)
 	if err != nil {
 		log.Fatalf("Failed generating endorsement statement %v", err)
 	}
@@ -147,18 +145,20 @@ func parseDateOrDefault(date string, value time.Time) (time.Time, error) {
 	return time.Parse(layout, date)
 }
 
-func parseDigest(input string) (*digest, error) {
-	// We expect the input to be of the ALG:VALUE form.
-	parts := strings.Split(input, ":")
-	if len(parts) != 2 {
-		return nil, fmt.Errorf("got %s, want ALG:VALUE format", input)
+func computeBinaryDigests(path string) (*intoto.DigestSet, error) {
+	bytes, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read bytes from path %q", path)
 	}
-	if !strings.EqualFold("sha256", parts[0]) && !strings.EqualFold("sha2-256", parts[0]) {
-		return nil, fmt.Errorf("unrecognized hash algorithm (%q), must be one of sha256 or sha2-256", parts[0])
+
+	sum256 := sha256.Sum256(bytes)
+	sum512 := sha512.Sum512(bytes)
+	sum384 := sha512.Sum384(bytes)
+
+	digestSet := intoto.DigestSet{
+		"sha256":   hex.EncodeToString(sum256[:]),
+		"sha2-512": hex.EncodeToString(sum512[:]),
+		"sha2-384": hex.EncodeToString(sum384[:]),
 	}
-	digest := digest{
-		alg:   parts[0],
-		value: parts[1],
-	}
-	return &digest, nil
+	return &digestSet, nil
 }

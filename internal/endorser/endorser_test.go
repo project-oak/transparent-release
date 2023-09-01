@@ -60,7 +60,8 @@ func createProvenanceList(t *testing.T, paths []string) []ParsedProvenance {
 
 func TestGenerateEndorsement_InvalidVerificationOptions(t *testing.T) {
 	verOpts := &pb.VerificationOptions{}
-	_, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(7), []ParsedProvenance{})
+	digests := map[string]string{"sha256": binaryDigestSha256}
+	_, err := GenerateEndorsement(binaryName, digests, verOpts, createClaimValidity(7), []ParsedProvenance{})
 	if err == nil || !strings.Contains(err.Error(), "invalid VerificationOptions") {
 		t.Fatalf("got %q, want error message containing %q,", err, "invalid VerificationOptions:")
 	}
@@ -73,7 +74,8 @@ func TestGenerateEndorsement_NoProvenance_EndorseProvenanceLess(t *testing.T) {
 			EndorseProvenanceLess: &pb.EndorseProvenanceLess{},
 		},
 	}
-	statement, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(7), []ParsedProvenance{})
+	digests := map[string]string{"sha256": binaryDigestSha256}
+	statement, err := GenerateEndorsement(binaryName, digests, verOpts, createClaimValidity(7), []ParsedProvenance{})
 	if err != nil {
 		t.Fatalf("Could not generate provenance-less endorsement: %v", err)
 	}
@@ -86,7 +88,7 @@ func TestGenerateEndorsement_NoProvenance_EndorseProvenanceLess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not load verification options: %v", err)
 	}
-	statement, err = GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(7), []ParsedProvenance{})
+	statement, err = GenerateEndorsement(binaryName, digests, verOpts, createClaimValidity(7), []ParsedProvenance{})
 	if err != nil {
 		t.Fatalf("Could not generate provenance-less endorsement: %v", err)
 	}
@@ -103,7 +105,8 @@ func TestGenerateEndorsement_SingleProvenance_EndorseProvenanceLess(t *testing.T
 	}
 	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json"})
 
-	statement, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(7), provenances)
+	digests := map[string]string{"sha256": binaryDigestSha256}
+	statement, err := GenerateEndorsement(binaryName, digests, verOpts, createClaimValidity(7), provenances)
 	if err != nil {
 		t.Fatalf("Could not generate provenance-less endorsement: %v", err)
 	}
@@ -124,7 +127,8 @@ func TestGenerateEndorsement_SingleInvalidProvenance_EndorseProvenanceLess(t *te
 
 	provenances := createProvenanceList(t, []string{"../../testdata/slsa_v02_provenance.json"})
 
-	_, err := GenerateEndorsement(binaryName+"_diff", binaryDigestSha256, verOpts, createClaimValidity(7), provenances)
+	digests := map[string]string{"sha256": binaryDigestSha256}
+	_, err := GenerateEndorsement(binaryName+"_diff", digests, verOpts, createClaimValidity(7), provenances)
 	if err == nil || !strings.Contains(err.Error(), "does not match the given binary name") {
 		t.Fatalf("got %q, want error message containing %q,", err, "does not match the given binary name")
 	}
@@ -137,7 +141,9 @@ func TestLoadAndVerifyProvenances_MultipleValidProvenances_EndorseProvenanceLess
 			EndorseProvenanceLess: &pb.EndorseProvenanceLess{},
 		},
 	}
-	statement, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(7), provenances)
+
+	digests := map[string]string{"sha256": binaryDigestSha256}
+	statement, err := GenerateEndorsement(binaryName, digests, verOpts, createClaimValidity(7), provenances)
 	if err != nil {
 		t.Fatalf("Could not generate provenance-less endorsement: %v", err)
 	}
@@ -159,7 +165,8 @@ func TestLoadAndVerify_MultipleInconsistentProvenances_EndorseProvenanceLess(t *
 	}
 
 	// Provenances each contain a (different) given reference binary SHA256 digest value, but are inconsistent.
-	_, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpts, createClaimValidity(3), provenances)
+	digests := map[string]string{"sha256": binaryDigestSha256}
+	_, err := GenerateEndorsement(binaryName, digests, verOpts, createClaimValidity(3), provenances)
 	if err == nil || !strings.Contains(err.Error(), errorInconsistentProvenances) {
 		t.Fatalf("got %q, want error message containing %q,", err, errorInconsistentProvenances)
 	}
@@ -174,7 +181,8 @@ func TestGenerateEndorsement_SingleValidProvenance(t *testing.T) {
 		t.Fatalf("Could not load verification options: %v", err)
 	}
 
-	statement, err := GenerateEndorsement(binaryName, binaryDigestSha256, verOpt, validity, provenances)
+	digests := map[string]string{"sha256": binaryDigestSha256}
+	statement, err := GenerateEndorsement(binaryName, digests, verOpt, validity, provenances)
 	if err != nil {
 		t.Fatalf("Could not generate endorsement from %q: %v", provenances[0].SourceMetadata.URI, err)
 	}
@@ -196,13 +204,14 @@ func TestLoadAndVerifyProvenances_MultipleValidProvenances(t *testing.T) {
 			ReferenceProvenance: &pb.ProvenanceReferenceValues{},
 		},
 	}
-	provenanceSet, err := verifyAndSummarizeProvenances(binaryName, binaryDigestSha256, verOpts, provenances)
+	digests := map[string]string{"sha256": binaryDigestSha256}
+	provenanceSet, err := verifyAndSummarizeProvenances(binaryName, digests, verOpts, provenances)
 	if err != nil {
 		t.Fatalf("Could not generate endorsement from %q: %v", provenances[0].SourceMetadata.URI, err)
 	}
 
 	testutil.AssertEq(t, "binary name", provenanceSet.BinaryName, binaryName)
-	testutil.AssertEq(t, "binary hash", provenanceSet.BinaryDigest, binaryDigestSha256)
+	testutil.AssertEq(t, "binary hash", provenanceSet.Digests["sha256"], digests["sha256"])
 }
 
 func TestLoadProvenances_FailingSingleRemoteProvenanceEndorsement(t *testing.T) {
@@ -222,8 +231,9 @@ func TestLoadAndVerifyProvenances_ConsistentNotVerified(t *testing.T) {
 		},
 	}
 
+	digest := map[string]string{"sha256": binaryDigestSha256 + "diff"}
 	// Provenances do not contain the given reference binary SHA256 digest value, but are consistent.
-	_, err := verifyAndSummarizeProvenances(binaryName, binaryDigestSha256+"_diff", verOpts, provenances)
+	_, err := verifyAndSummarizeProvenances(binaryName, digest, verOpts, provenances)
 	if err == nil || !strings.Contains(err.Error(), errorBinaryDigest) {
 		t.Fatalf("got %q, want error message containing %q,", err, errorBinaryDigest)
 	}
@@ -239,7 +249,8 @@ func TestLoadAndVerify_InconsistentVerified(t *testing.T) {
 	}
 
 	// Provenances each contain a (different) given reference binary SHA256 digest value, but are inconsistent.
-	_, err := verifyAndSummarizeProvenances(binaryName, binaryDigestSha256, &verOpt, provenances)
+	digests := map[string]string{"sha256": binaryDigestSha256}
+	_, err := verifyAndSummarizeProvenances(binaryName, digests, &verOpt, provenances)
 	if err == nil || !strings.Contains(err.Error(), errorInconsistentProvenances) {
 		t.Fatalf("got %q, want error message containing %q,", err, errorInconsistentProvenances)
 	}
@@ -254,7 +265,8 @@ func TestLoadAndVerify_InconsistentNotVerified(t *testing.T) {
 		},
 	}
 
-	_, err := verifyAndSummarizeProvenances(binaryName, binaryDigestSha256+"_diff", verOpt, provenances)
+	digests := map[string]string{"sha256": binaryDigestSha256 + "_diff"}
+	_, err := verifyAndSummarizeProvenances(binaryName, digests, verOpt, provenances)
 	if err == nil || !strings.Contains(err.Error(), errorBinaryDigest) {
 		t.Fatalf("got %q, want error message containing %q,", err, errorBinaryDigest)
 	}
@@ -272,7 +284,8 @@ func TestLoadAndVerifyProvenances_NotVerified(t *testing.T) {
 		t.Fatalf("Could not load verification options: %v", err)
 	}
 
-	_, err = verifyAndSummarizeProvenances(binaryName, "a_different_digest", verOpts, provenances)
+	digests := map[string]string{"sha256": "a_different_digest"}
+	_, err = verifyAndSummarizeProvenances(binaryName, digests, verOpts, provenances)
 	if err == nil || !strings.Contains(err.Error(), errorBinaryDigest) {
 		t.Fatalf("got %q, want error message containing %q,", err, errorBinaryDigest)
 	}
