@@ -57,11 +57,11 @@ type ParsedProvenance struct {
 // provided, a provenance-less endorsement is generated, only if the input
 // VerificationOptions has the EndorseProvenanceLess field set. An error is
 // returned in all other cases.
-func GenerateEndorsement(binaryName, binaryDigest string, verOpt *pb.VerificationOptions, validityDuration claims.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
+func GenerateEndorsement(binaryName string, digests intoto.DigestSet, verOpt *pb.VerificationOptions, validityDuration claims.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
 	if (verOpt.GetEndorseProvenanceLess() == nil) && (verOpt.GetReferenceProvenance() == nil) {
 		return nil, fmt.Errorf("invalid VerificationOptions: exactly one of EndorseProvenanceLess and ReferenceProvenance must be set")
 	}
-	verifiedProvenances, err := verifyAndSummarizeProvenances(binaryName, binaryDigest, verOpt, provenances)
+	verifiedProvenances, err := verifyAndSummarizeProvenances(binaryName, digests, verOpt, provenances)
 	if err != nil {
 		return nil, fmt.Errorf("could not verify and summarize provenances: %v", err)
 	}
@@ -76,8 +76,8 @@ func GenerateEndorsement(binaryName, binaryDigest string, verOpt *pb.Verificatio
 // its EndorseProvenanceLess field set.
 // (2) Any of the provenances is invalid (see verifyProvenances for details),
 // (3) Provenances do not match (e.g., have different binary names).
-// (4) Provenances match but don't match the input binary name or digest.
-func verifyAndSummarizeProvenances(binaryName, binaryDigest string, verOpt *pb.VerificationOptions, provenances []ParsedProvenance) (*claims.VerifiedProvenanceSet, error) {
+// (4) Provenances match but don't match the input binary name or digests.
+func verifyAndSummarizeProvenances(binaryName string, digests intoto.DigestSet, verOpt *pb.VerificationOptions, provenances []ParsedProvenance) (*claims.VerifiedProvenanceSet, error) {
 	if len(provenances) == 0 && verOpt.GetEndorseProvenanceLess() == nil {
 		return nil, fmt.Errorf("at least one provenance file must be provided")
 	}
@@ -92,10 +92,11 @@ func verifyAndSummarizeProvenances(binaryName, binaryDigest string, verOpt *pb.V
 	var errs error
 	if len(provenanceIRs) > 0 {
 		errs = multierr.Append(verifyConsistency(provenanceIRs), verifyProvenances(verOpt.GetReferenceProvenance(), provenanceIRs))
+		binarySHA256Digest := model.FindBinarySHA256Digest(digests)
 
-		if provenanceIRs[0].BinarySHA256Digest() != binaryDigest {
+		if provenanceIRs[0].BinarySHA256Digest() != binarySHA256Digest {
 			errs = multierr.Append(errs, fmt.Errorf("the binary digest in the provenance (%q) does not match the given binary digest (%q)",
-				provenanceIRs[0].BinarySHA256Digest(), binaryDigest))
+				provenanceIRs[0].BinarySHA256Digest(), binarySHA256Digest))
 		}
 		if provenanceIRs[0].BinaryName() != binaryName {
 			errs = multierr.Append(errs, fmt.Errorf("the binary name in the provenance (%q) does not match the given binary name (%q)",
@@ -104,13 +105,13 @@ func verifyAndSummarizeProvenances(binaryName, binaryDigest string, verOpt *pb.V
 	}
 
 	if errs != nil {
-		return nil, fmt.Errorf("failed while verifying of provenances: %v", errs)
+		return nil, fmt.Errorf("failed when verifying provenances: %v", errs)
 	}
 
 	verifiedProvenances := claims.VerifiedProvenanceSet{
-		BinaryDigest: binaryDigest,
-		BinaryName:   binaryName,
-		Provenances:  provenancesData,
+		Digests:     digests,
+		BinaryName:  binaryName,
+		Provenances: provenancesData,
 	}
 
 	return &verifiedProvenances, nil

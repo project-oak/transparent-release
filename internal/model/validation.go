@@ -30,11 +30,29 @@ type sigstoreBundle struct {
 	DSSEEnvelope *dsse.Envelope `json:"dsseEnvelope"`
 }
 
-// ValidatedProvenance wraps an intoto.Statement representing a valid SLSA provenance statement.
-// A provenance statement is valid if it contains a single subject, with a SHA256 hash.
+// ValidatedProvenance wraps an intoto.Statement representing a valid SLSA
+// provenance statement. A provenance statement is valid if it contains a
+// single subject, with a SHA2-256 hash.
 type ValidatedProvenance struct {
 	// The field is private so that invalid instances cannot be created.
 	provenance intoto.Statement
+}
+
+// FindBinarySHA256Digest looks for a "sha256" or "aha2-256" entry in the input
+// DigestSet, and returns its value, or an empty string if no such digest is
+// found in the digest set.
+func FindBinarySHA256Digest(digestSet intoto.DigestSet) string {
+	binarySHA256Digest, found := digestSet["sha256"]
+	if found {
+		return binarySHA256Digest
+	}
+
+	binarySHA256Digest, found = digestSet["sha2-256"]
+	if found {
+		return binarySHA256Digest
+	}
+
+	return ""
 }
 
 // NewValidatedProvenance validates the given provenance and returns an
@@ -46,7 +64,7 @@ func NewValidatedProvenance(provenance intoto.Statement) (*ValidatedProvenance, 
 
 // GetBinarySHA256Digest returns the SHA256 digest of the subject.
 func (p *ValidatedProvenance) GetBinarySHA256Digest() string {
-	return p.provenance.Subject[0].Digest["sha256"]
+	return FindBinarySHA256Digest(p.provenance.Subject[0].Digest)
 }
 
 // GetBinaryName returns the name of the subject.

@@ -20,8 +20,8 @@ Example execution without provenances:
 
 ```bash
 go run cmd/endorser/main.go \
- --binary_digest=sha256:1234 \
- --binary_name=binary \
+ --binary_path=testdata/binary \
+ --binary_name=stage0_bin \
  --verification_options=testdata/skip_verification.textproto
 ```
 
@@ -30,9 +30,9 @@ Example execution with a provenance URI from ent (for simplicity we pass in
 
 ```bash
 go run cmd/endorser/main.go \
- --binary_digest=sha256:39051983bbb600bbfb91bd22ee4c976420f8f0c6a895fd083dcb0d153ddd5fd6 \
- --binary_name=oak_echo_raw_enclave_app \
- --provenance_uris=https://ent-server-62sa4xcfia-ew.a.run.app/raw/sha256:b28696a8341443e3ba433373c60fe1eba8d96f28c8aff6c5ee03d752dd3b399b \
+ --binary_path=testdata/binary \
+ --binary_name=stage0_bin \
+ --provenance_uris=https://ent-server-62sa4xcfia-ew.a.run.app/raw/sha2-256:94f2b47418b42dde64f678a9d348dde887bfe4deafc8b43f611240fee6cc750a \
  --verification_options=testdata/skip_verification.textproto
 ```
 
