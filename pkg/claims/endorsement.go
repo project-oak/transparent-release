@@ -33,8 +33,7 @@ type VerifiedProvenanceSet struct {
 	// Name of the binary that all validated provenances agree on.
 	BinaryName string
 	// DigestSet containing one or more digests of the binary. Must at least
-	// contain one SHA256 (or SHA2-256) entry that all validated provenances
-	// agree on.
+	// contain one SHA2-256 entry that all validated provenances agree on.
 	Digests intoto.DigestSet
 	// Provenances is a possibly empty list of provenance metadata objects.
 	Provenances []ProvenanceData

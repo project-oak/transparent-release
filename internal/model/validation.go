@@ -38,7 +38,7 @@ type ValidatedProvenance struct {
 	provenance intoto.Statement
 }
 
-// FindBinarySHA256Digest looks for a "sha256" or "aha2-256" entry in the input
+// FindBinarySHA256Digest looks for a "sha256" or "sha2-256" entry in the input
 // DigestSet, and returns its value, or an empty string if no such digest is
 // found in the digest set.
 func FindBinarySHA256Digest(digestSet intoto.DigestSet) string {
