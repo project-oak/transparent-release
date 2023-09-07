@@ -1,0 +1,107 @@
+// Copyright 2023 The Project Oak Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package oak.release;
+
+option go_package = "proto/verifier";
+
+// Defines a verification done on an array of provenances. Each field defines a
+// certain verification step. All steps are joined by a logical AND to form the
+// final verification result (which is a boolean). Since every option can occur
+// at most once, all fields are optional, so an empty proto signifies no
+// verification at all.
+//
+// The outcome of the verification does not depend on the order of provenances
+// in the array, since none of the individual steps depends on order.
+message VerificationOptions {
+  optional VerifyProvenanceCountAtLeast provenance_count_at_least = 1;
+  optional VerifyProvenanceCountAtMost provenance_count_at_most = 2;
+  optional VerifyAllSameBinaryName all_same_binary_name = 3;
+  optional VerifyAllSameBinaryDigest all_same_binary_digest = 4;
+  optional VerifyAllWithBuildCommand all_with_build_command = 5;
+  optional VerifyAllWithBinaryName all_with_binary_name = 6;
+  optional VerifyAllWithBinaryDigests all_with_binary_digests = 7;
+  optional VerifyAllWithBuilderNames all_with_builder_names = 8;
+  optional VerifyAllWithBuilderDigests all_with_builder_digests = 9;
+  optional VerifyAllWithRepository all_with_repository = 10;
+}
+
+// Verifies that the number of provenances is at least the specified count.
+message VerifyProvenanceCountAtLeast {
+  int32 count = 1;
+}
+
+// Verifies that the number of provenances is at most the specified count.
+message VerifyProvenanceCountAtMost {
+  int32 count = 1;
+}
+
+// Requires that all provenances have the same underlying binary name.
+// Verification step will pass if there are <= 1 provenances.
+message VerifyAllSameBinaryName {}
+
+// Requires that all provenances have the same binary digest.
+// Verification step will pass if there are <= 1 provenances, or if equality
+// cannot be determined since some digests are in a different format.
+message VerifyAllSameBinaryDigest {}
+
+// Requires that a build command is available on every single provenance.
+message VerifyAllWithBuildCommand {}
+
+// Verifies that the binary name coincides with the specified one, for all
+// available provenances. The binary name must be set, so an empty string is not
+// permitted.
+message VerifyAllWithBinaryName {
+  string binary_name = 1;
+}
+
+// Verifies that the binary digest specified in the provenance match ONE of the
+// specified ones. It is possible to specify more than one digest of the same
+// format.
+message VerifyAllWithBinaryDigests {
+  // For every digest, provides a hint about the format. Right now only
+  // "sha2-256" is supported. Empty string is not permitted.
+  repeated string formats = 1;
+
+  // The actual digests - must have the same length as the formats field.
+  // A hex-encoding is assumed for all digests. Empty string is not permitted.
+  repeated string digests = 2;
+}
+
+// Verifies that the repository coincides with the specified one, for all
+// available provenances.
+message VerifyAllWithRepository {
+  string repositoryUri = 1;
+}
+
+// Verifies that the trusted builder is among the specified ones, for all
+// available provenances. Can use the empty string to match provenances where
+// the builder URI is unavailable.
+message VerifyAllWithBuilderNames {
+  repeated string builder_names = 1;
+}
+
+// Verifies that the trusted builder is among the specified ones, for all
+// available provenances.
+message VerifyAllWithBuilderDigests {
+  // For every digest, provides a hint about the format. Right now only
+  // "sha2-256" is supported. Empty string is not permitted.
+  repeated string formats = 1;
+
+  // The actual digests - must have the same length as the formats field.
+  // A hex-encoding is assumed for all digests. Empty string is not permitted.
+  repeated string digests = 2;
+}

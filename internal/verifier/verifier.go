@@ -1,4 +1,4 @@
-// Copyright 2022 The Project Oak Authors
+// Copyright 2022-2023 The Project Oak Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,138 +12,137 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package verifier provides a function for verifying a SLSA provenance file.
 package verifier
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/project-oak/transparent-release/internal/model"
-	pb "github.com/project-oak/transparent-release/pkg/proto/verification"
+	pb "github.com/project-oak/transparent-release/pkg/proto/verifier"
 	"go.uber.org/multierr"
+	"google.golang.org/protobuf/encoding/prototext"
 )
 
-// ProvenanceIRVerifier verifies a provenance against a given reference, by verifying
-// all non-empty fields in got using fields in the reference values. Empty fields will not be verified.
-type ProvenanceIRVerifier struct {
-	Got  *model.ProvenanceIR
-	Want *pb.ProvenanceReferenceValues
-}
-
-// Verify verifies an instance of ProvenanceIRVerifier by comparing its Got and Want fields.
-// Verify checks fields, which (i) are set in Got, i.e., GotHasX is true, and (ii) are set in Want.
-func (v *ProvenanceIRVerifier) Verify() error {
+// Verify checks that the provenance conforms to expectations, returning a
+// list of errors whenever the verification failed.
+func Verify(provenances []model.ProvenanceIR, verOpts *pb.VerificationOptions) error {
 	var errs error
-	// Verify HasBuildCmd.
-	multierr.AppendInto(&errs, v.verifyBuildCmd())
 
-	// Verify BuilderImageDigest.
-	if err := v.verifyBuilderImageDigest(); err != nil {
-		multierr.AppendInto(&errs, fmt.Errorf("failed to verify builder image digests: %v", err))
+	if verOpts.ProvenanceCountAtLeast != nil && len(provenances) < int(verOpts.ProvenanceCountAtLeast.Count) {
+		errs = multierr.Append(errs, fmt.Errorf("too few provenances: have %d but want at least %d", len(provenances), verOpts.ProvenanceCountAtLeast.Count))
 	}
 
-	// Verify RepoURIs.
-	multierr.AppendInto(&errs, v.verifyRepoURI())
+	if verOpts.ProvenanceCountAtMost != nil && len(provenances) > int(verOpts.ProvenanceCountAtMost.Count) {
+		errs = multierr.Append(errs, fmt.Errorf("too many provenances: have %d but want at most %d", len(provenances), verOpts.ProvenanceCountAtMost.Count))
+	}
 
-	// Verify TrustedBuilder.
-	if err := v.verifyTrustedBuilder(); err != nil {
-		multierr.AppendInto(&errs, fmt.Errorf("failed to verify trusted builder: %v", err))
+	if verOpts.AllSameBinaryName != nil && len(provenances) > 1 {
+		expectedBinaryName := provenances[0].BinaryName()
+		for _, p := range provenances {
+			if p.BinaryName() != expectedBinaryName {
+				errs = multierr.Append(errs, fmt.Errorf("not all have same binary name"))
+			}
+		}
+	}
+
+	if verOpts.AllSameBinaryDigest != nil && len(provenances) > 1 {
+		expectedDigest := provenances[0].BinarySHA256Digest()
+		for _, p := range provenances {
+			if p.BinarySHA256Digest() != expectedDigest {
+				errs = multierr.Append(errs, fmt.Errorf("not all have same SHA2-256 binary digest"))
+			}
+		}
+	}
+
+	if verOpts.AllWithBuildCommand != nil {
+		for i, p := range provenances {
+			if buildCmd, err := p.BuildCmd(); err != nil || len(buildCmd) == 0 {
+				errs = multierr.Append(errs, fmt.Errorf("no build command found in #%d", i))
+			}
+		}
+	}
+
+	if verOpts.AllWithBinaryName != nil {
+		for i, p := range provenances {
+			if p.BinaryName() != verOpts.AllWithBinaryName.BinaryName {
+				errs = multierr.Append(errs, fmt.Errorf("unexpected binary name in #%d: got %q but want %q", i, p.BinaryName(), verOpts.AllWithBinaryName.BinaryName))
+			}
+		}
+	}
+
+	if verOpts.AllWithBinaryDigests != nil {
+		for i, p := range provenances {
+			d := p.BinarySHA256Digest()
+			found := false
+			for pos, f := range verOpts.AllWithBinaryDigests.Formats {
+				if f != "sha2-256" {
+					continue
+				}
+				if d == verOpts.AllWithBinaryDigests.Digests[pos] {
+					found = true
+					break
+				}
+			}
+			if !found {
+				errs = multierr.Append(errs, fmt.Errorf("binary digest did not match in #%d: %q", i, d))
+			}
+		}
+	}
+
+	if verOpts.AllWithRepository != nil {
+		expected := verOpts.AllWithRepository.RepositoryUri
+		for i, p := range provenances {
+			repoUri := ""
+			if p.HasRepoURI() {
+				repoUri = p.RepoURI()
+			}
+			if repoUri != expected {
+				errs = multierr.Append(errs, fmt.Errorf("repository mismatch in #%d: got %q but want %q", i, repoUri, expected))
+			}
+		}
+	}
+
+	if verOpts.AllWithBuilderNames != nil {
+		for i, p := range provenances {
+			trustedBuilder, err := p.TrustedBuilder()
+			if err != nil {
+				trustedBuilder = ""
+			}
+			found := false
+			for _, t := range verOpts.AllWithBuilderNames.BuilderNames {
+				if trustedBuilder == t {
+					found = true
+					break
+				}
+			}
+			if !found {
+				errs = multierr.Append(errs, fmt.Errorf("none of the builders matched #%d: %q", i, trustedBuilder))
+			}
+		}
+	}
+
+	if verOpts.AllWithBuilderDigests != nil {
+		// TBD
 	}
 
 	return errs
 }
 
-// verifyBuildCmd verifies the build cmd. Returns an error if a build command is
-// needed in the Want reference values, but is not present in the Got provenance.
-func (v *ProvenanceIRVerifier) verifyBuildCmd() error {
-	if v.Want.GetMustHaveBuildCommand() && v.Got.HasBuildCmd() {
-		if buildCmd, err := v.Got.BuildCmd(); err != nil || len(buildCmd) == 0 {
-			return fmt.Errorf("no build cmd found")
-		}
-	}
-	return nil
-}
-
-// verifyBuilderImageDigest verifies that the builder image digest in the Got
-// provenance matches a builder image digest in the Want reference values.
-func (v *ProvenanceIRVerifier) verifyBuilderImageDigest() error {
-	referenceDigests := v.Want.GetReferenceBuilderImageDigests()
-	if !v.Got.HasBuilderImageSHA256Digest() || referenceDigests == nil {
-		// A valid provenance that is missing a builder image digest passes the
-		// verification.
-		return nil
-	}
-
-	gotBuilderImageDigest, err := v.Got.BuilderImageSHA256Digest()
+// LoadVerificationOptions loads VerificationOptions from a textproto file.
+func LoadVerificationOptions(path string) (*pb.VerificationOptions, error) {
+	bytes, err := os.ReadFile(path)
 	if err != nil {
-		return fmt.Errorf("no builder image digest set")
+		return nil, fmt.Errorf("reading file from %q: %v", path, err)
 	}
-
-	if err := verifySHA256Digest(gotBuilderImageDigest, referenceDigests); err != nil {
-		return fmt.Errorf("verifying builder image SHA256 digest: %v", err)
-	}
-	return nil
+	return ParseVerificationOptions(string(bytes))
 }
 
-// verifyRepoURI verifies that the Git URI in the Got provenance
-// is the same as the repo URI in the Want reference values.
-func (v *ProvenanceIRVerifier) verifyRepoURI() error {
-	referenceRepoURI := v.Want.GetReferenceRepoUri()
-	if referenceRepoURI == "" {
-		return nil
+// LoadVerificationOptions parses VerificationOptions from textproto.
+func ParseVerificationOptions(textproto string) (*pb.VerificationOptions, error) {
+	var opts pb.VerificationOptions
+	if err := prototext.Unmarshal([]byte(textproto), &opts); err != nil {
+		return nil, fmt.Errorf("parse VerificationOptions: %v", err)
 	}
-
-	if !v.Got.HasRepoURI() {
-		return fmt.Errorf("no repo URI in the provenance, but want (%v)", referenceRepoURI)
-	}
-
-	if v.Got.RepoURI() != referenceRepoURI {
-		return fmt.Errorf("the repo URI from the provenance (%v) is different from the repo URI (%v)", v.Got.RepoURI(), referenceRepoURI)
-	}
-
-	return nil
-}
-
-// verifyTrustedBuilder verifies that the given trusted builder matches a trusted builder in the reference values.
-func (v *ProvenanceIRVerifier) verifyTrustedBuilder() error {
-	referenceBuilders := v.Want.GetReferenceBuilders()
-	if referenceBuilders == nil {
-		return nil
-	}
-
-	gotTrustedBuilder, err := v.Got.TrustedBuilder()
-	if err != nil {
-		return fmt.Errorf("no trusted builder set")
-	}
-
-	for _, wantTrustedBuilder := range referenceBuilders.GetValues() {
-		if wantTrustedBuilder == gotTrustedBuilder {
-			return nil
-		}
-	}
-
-	return fmt.Errorf("the reference trusted builders (%v) do not contain the actual trusted builder (%v)",
-		referenceBuilders.GetValues(),
-		gotTrustedBuilder)
-}
-
-// verifySHA256Digest verifies that a given SHA256 is among the given digests.
-func verifySHA256Digest(got string, want *pb.Digests) error {
-	if want == nil {
-		return nil
-	}
-
-	sha256Digests, ok := want.GetDigests()["sha256"]
-	if !ok {
-		return nil
-	}
-
-	for _, wantBinarySHA256Digest := range sha256Digests.GetValues() {
-		if wantBinarySHA256Digest == got {
-			return nil
-		}
-	}
-	return fmt.Errorf("the reference SHA256 digests (%v) do not contain the actual SHA256 digest (%v)",
-		sha256Digests.GetValues(),
-		got)
+	return &opts, nil
 }

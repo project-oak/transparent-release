@@ -1,4 +1,4 @@
-// Copyright 2022 The Project Oak Authors
+// Copyright 2022-2023 The Project Oak Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package endorser provides a function for generating an endorsement statement for a binary.
 package endorser
 
 import (
@@ -27,13 +26,12 @@ import (
 	"os"
 
 	"go.uber.org/multierr"
-	"google.golang.org/protobuf/encoding/prototext"
 
 	"github.com/project-oak/transparent-release/internal/model"
 	"github.com/project-oak/transparent-release/internal/verifier"
 	"github.com/project-oak/transparent-release/pkg/claims"
 	"github.com/project-oak/transparent-release/pkg/intoto"
-	pb "github.com/project-oak/transparent-release/pkg/proto/verification"
+	pb "github.com/project-oak/transparent-release/pkg/proto/verifier"
 )
 
 // ParsedProvenance contains a provenance in the internal ProvenanceIR format,
@@ -46,42 +44,9 @@ type ParsedProvenance struct {
 }
 
 // GenerateEndorsement generates an endorsement statement for the given binary
-// and the given validity duration, using the given provenances as evidence and
-// VerificationOptions to verify them. If one or more provenance statements
-// are provided, an endorsement statement is generated only if the
-// provenance(s) are valid with respect to the ReferenceProvenance in
-// VerificationOptions, if it contains one. If more than one provenance are
-// provided, they are in addition checked to be consistent (i.e., that they have
-// the same subject). If these conditions hold, the input provenances are
-// included as evidence in the generated endorsement. If no provenances are
-// provided, a provenance-less endorsement is generated, only if the input
-// VerificationOptions has the EndorseProvenanceLess field set. An error is
-// returned in all other cases.
-func GenerateEndorsement(binaryName string, digests intoto.DigestSet, verOpt *pb.VerificationOptions, validityDuration claims.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
-	if (verOpt.GetEndorseProvenanceLess() == nil) && (verOpt.GetReferenceProvenance() == nil) {
-		return nil, fmt.Errorf("invalid VerificationOptions: exactly one of EndorseProvenanceLess and ReferenceProvenance must be set")
-	}
-	verifiedProvenances, err := verifyAndSummarizeProvenances(binaryName, digests, verOpt, provenances)
-	if err != nil {
-		return nil, fmt.Errorf("could not verify and summarize provenances: %v", err)
-	}
-
-	return claims.GenerateEndorsementStatement(validityDuration, *verifiedProvenances), nil
-}
-
-// Returns an instance of claims.VerifiedProvenanceSet, containing metadata
-// about a set of verified provenances, or an error. An error is returned if
-// any of the following conditions is met:
-// (1) The list of provenances is empty, but VerificationOptions does not have
-// its EndorseProvenanceLess field set.
-// (2) Any of the provenances is invalid (see verifyProvenances for details),
-// (3) Provenances do not match (e.g., have different binary names).
-// (4) Provenances match but don't match the input binary name or digests.
-func verifyAndSummarizeProvenances(binaryName string, digests intoto.DigestSet, verOpt *pb.VerificationOptions, provenances []ParsedProvenance) (*claims.VerifiedProvenanceSet, error) {
-	if len(provenances) == 0 && verOpt.GetEndorseProvenanceLess() == nil {
-		return nil, fmt.Errorf("at least one provenance file must be provided")
-	}
-
+// and validity duration, using the given provenances as evidence and
+// user-specified VerificationOptions to verify them.
+func GenerateEndorsement(binaryName string, digests intoto.DigestSet, verOpts *pb.VerificationOptions, validityDuration claims.ClaimValidity, provenances []ParsedProvenance) (*intoto.Statement, error) {
 	provenanceIRs := make([]model.ProvenanceIR, 0, len(provenances))
 	provenancesData := make([]claims.ProvenanceData, 0, len(provenances))
 	for _, p := range provenances {
@@ -89,23 +54,22 @@ func verifyAndSummarizeProvenances(binaryName string, digests intoto.DigestSet, 
 		provenancesData = append(provenancesData, p.SourceMetadata)
 	}
 
-	var errs error
-	if len(provenanceIRs) > 0 {
-		errs = multierr.Append(verifyConsistency(provenanceIRs), verifyProvenances(verOpt.GetReferenceProvenance(), provenanceIRs))
-		binarySHA256Digest := model.FindBinarySHA256Digest(digests)
-
-		if provenanceIRs[0].BinarySHA256Digest() != binarySHA256Digest {
-			errs = multierr.Append(errs, fmt.Errorf("the binary digest in the provenance (%q) does not match the given binary digest (%q)",
-				provenanceIRs[0].BinarySHA256Digest(), binarySHA256Digest))
-		}
-		if provenanceIRs[0].BinaryName() != binaryName {
-			errs = multierr.Append(errs, fmt.Errorf("the binary name in the provenance (%q) does not match the given binary name (%q)",
-				provenanceIRs[0].BinaryName(), binaryName))
-		}
+	// First verify the non-negiotiable: binary name and digest.
+	err := verifier.Verify(provenanceIRs, &pb.VerificationOptions{
+		AllWithBinaryName: &pb.VerifyAllWithBinaryName{BinaryName: binaryName},
+		AllWithBinaryDigests: &pb.VerifyAllWithBinaryDigests{
+			Formats: []string{"sha2-256"},
+			Digests: []string{digests["sha2-256"]},
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to verify provenances: %v", err)
 	}
 
-	if errs != nil {
-		return nil, fmt.Errorf("failed when verifying provenances: %v", errs)
+	// Additionally, verify any aspects requested by the caller.
+	err = verifier.Verify(provenanceIRs, verOpts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to verify provenances: %v", err)
 	}
 
 	verifiedProvenances := claims.VerifiedProvenanceSet{
@@ -114,62 +78,13 @@ func verifyAndSummarizeProvenances(binaryName string, digests intoto.DigestSet, 
 		Provenances: provenancesData,
 	}
 
-	return &verifiedProvenances, nil
-}
-
-// verifyProvenances verifies the given list of provenances against the given
-// ProvenanceReferenceValues. An error is returned if verification fails for
-// one of them. No verification is performed if the provided
-// ProvenanceReferenceValues is nil.
-func verifyProvenances(referenceValues *pb.ProvenanceReferenceValues, provenances []model.ProvenanceIR) error {
-	var errs error
-	if referenceValues == nil {
-		return nil
-	}
-	for index := range provenances {
-		provenanceVerifier := verifier.ProvenanceIRVerifier{
-			Got:  &provenances[index],
-			Want: referenceValues,
-		}
-		if err := provenanceVerifier.Verify(); err != nil {
-			multierr.AppendInto(&errs, fmt.Errorf("verification of the provenance at index %d failed: %v;", index, err))
-		}
-	}
-	return errs
-}
-
-// verifyConsistency verifies that all provenances have the same binary name and
-// binary digest.
-func verifyConsistency(provenanceIRs []model.ProvenanceIR) error {
-	var errs error
-
-	// get the binary digest and binary name of the first provenance as reference
-	refBinaryDigest := provenanceIRs[0].BinarySHA256Digest()
-	refBinaryName := provenanceIRs[0].BinaryName()
-
-	// verify that all remaining provenances have the same binary digest and binary name.
-	for ind := 1; ind < len(provenanceIRs); ind++ {
-		if provenanceIRs[ind].BinarySHA256Digest() != refBinaryDigest {
-			multierr.AppendInto(&errs, fmt.Errorf("provenances are not consistent: unexpected binary SHA256 digest in provenance #%d; got %q, want %q",
-				ind,
-				provenanceIRs[ind].BinarySHA256Digest(), refBinaryDigest))
-		}
-
-		if provenanceIRs[ind].BinaryName() != refBinaryName {
-			multierr.AppendInto(&errs,
-				fmt.Errorf("provenances are not consistent: unexpected subject name in provenance #%d; got %q, want %q",
-					ind,
-					provenanceIRs[ind].BinaryName(), refBinaryName))
-		}
-	}
-	return errs
+	return claims.GenerateEndorsementStatement(validityDuration, verifiedProvenances), nil
 }
 
 // LoadProvenances loads a number of provenance from the give URIs. Returns an
 // array of ParsedProvenance instances, or an error if loading or parsing any
 // of the provenances fails. See LoadProvenance for more details.
 func LoadProvenances(provenanceURIs []string) ([]ParsedProvenance, error) {
-	// load provenanceIRs from URIs
 	provenances := make([]ParsedProvenance, 0, len(provenanceURIs))
 	for _, uri := range provenanceURIs {
 		parsedProvenance, err := LoadProvenance(uri)
@@ -232,20 +147,6 @@ func GetProvenanceBytes(provenanceURI string) ([]byte, error) {
 	}
 
 	return nil, fmt.Errorf("unsupported URI scheme (%q)", uri.Scheme)
-}
-
-// LoadTextprotoVerificationOptions loads VerificationOptions from a .textproto
-// file in the given path.
-func LoadTextprotoVerificationOptions(path string) (*pb.VerificationOptions, error) {
-	bytes, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("reading provenance verification options from %q: %v", path, err)
-	}
-	var opt pb.VerificationOptions
-	if err := prototext.Unmarshal(bytes, &opt); err != nil {
-		return nil, fmt.Errorf("unmarshal bytes to VerificationOptions: %v", err)
-	}
-	return &opt, nil
 }
 
 func getJSONOverHTTP(uri string) ([]byte, error) {
