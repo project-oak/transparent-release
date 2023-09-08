@@ -27,6 +27,10 @@ import (
 // Verify checks that the provenance conforms to expectations, returning a
 // list of errors whenever the verification failed.
 func Verify(provenances []model.ProvenanceIR, verOpts *pb.VerificationOptions) error {
+	if provenances == nil {
+		panic(fmt.Errorf("provenances must not be nil"))
+	}
+
 	var errs error
 
 	if verOpts.ProvenanceCountAtLeast != nil && len(provenances) < int(verOpts.ProvenanceCountAtLeast.Count) {
@@ -85,7 +89,7 @@ func Verify(provenances []model.ProvenanceIR, verOpts *pb.VerificationOptions) e
 				}
 			}
 			if !found {
-				errs = multierr.Append(errs, fmt.Errorf("binary digest did not match in #%d: %q", i, d))
+				errs = multierr.Append(errs, fmt.Errorf("could not match binary digest in #%d: %q", i, d))
 			}
 		}
 	}
@@ -105,25 +109,43 @@ func Verify(provenances []model.ProvenanceIR, verOpts *pb.VerificationOptions) e
 
 	if verOpts.AllWithBuilderNames != nil {
 		for i, p := range provenances {
-			trustedBuilder, err := p.TrustedBuilder()
+			buiilderName, err := p.TrustedBuilder()
 			if err != nil {
-				trustedBuilder = ""
+				buiilderName = ""
 			}
 			found := false
-			for _, t := range verOpts.AllWithBuilderNames.BuilderNames {
-				if trustedBuilder == t {
+			for _, name := range verOpts.AllWithBuilderNames.BuilderNames {
+				if buiilderName == name {
 					found = true
 					break
 				}
 			}
 			if !found {
-				errs = multierr.Append(errs, fmt.Errorf("none of the builders matched #%d: %q", i, trustedBuilder))
+				errs = multierr.Append(errs, fmt.Errorf("could not match builder name in #%d: %q", i, buiilderName))
 			}
 		}
 	}
 
 	if verOpts.AllWithBuilderDigests != nil {
-		// TBD
+		for i, p := range provenances {
+			d, err := p.BuilderImageSHA256Digest()
+			if err != nil {
+				d = ""
+			}
+			found := false
+			for pos, f := range verOpts.AllWithBuilderDigests.Formats {
+				if f != "sha2-256" {
+					continue
+				}
+				if d == verOpts.AllWithBuilderDigests.Digests[pos] {
+					found = true
+					break
+				}
+			}
+			if !found {
+				errs = multierr.Append(errs, fmt.Errorf("could not match builder digest in #%d: %q", i, d))
+			}
+		}
 	}
 
 	return errs
