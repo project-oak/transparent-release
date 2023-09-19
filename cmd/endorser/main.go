@@ -45,6 +45,7 @@ func (f *provenanceURIsFlag) Set(value string) error {
 	return nil
 }
 
+//nolint:gochecknoglobals
 var provenanceURIs provenanceURIsFlag
 
 //nolint:cyclop

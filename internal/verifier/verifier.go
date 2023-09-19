@@ -28,6 +28,7 @@ import (
 // list of errors whenever the verification failed.
 //
 //nolint:gocognit
+//nolint:gocyclo
 func Verify(provenances []model.ProvenanceIR, verOpts *pb.VerificationOptions) error {
 	if provenances == nil {
 		panic(fmt.Errorf("provenances must not be nil"))
