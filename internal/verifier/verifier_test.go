@@ -27,8 +27,8 @@ const (
 	binaryDigest  = "322527c0260e25f0e9a2595bd0d71a52294fe2397a7af76165190fd98de8920d"
 	builderName   = "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.2.0"
 	builderDigest = "9e2ba52487d945504d250de186cb4fe2e3ba023ed2921dd6ac8b97ed43e76af9"
-	repoUri       = "https://github.com/project-oak/transparent-release"
-	otherRepoUri  = "git+https://github.com/project-oak/oak@refs/heads/main"
+	repoURI       = "https://github.com/project-oak/transparent-release"
+	otherRepoURI  = "git+https://github.com/project-oak/oak@refs/heads/main"
 )
 
 func TestVerify_ProvenancesNilPanics(t *testing.T) {
@@ -38,7 +38,8 @@ func TestVerify_ProvenancesNilPanics(t *testing.T) {
 		}
 	}()
 
-	Verify(nil, &pb.VerificationOptions{})
+	err := Verify(nil, &pb.VerificationOptions{})
+	t.Fatalf("verify ran through with err=%#v", err)
 }
 
 func TestVerify_VerificationOptionsNilPanics(t *testing.T) {
@@ -48,7 +49,8 @@ func TestVerify_VerificationOptionsNilPanics(t *testing.T) {
 		}
 	}()
 
-	Verify([]model.ProvenanceIR{}, nil)
+	err := Verify([]model.ProvenanceIR{}, nil)
+	t.Fatalf("verify ran through with err=%#v", err)
 }
 
 func TestVerify_EmptyVerificationNoProvenancesPasses(t *testing.T) {
@@ -347,10 +349,10 @@ func TestVerify_BuilderDigestEmptyOk(t *testing.T) {
 
 func TestVerify_RepoURIMatchSucceeds(t *testing.T) {
 	provenance := model.NewProvenanceIR(binaryDigest, slsav02.GenericSLSABuildType, binaryName,
-		model.WithRepoURI(repoUri))
+		model.WithRepoURI(repoURI))
 	provenances := []model.ProvenanceIR{*provenance}
 	verOpts := pb.VerificationOptions{
-		AllWithRepository: &pb.VerifyAllWithRepository{RepositoryUri: repoUri},
+		AllWithRepository: &pb.VerifyAllWithRepository{RepositoryUri: repoURI},
 	}
 
 	if err := Verify(provenances, &verOpts); err != nil {
@@ -359,10 +361,10 @@ func TestVerify_RepoURIMatchSucceeds(t *testing.T) {
 }
 
 func TestVerify_RepoURIMismatchDetected(t *testing.T) {
-	provenance := model.NewProvenanceIR(binaryDigest, slsav02.GenericSLSABuildType, binaryName, model.WithRepoURI(repoUri))
+	provenance := model.NewProvenanceIR(binaryDigest, slsav02.GenericSLSABuildType, binaryName, model.WithRepoURI(repoURI))
 	provenances := []model.ProvenanceIR{*provenance}
 	verOpts := pb.VerificationOptions{
-		AllWithRepository: &pb.VerifyAllWithRepository{RepositoryUri: otherRepoUri},
+		AllWithRepository: &pb.VerifyAllWithRepository{RepositoryUri: otherRepoURI},
 	}
 
 	if err := Verify(provenances, &verOpts); err == nil {
@@ -375,7 +377,7 @@ func TestVerify_RepoURIEmptyMismatchDetected(t *testing.T) {
 	provenance := model.NewProvenanceIR(binaryDigest, slsav02.GenericSLSABuildType, binaryName)
 	provenances := []model.ProvenanceIR{*provenance}
 	verOpts := pb.VerificationOptions{
-		AllWithRepository: &pb.VerifyAllWithRepository{RepositoryUri: repoUri},
+		AllWithRepository: &pb.VerifyAllWithRepository{RepositoryUri: repoURI},
 	}
 
 	if err := Verify(provenances, &verOpts); err == nil {

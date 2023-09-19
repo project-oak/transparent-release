@@ -26,6 +26,8 @@ import (
 
 // Verify checks that the provenance conforms to expectations, returning a
 // list of errors whenever the verification failed.
+//
+//nolint:gocognit
 func Verify(provenances []model.ProvenanceIR, verOpts *pb.VerificationOptions) error {
 	if provenances == nil {
 		panic(fmt.Errorf("provenances must not be nil"))
@@ -76,40 +78,40 @@ func Verify(provenances []model.ProvenanceIR, verOpts *pb.VerificationOptions) e
 	}
 
 	if verOpts.AllWithBinaryDigests != nil {
-		for i, p := range provenances {
-			d := p.BinarySHA256Digest()
+		for index, provenance := range provenances {
+			digest := provenance.BinarySHA256Digest()
 			found := false
 			for pos, f := range verOpts.AllWithBinaryDigests.Formats {
 				if f != "sha2-256" {
 					continue
 				}
-				if d == verOpts.AllWithBinaryDigests.Digests[pos] {
+				if digest == verOpts.AllWithBinaryDigests.Digests[pos] {
 					found = true
 					break
 				}
 			}
 			if !found {
-				errs = multierr.Append(errs, fmt.Errorf("could not match binary digest in #%d: %q", i, d))
+				errs = multierr.Append(errs, fmt.Errorf("could not match binary digest in #%d: %q", index, digest))
 			}
 		}
 	}
 
 	if verOpts.AllWithRepository != nil {
 		expected := verOpts.AllWithRepository.RepositoryUri
-		for i, p := range provenances {
-			repoUri := ""
-			if p.HasRepoURI() {
-				repoUri = p.RepoURI()
+		for index, provenance := range provenances {
+			repoURI := ""
+			if provenance.HasRepoURI() {
+				repoURI = provenance.RepoURI()
 			}
-			if repoUri != expected {
-				errs = multierr.Append(errs, fmt.Errorf("repository mismatch in #%d: got %q but want %q", i, repoUri, expected))
+			if repoURI != expected {
+				errs = multierr.Append(errs, fmt.Errorf("repository mismatch in #%d: got %q but want %q", index, repoURI, expected))
 			}
 		}
 	}
 
 	if verOpts.AllWithBuilderNames != nil {
-		for i, p := range provenances {
-			buiilderName, err := p.TrustedBuilder()
+		for index, provenance := range provenances {
+			buiilderName, err := provenance.TrustedBuilder()
 			if err != nil {
 				buiilderName = ""
 			}
@@ -121,29 +123,29 @@ func Verify(provenances []model.ProvenanceIR, verOpts *pb.VerificationOptions) e
 				}
 			}
 			if !found {
-				errs = multierr.Append(errs, fmt.Errorf("could not match builder name in #%d: %q", i, buiilderName))
+				errs = multierr.Append(errs, fmt.Errorf("could not match builder name in #%d: %q", index, buiilderName))
 			}
 		}
 	}
 
 	if verOpts.AllWithBuilderDigests != nil {
-		for i, p := range provenances {
-			d, err := p.BuilderImageSHA256Digest()
+		for index, provenance := range provenances {
+			digest, err := provenance.BuilderImageSHA256Digest()
 			if err != nil {
-				d = ""
+				digest = ""
 			}
 			found := false
 			for pos, f := range verOpts.AllWithBuilderDigests.Formats {
 				if f != "sha2-256" {
 					continue
 				}
-				if d == verOpts.AllWithBuilderDigests.Digests[pos] {
+				if digest == verOpts.AllWithBuilderDigests.Digests[pos] {
 					found = true
 					break
 				}
 			}
 			if !found {
-				errs = multierr.Append(errs, fmt.Errorf("could not match builder digest in #%d: %q", i, d))
+				errs = multierr.Append(errs, fmt.Errorf("could not match builder digest in #%d: %q", index, digest))
 			}
 		}
 	}

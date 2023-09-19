@@ -47,6 +47,7 @@ func (f *provenanceURIsFlag) Set(value string) error {
 
 var provenanceURIs provenanceURIsFlag
 
+//nolint:cyclop
 func main() {
 	binaryName := flag.String("binary_name", "",
 		"Name of the binary to endorse. Must match the binary names in all provenances.")
