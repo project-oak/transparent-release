@@ -27,7 +27,7 @@ import (
 // Verify checks that the provenance conforms to expectations, returning a
 // list of errors whenever the verification failed.
 //
-//nolint:cyclop,gocognit
+//nolint:cyclop,gocognit,gocyclo
 func Verify(provenances []model.ProvenanceIR, verOpts *pb.VerificationOptions) error {
 	if provenances == nil {
 		panic(fmt.Errorf("provenances must not be nil"))
