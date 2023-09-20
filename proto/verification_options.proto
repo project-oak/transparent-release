@@ -84,7 +84,7 @@ message VerifyAllWithBinaryDigests {
 // Verifies that the repository coincides with the specified one, for all
 // available provenances.
 message VerifyAllWithRepository {
-  string repositoryUri = 1;
+  string repository_uri = 1;
 }
 
 // Verifies that the trusted builder is among the specified ones, for all
