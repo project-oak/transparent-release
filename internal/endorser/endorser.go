@@ -59,7 +59,7 @@ func GenerateEndorsement(binaryName string, digests intoto.DigestSet, verOpts *p
 		AllWithBinaryName: &pb.VerifyAllWithBinaryName{BinaryName: binaryName},
 		AllWithBinaryDigests: &pb.VerifyAllWithBinaryDigests{
 			Digests: []*pb.Digest{
-				{Data: map[int32]string{int32(pb.Digest_SHA2_256_HEX): digests["sha2-256"]}},
+				{Hexadecimal: map[int32]string{int32(pb.Digest_SHA2_256): digests["sha2-256"]}},
 			},
 		},
 	})

@@ -233,9 +233,9 @@ func TestVerify_BinaryDigestMatchSucceeds(t *testing.T) {
 	verOpts := pb.VerificationOptions{
 		AllWithBinaryDigests: &pb.VerifyAllWithBinaryDigests{
 			Digests: []*pb.Digest{
-				{Data: map[int32]string{int32(pb.Digest_SHA2_256_HEX): "some_digest"}},
-				{Data: map[int32]string{int32(pb.Digest_SHA1_HEX): "some_other_digest"}},
-				{Data: map[int32]string{int32(pb.Digest_SHA2_256_HEX): binaryDigest}},
+				{Hexadecimal: map[int32]string{int32(pb.Digest_SHA2_256): "some_digest"}},
+				{Hexadecimal: map[int32]string{int32(pb.Digest_SHA1): "some_other_digest"}},
+				{Hexadecimal: map[int32]string{int32(pb.Digest_SHA2_256): binaryDigest}},
 			},
 		},
 	}
@@ -251,8 +251,8 @@ func TestVerify_BinaryDigestMismatchDetected(t *testing.T) {
 	verOpts := pb.VerificationOptions{
 		AllWithBinaryDigests: &pb.VerifyAllWithBinaryDigests{
 			Digests: []*pb.Digest{
-				{Data: map[int32]string{int32(pb.Digest_SHA2_256_HEX): "some_digest"}},
-				{Data: map[int32]string{int32(pb.Digest_SHA2_256_HEX): builderDigest /* sic */}},
+				{Hexadecimal: map[int32]string{int32(pb.Digest_SHA2_256): "some_digest"}},
+				{Hexadecimal: map[int32]string{int32(pb.Digest_SHA2_256): builderDigest /* sic */}},
 			},
 		},
 	}
@@ -319,8 +319,8 @@ func TestVerify_BuilderDigestMatchSucceeds(t *testing.T) {
 	verOpts := pb.VerificationOptions{
 		AllWithBuilderDigests: &pb.VerifyAllWithBuilderDigests{
 			Digests: []*pb.Digest{
-				{Data: map[int32]string{int32(pb.Digest_SHA2_256_HEX): "some_digest"}},
-				{Data: map[int32]string{int32(pb.Digest_SHA2_256_HEX): builderDigest}},
+				{Hexadecimal: map[int32]string{int32(pb.Digest_SHA2_256): "some_digest"}},
+				{Hexadecimal: map[int32]string{int32(pb.Digest_SHA2_256): builderDigest}},
 			},
 		},
 	}
@@ -336,8 +336,8 @@ func TestVerify_BuilderDigestMismatchDetected(t *testing.T) {
 	verOpts := pb.VerificationOptions{
 		AllWithBuilderDigests: &pb.VerifyAllWithBuilderDigests{
 			Digests: []*pb.Digest{
-				{Data: map[int32]string{int32(pb.Digest_SHA2_256_HEX): binaryDigest /* sic */}},
-				{Data: map[int32]string{int32(pb.Digest_SHA1_HEX): "whatever"}},
+				{Hexadecimal: map[int32]string{int32(pb.Digest_SHA2_256): binaryDigest /* sic */}},
+				{Hexadecimal: map[int32]string{int32(pb.Digest_SHA1): "whatever"}},
 			},
 		},
 	}

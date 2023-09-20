@@ -94,19 +94,29 @@ message VerifyAllWithBuilderDigests {
   repeated Digest digests = 1;
 }
 
-// Contains various digest formats for the same file.
+// Contains various digest formats for the same underlying file.
 message Digest {
-  // The keys of the data map. NB: enums are not allowed in proto maps.
-  // Details: https://github.com/multiformats/multicodec/blob/master/table.csv
+  // The keys in the per-encoding maps. NB: enums are not allowed in proto
+  // maps. We support some permanent values from
+  // https://github.com/multiformats/multicodec/blob/master/table.csv
   enum Type {
-    UNDEFINED = 0;
-    SHA1_HEX = 0x11;
-    SHA2_256_HEX = 0x12;
+    IDENTITY = 0;
+    SHA1 = 0x11;
+    SHA2_256 = 0x12;
+    SHA2_512 = 0x13;
+    SHA3_512 = 0x14;
+    SHA3_384 = 0x15;
+    SHA3_256 = 0x16;
+    SHA3_224 = 0x17;
+    SHA2_384 = 0x20;
   }
 
-  // Maps algorithm and encoding to the actual digest value, e.g. for type
-  // SHA2_256_HEX this could be
+  // Maps algorithm to the actual raw digest value.
+  // The map value is a function of the underlying file and the map key only.
+  map<int32, bytes> binary = 1;
+
+  // Maps algorithm to the hex-encoded digest, e.g. for type SHA2_256
+  // this could be
   // "82aac1adbfe3ada1244c1f54b7c949519e1f048067d0c3b236b7ae048fc7e227"
-  // The map value is a function of the binary contents and the map key only.
-  map<int32, string> data = 1;
+  map<int32, string> hexadecimal = 2;
 }

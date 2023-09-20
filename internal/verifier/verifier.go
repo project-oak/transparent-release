@@ -15,6 +15,7 @@
 package verifier
 
 import (
+	"encoding/hex"
 	"fmt"
 	"os"
 
@@ -82,8 +83,20 @@ func Verify(provenances []model.ProvenanceIR, verOpts *pb.VerificationOptions) e
 			digest := provenance.BinarySHA256Digest()
 			found := false
 			for _, digests := range verOpts.AllWithBinaryDigests.Digests {
-				for f, d := range digests.Data {
-					if f != int32(pb.Digest_SHA2_256_HEX) {
+				for f, d := range digests.Binary {
+					if f != int32(pb.Digest_SHA2_256) {
+						continue
+					}
+					if digest == hex.EncodeToString(d) {
+						found = true
+						break
+					}
+				}
+				if found {
+					break
+				}
+				for f, d := range digests.Hexadecimal {
+					if f != int32(pb.Digest_SHA2_256) {
 						continue
 					}
 					if digest == d {
@@ -138,8 +151,20 @@ func Verify(provenances []model.ProvenanceIR, verOpts *pb.VerificationOptions) e
 			}
 			found := false
 			for _, digests := range verOpts.AllWithBuilderDigests.Digests {
-				for f, d := range digests.Data {
-					if f != int32(pb.Digest_SHA2_256_HEX) {
+				for f, d := range digests.Binary {
+					if f != int32(pb.Digest_SHA2_256) {
+						continue
+					}
+					if digest == hex.EncodeToString(d) {
+						found = true
+						break
+					}
+				}
+				if found {
+					break
+				}
+				for f, d := range digests.Hexadecimal {
+					if f != int32(pb.Digest_SHA2_256) {
 						continue
 					}
 					if digest == d {

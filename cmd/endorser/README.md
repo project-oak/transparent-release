@@ -27,7 +27,7 @@ go run cmd/endorser/main.go \
   --binary_path=testdata/binary \
   --binary_name=stage0_bin \
   --provenance_uris=https://ent-server-62sa4xcfia-ew.a.run.app/raw/sha2-256:94f2b47418b42dde64f678a9d348dde887bfe4deafc8b43f611240fee6cc750a \
-  --verification_options="provenance_count_at_least { count: 1 } all_with_build_command {} all_with_binary_digests { formats: 'sha2-256' digests: '70a4fae8cd01e8e509f0d29efe9cf810192ad9b606fcf66fb6c4cbfee40fd951'}" \
+  --verification_options="provenance_count_at_least { count: 1 } all_with_build_command {} all_with_binary_digests { digests { hexdecimal { key: 18 value: '70a4fae8cd01e8e509f0d29efe9cf810192ad9b606fcf66fb6c4cbfee40fd951'}}}" \
   --output_path=/tmp/endorsement.json
 ```
 
