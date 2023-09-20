@@ -16,7 +16,7 @@ syntax = "proto3";
 
 package oak.release;
 
-option go_package = "proto/digest";
+option go_package = "proto/oak/release";
 
 // Contains various digest formats for the same underlying file.
 message Digest {
