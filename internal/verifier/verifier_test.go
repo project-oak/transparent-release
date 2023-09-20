@@ -19,7 +19,7 @@ import (
 
 	"github.com/project-oak/transparent-release/internal/model"
 	slsav02 "github.com/project-oak/transparent-release/pkg/intoto/slsa_provenance/v0.2"
-	pb "github.com/project-oak/transparent-release/pkg/proto/verifier"
+	pb "github.com/project-oak/transparent-release/pkg/proto/oak/release"
 )
 
 const (

@@ -23,7 +23,7 @@ import (
 
 	"github.com/project-oak/transparent-release/internal/testutil"
 	"github.com/project-oak/transparent-release/pkg/claims"
-	pb "github.com/project-oak/transparent-release/pkg/proto/verifier"
+	pb "github.com/project-oak/transparent-release/pkg/proto/oak/release"
 )
 
 const (

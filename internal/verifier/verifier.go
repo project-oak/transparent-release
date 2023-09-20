@@ -20,7 +20,7 @@ import (
 	"os"
 
 	"github.com/project-oak/transparent-release/internal/model"
-	pb "github.com/project-oak/transparent-release/pkg/proto/verifier"
+	pb "github.com/project-oak/transparent-release/pkg/proto/oak/release"
 	"go.uber.org/multierr"
 	"google.golang.org/protobuf/encoding/prototext"
 )

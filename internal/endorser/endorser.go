@@ -31,7 +31,7 @@ import (
 	"github.com/project-oak/transparent-release/internal/verifier"
 	"github.com/project-oak/transparent-release/pkg/claims"
 	"github.com/project-oak/transparent-release/pkg/intoto"
-	pb "github.com/project-oak/transparent-release/pkg/proto/verifier"
+	pb "github.com/project-oak/transparent-release/pkg/proto/oak/release"
 )
 
 // ParsedProvenance contains a provenance in the internal ProvenanceIR format,
