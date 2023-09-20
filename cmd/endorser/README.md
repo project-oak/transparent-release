@@ -4,7 +4,8 @@ The *endorser* is a command line tool for verifying provenances, and, after succ
 
 Inputs:
 *  `--provenance_uris`: Zero or more provenances, as a comma-separated list of URIs. The tool retrieves the URIs and evaluates them
-*  `--verification_options` Custom verification to run on the provenances, as a prerequisite to the endorsement generation. Optional - if not specified then no verifications are carried out. See the underlying [protocol buffer definition](../../proto/verification_options.proto)
+*  `--verification_options`: Custom verification to run on the provenances, as a prerequisite to the endorsement generation. Optional - if not specified then no verifications are carried out. See the underlying [protocol buffer definition](../../proto/verification_options.proto)
+*  `--skip_verification`: If there is no intention to verify anything, must confirm by setting this flag
 *  `--binary_name`: The name of the binary
 *  `--binary_path`: Path to the binary file. Needed only to compute digests
 
@@ -17,6 +18,7 @@ Here is a simple example which neither involves provenances nor verification:
 go run cmd/endorser/main.go \
   --binary_path=testdata/binary \
   --binary_name=stage0_bin \
+  --skip_verification \
   --output_path=/tmp/endorsement.json
 ```
 
