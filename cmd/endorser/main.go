@@ -58,6 +58,8 @@ func main() {
 		"Comma-separated URIs of zero or more provenances.")
 	verOptsTextproto := flag.String("verification_options", "",
 		"An instance of VerificationOptions as inline textproto.")
+	skipVerification := flag.Bool("skip_verification", false,
+		"Confirms that empty --verification_options is intended.")
 	notBefore := flag.String("not_before", "",
 		"The date from which the endorsement is effective, formatted as YYYY-MM-DD. Defaults to 1 day after the issuance date.")
 	notAfter := flag.String("not_after", "",
@@ -75,6 +77,9 @@ func main() {
 	}
 	if len(*outputPath) == 0 {
 		log.Fatalf("--output_path not set")
+	}
+	if *verOptsTextproto == "" && !*skipVerification {
+		log.Fatalf("--verification_options empty, use --skip_verification to overrule")
 	}
 	verOpts, err := verifier.ParseVerificationOptions(*verOptsTextproto)
 	if err != nil {
