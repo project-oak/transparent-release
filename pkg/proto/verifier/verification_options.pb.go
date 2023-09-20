@@ -34,6 +34,57 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// The keys of the data map. NB: enums are not allowed in proto maps.
+// Details: https://github.com/multiformats/multicodec/blob/master/table.csv
+type Digest_Type int32
+
+const (
+	Digest_UNDEFINED    Digest_Type = 0
+	Digest_SHA1_HEX     Digest_Type = 17
+	Digest_SHA2_256_HEX Digest_Type = 18
+)
+
+// Enum value maps for Digest_Type.
+var (
+	Digest_Type_name = map[int32]string{
+		0:  "UNDEFINED",
+		17: "SHA1_HEX",
+		18: "SHA2_256_HEX",
+	}
+	Digest_Type_value = map[string]int32{
+		"UNDEFINED":    0,
+		"SHA1_HEX":     17,
+		"SHA2_256_HEX": 18,
+	}
+)
+
+func (x Digest_Type) Enum() *Digest_Type {
+	p := new(Digest_Type)
+	*p = x
+	return p
+}
+
+func (x Digest_Type) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Digest_Type) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_verification_options_proto_enumTypes[0].Descriptor()
+}
+
+func (Digest_Type) Type() protoreflect.EnumType {
+	return &file_proto_verification_options_proto_enumTypes[0]
+}
+
+func (x Digest_Type) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use Digest_Type.Descriptor instead.
+func (Digest_Type) EnumDescriptor() ([]byte, []int) {
+	return file_proto_verification_options_proto_rawDescGZIP(), []int{11, 0}
+}
+
 // Defines a verification done on an array of provenances. Each field defines a
 // certain verification step. All steps are joined by a logical AND to form the
 // final verification result (which is a boolean). Since every option can occur
@@ -435,12 +486,7 @@ type VerifyAllWithBinaryDigests struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// For every digest, provides a hint about the format. Right now only
-	// "sha2-256" is supported. Empty string is not permitted.
-	Formats []string `protobuf:"bytes,1,rep,name=formats,proto3" json:"formats,omitempty"`
-	// The actual digests - must have the same length as the formats field.
-	// A hex-encoding is assumed for all digests. Empty string is not permitted.
-	Digests []string `protobuf:"bytes,2,rep,name=digests,proto3" json:"digests,omitempty"`
+	Digests []*Digest `protobuf:"bytes,1,rep,name=digests,proto3" json:"digests,omitempty"`
 }
 
 func (x *VerifyAllWithBinaryDigests) Reset() {
@@ -475,14 +521,7 @@ func (*VerifyAllWithBinaryDigests) Descriptor() ([]byte, []int) {
 	return file_proto_verification_options_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *VerifyAllWithBinaryDigests) GetFormats() []string {
-	if x != nil {
-		return x.Formats
-	}
-	return nil
-}
-
-func (x *VerifyAllWithBinaryDigests) GetDigests() []string {
+func (x *VerifyAllWithBinaryDigests) GetDigests() []*Digest {
 	if x != nil {
 		return x.Digests
 	}
@@ -496,7 +535,7 @@ type VerifyAllWithRepository struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	RepositoryUri string `protobuf:"bytes,1,opt,name=repositoryUri,proto3" json:"repositoryUri,omitempty"`
+	RepositoryUri string `protobuf:"bytes,1,opt,name=repository_uri,json=repositoryUri,proto3" json:"repository_uri,omitempty"`
 }
 
 func (x *VerifyAllWithRepository) Reset() {
@@ -595,12 +634,7 @@ type VerifyAllWithBuilderDigests struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// For every digest, provides a hint about the format. Right now only
-	// "sha2-256" is supported. Empty string is not permitted.
-	Formats []string `protobuf:"bytes,1,rep,name=formats,proto3" json:"formats,omitempty"`
-	// The actual digests - must have the same length as the formats field.
-	// A hex-encoding is assumed for all digests. Empty string is not permitted.
-	Digests []string `protobuf:"bytes,2,rep,name=digests,proto3" json:"digests,omitempty"`
+	Digests []*Digest `protobuf:"bytes,1,rep,name=digests,proto3" json:"digests,omitempty"`
 }
 
 func (x *VerifyAllWithBuilderDigests) Reset() {
@@ -635,16 +669,61 @@ func (*VerifyAllWithBuilderDigests) Descriptor() ([]byte, []int) {
 	return file_proto_verification_options_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *VerifyAllWithBuilderDigests) GetFormats() []string {
+func (x *VerifyAllWithBuilderDigests) GetDigests() []*Digest {
 	if x != nil {
-		return x.Formats
+		return x.Digests
 	}
 	return nil
 }
 
-func (x *VerifyAllWithBuilderDigests) GetDigests() []string {
+// Contains various digest formats for the same file.
+type Digest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Maps algorithm and encoding to the actual digest value, e.g. for type
+	// SHA2_256_HEX this could be
+	// "82aac1adbfe3ada1244c1f54b7c949519e1f048067d0c3b236b7ae048fc7e227"
+	// The map value is a function of the binary contents and the map key only.
+	Data map[int32]string `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty" protobuf_key:"varint,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (x *Digest) Reset() {
+	*x = Digest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_proto_verification_options_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Digest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Digest) ProtoMessage() {}
+
+func (x *Digest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_verification_options_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Digest.ProtoReflect.Descriptor instead.
+func (*Digest) Descriptor() ([]byte, []int) {
+	return file_proto_verification_options_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *Digest) GetData() map[int32]string {
 	if x != nil {
-		return x.Digests
+		return x.Data
 	}
 	return nil
 }
@@ -750,27 +829,38 @@ var file_proto_verification_options_proto_rawDesc = []byte{
 	0x3a, 0x0a, 0x17, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x41, 0x6c, 0x6c, 0x57, 0x69, 0x74, 0x68,
 	0x42, 0x69, 0x6e, 0x61, 0x72, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x1f, 0x0a, 0x0b, 0x62, 0x69,
 	0x6e, 0x61, 0x72, 0x79, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x0a, 0x62, 0x69, 0x6e, 0x61, 0x72, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x50, 0x0a, 0x1a, 0x56,
+	0x0a, 0x62, 0x69, 0x6e, 0x61, 0x72, 0x79, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x4b, 0x0a, 0x1a, 0x56,
 	0x65, 0x72, 0x69, 0x66, 0x79, 0x41, 0x6c, 0x6c, 0x57, 0x69, 0x74, 0x68, 0x42, 0x69, 0x6e, 0x61,
-	0x72, 0x79, 0x44, 0x69, 0x67, 0x65, 0x73, 0x74, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x66, 0x6f, 0x72,
-	0x6d, 0x61, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x07, 0x66, 0x6f, 0x72, 0x6d,
-	0x61, 0x74, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x64, 0x69, 0x67, 0x65, 0x73, 0x74, 0x73, 0x18, 0x02,
-	0x20, 0x03, 0x28, 0x09, 0x52, 0x07, 0x64, 0x69, 0x67, 0x65, 0x73, 0x74, 0x73, 0x22, 0x3f, 0x0a,
-	0x17, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x41, 0x6c, 0x6c, 0x57, 0x69, 0x74, 0x68, 0x52, 0x65,
-	0x70, 0x6f, 0x73, 0x69, 0x74, 0x6f, 0x72, 0x79, 0x12, 0x24, 0x0a, 0x0d, 0x72, 0x65, 0x70, 0x6f,
-	0x73, 0x69, 0x74, 0x6f, 0x72, 0x79, 0x55, 0x72, 0x69, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x0d, 0x72, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x6f, 0x72, 0x79, 0x55, 0x72, 0x69, 0x22, 0x40,
-	0x0a, 0x19, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x41, 0x6c, 0x6c, 0x57, 0x69, 0x74, 0x68, 0x42,
-	0x75, 0x69, 0x6c, 0x64, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x73, 0x12, 0x23, 0x0a, 0x0d, 0x62,
-	0x75, 0x69, 0x6c, 0x64, 0x65, 0x72, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03,
-	0x28, 0x09, 0x52, 0x0c, 0x62, 0x75, 0x69, 0x6c, 0x64, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x73,
-	0x22, 0x51, 0x0a, 0x1b, 0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x41, 0x6c, 0x6c, 0x57, 0x69, 0x74,
-	0x68, 0x42, 0x75, 0x69, 0x6c, 0x64, 0x65, 0x72, 0x44, 0x69, 0x67, 0x65, 0x73, 0x74, 0x73, 0x12,
-	0x18, 0x0a, 0x07, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09,
-	0x52, 0x07, 0x66, 0x6f, 0x72, 0x6d, 0x61, 0x74, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x64, 0x69, 0x67,
-	0x65, 0x73, 0x74, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x09, 0x52, 0x07, 0x64, 0x69, 0x67, 0x65,
-	0x73, 0x74, 0x73, 0x42, 0x10, 0x5a, 0x0e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x76, 0x65, 0x72,
-	0x69, 0x66, 0x69, 0x65, 0x72, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x72, 0x79, 0x44, 0x69, 0x67, 0x65, 0x73, 0x74, 0x73, 0x12, 0x2d, 0x0a, 0x07, 0x64, 0x69, 0x67,
+	0x65, 0x73, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x13, 0x2e, 0x6f, 0x61, 0x6b,
+	0x2e, 0x72, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x2e, 0x44, 0x69, 0x67, 0x65, 0x73, 0x74, 0x52,
+	0x07, 0x64, 0x69, 0x67, 0x65, 0x73, 0x74, 0x73, 0x22, 0x40, 0x0a, 0x17, 0x56, 0x65, 0x72, 0x69,
+	0x66, 0x79, 0x41, 0x6c, 0x6c, 0x57, 0x69, 0x74, 0x68, 0x52, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74,
+	0x6f, 0x72, 0x79, 0x12, 0x25, 0x0a, 0x0e, 0x72, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x6f, 0x72,
+	0x79, 0x5f, 0x75, 0x72, 0x69, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x72, 0x65, 0x70,
+	0x6f, 0x73, 0x69, 0x74, 0x6f, 0x72, 0x79, 0x55, 0x72, 0x69, 0x22, 0x40, 0x0a, 0x19, 0x56, 0x65,
+	0x72, 0x69, 0x66, 0x79, 0x41, 0x6c, 0x6c, 0x57, 0x69, 0x74, 0x68, 0x42, 0x75, 0x69, 0x6c, 0x64,
+	0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x73, 0x12, 0x23, 0x0a, 0x0d, 0x62, 0x75, 0x69, 0x6c, 0x64,
+	0x65, 0x72, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x0c,
+	0x62, 0x75, 0x69, 0x6c, 0x64, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x73, 0x22, 0x4c, 0x0a, 0x1b,
+	0x56, 0x65, 0x72, 0x69, 0x66, 0x79, 0x41, 0x6c, 0x6c, 0x57, 0x69, 0x74, 0x68, 0x42, 0x75, 0x69,
+	0x6c, 0x64, 0x65, 0x72, 0x44, 0x69, 0x67, 0x65, 0x73, 0x74, 0x73, 0x12, 0x2d, 0x0a, 0x07, 0x64,
+	0x69, 0x67, 0x65, 0x73, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x13, 0x2e, 0x6f,
+	0x61, 0x6b, 0x2e, 0x72, 0x65, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x2e, 0x44, 0x69, 0x67, 0x65, 0x73,
+	0x74, 0x52, 0x07, 0x64, 0x69, 0x67, 0x65, 0x73, 0x74, 0x73, 0x22, 0xab, 0x01, 0x0a, 0x06, 0x44,
+	0x69, 0x67, 0x65, 0x73, 0x74, 0x12, 0x31, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x01, 0x20,
+	0x03, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x6f, 0x61, 0x6b, 0x2e, 0x72, 0x65, 0x6c, 0x65, 0x61, 0x73,
+	0x65, 0x2e, 0x44, 0x69, 0x67, 0x65, 0x73, 0x74, 0x2e, 0x44, 0x61, 0x74, 0x61, 0x45, 0x6e, 0x74,
+	0x72, 0x79, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x1a, 0x37, 0x0a, 0x09, 0x44, 0x61, 0x74, 0x61,
+	0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x05, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38,
+	0x01, 0x22, 0x35, 0x0a, 0x04, 0x54, 0x79, 0x70, 0x65, 0x12, 0x0d, 0x0a, 0x09, 0x55, 0x4e, 0x44,
+	0x45, 0x46, 0x49, 0x4e, 0x45, 0x44, 0x10, 0x00, 0x12, 0x0c, 0x0a, 0x08, 0x53, 0x48, 0x41, 0x31,
+	0x5f, 0x48, 0x45, 0x58, 0x10, 0x11, 0x12, 0x10, 0x0a, 0x0c, 0x53, 0x48, 0x41, 0x32, 0x5f, 0x32,
+	0x35, 0x36, 0x5f, 0x48, 0x45, 0x58, 0x10, 0x12, 0x42, 0x10, 0x5a, 0x0e, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x2f, 0x76, 0x65, 0x72, 0x69, 0x66, 0x69, 0x65, 0x72, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
+	0x6f, 0x33,
 }
 
 var (
@@ -785,36 +875,43 @@ func file_proto_verification_options_proto_rawDescGZIP() []byte {
 	return file_proto_verification_options_proto_rawDescData
 }
 
-var file_proto_verification_options_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_proto_verification_options_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_proto_verification_options_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_proto_verification_options_proto_goTypes = []interface{}{
-	(*VerificationOptions)(nil),          // 0: oak.release.VerificationOptions
-	(*VerifyProvenanceCountAtLeast)(nil), // 1: oak.release.VerifyProvenanceCountAtLeast
-	(*VerifyProvenanceCountAtMost)(nil),  // 2: oak.release.VerifyProvenanceCountAtMost
-	(*VerifyAllSameBinaryName)(nil),      // 3: oak.release.VerifyAllSameBinaryName
-	(*VerifyAllSameBinaryDigest)(nil),    // 4: oak.release.VerifyAllSameBinaryDigest
-	(*VerifyAllWithBuildCommand)(nil),    // 5: oak.release.VerifyAllWithBuildCommand
-	(*VerifyAllWithBinaryName)(nil),      // 6: oak.release.VerifyAllWithBinaryName
-	(*VerifyAllWithBinaryDigests)(nil),   // 7: oak.release.VerifyAllWithBinaryDigests
-	(*VerifyAllWithRepository)(nil),      // 8: oak.release.VerifyAllWithRepository
-	(*VerifyAllWithBuilderNames)(nil),    // 9: oak.release.VerifyAllWithBuilderNames
-	(*VerifyAllWithBuilderDigests)(nil),  // 10: oak.release.VerifyAllWithBuilderDigests
+	(Digest_Type)(0),                     // 0: oak.release.Digest.Type
+	(*VerificationOptions)(nil),          // 1: oak.release.VerificationOptions
+	(*VerifyProvenanceCountAtLeast)(nil), // 2: oak.release.VerifyProvenanceCountAtLeast
+	(*VerifyProvenanceCountAtMost)(nil),  // 3: oak.release.VerifyProvenanceCountAtMost
+	(*VerifyAllSameBinaryName)(nil),      // 4: oak.release.VerifyAllSameBinaryName
+	(*VerifyAllSameBinaryDigest)(nil),    // 5: oak.release.VerifyAllSameBinaryDigest
+	(*VerifyAllWithBuildCommand)(nil),    // 6: oak.release.VerifyAllWithBuildCommand
+	(*VerifyAllWithBinaryName)(nil),      // 7: oak.release.VerifyAllWithBinaryName
+	(*VerifyAllWithBinaryDigests)(nil),   // 8: oak.release.VerifyAllWithBinaryDigests
+	(*VerifyAllWithRepository)(nil),      // 9: oak.release.VerifyAllWithRepository
+	(*VerifyAllWithBuilderNames)(nil),    // 10: oak.release.VerifyAllWithBuilderNames
+	(*VerifyAllWithBuilderDigests)(nil),  // 11: oak.release.VerifyAllWithBuilderDigests
+	(*Digest)(nil),                       // 12: oak.release.Digest
+	nil,                                  // 13: oak.release.Digest.DataEntry
 }
 var file_proto_verification_options_proto_depIdxs = []int32{
-	1,  // 0: oak.release.VerificationOptions.provenance_count_at_least:type_name -> oak.release.VerifyProvenanceCountAtLeast
-	2,  // 1: oak.release.VerificationOptions.provenance_count_at_most:type_name -> oak.release.VerifyProvenanceCountAtMost
-	3,  // 2: oak.release.VerificationOptions.all_same_binary_name:type_name -> oak.release.VerifyAllSameBinaryName
-	4,  // 3: oak.release.VerificationOptions.all_same_binary_digest:type_name -> oak.release.VerifyAllSameBinaryDigest
-	5,  // 4: oak.release.VerificationOptions.all_with_build_command:type_name -> oak.release.VerifyAllWithBuildCommand
-	6,  // 5: oak.release.VerificationOptions.all_with_binary_name:type_name -> oak.release.VerifyAllWithBinaryName
-	7,  // 6: oak.release.VerificationOptions.all_with_binary_digests:type_name -> oak.release.VerifyAllWithBinaryDigests
-	9,  // 7: oak.release.VerificationOptions.all_with_builder_names:type_name -> oak.release.VerifyAllWithBuilderNames
-	10, // 8: oak.release.VerificationOptions.all_with_builder_digests:type_name -> oak.release.VerifyAllWithBuilderDigests
-	8,  // 9: oak.release.VerificationOptions.all_with_repository:type_name -> oak.release.VerifyAllWithRepository
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	2,  // 0: oak.release.VerificationOptions.provenance_count_at_least:type_name -> oak.release.VerifyProvenanceCountAtLeast
+	3,  // 1: oak.release.VerificationOptions.provenance_count_at_most:type_name -> oak.release.VerifyProvenanceCountAtMost
+	4,  // 2: oak.release.VerificationOptions.all_same_binary_name:type_name -> oak.release.VerifyAllSameBinaryName
+	5,  // 3: oak.release.VerificationOptions.all_same_binary_digest:type_name -> oak.release.VerifyAllSameBinaryDigest
+	6,  // 4: oak.release.VerificationOptions.all_with_build_command:type_name -> oak.release.VerifyAllWithBuildCommand
+	7,  // 5: oak.release.VerificationOptions.all_with_binary_name:type_name -> oak.release.VerifyAllWithBinaryName
+	8,  // 6: oak.release.VerificationOptions.all_with_binary_digests:type_name -> oak.release.VerifyAllWithBinaryDigests
+	10, // 7: oak.release.VerificationOptions.all_with_builder_names:type_name -> oak.release.VerifyAllWithBuilderNames
+	11, // 8: oak.release.VerificationOptions.all_with_builder_digests:type_name -> oak.release.VerifyAllWithBuilderDigests
+	9,  // 9: oak.release.VerificationOptions.all_with_repository:type_name -> oak.release.VerifyAllWithRepository
+	12, // 10: oak.release.VerifyAllWithBinaryDigests.digests:type_name -> oak.release.Digest
+	12, // 11: oak.release.VerifyAllWithBuilderDigests.digests:type_name -> oak.release.Digest
+	13, // 12: oak.release.Digest.data:type_name -> oak.release.Digest.DataEntry
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_proto_verification_options_proto_init() }
@@ -955,6 +1052,18 @@ func file_proto_verification_options_proto_init() {
 				return nil
 			}
 		}
+		file_proto_verification_options_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Digest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	file_proto_verification_options_proto_msgTypes[0].OneofWrappers = []interface{}{}
 	type x struct{}
@@ -962,13 +1071,14 @@ func file_proto_verification_options_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_proto_verification_options_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   11,
+			NumEnums:      1,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_proto_verification_options_proto_goTypes,
 		DependencyIndexes: file_proto_verification_options_proto_depIdxs,
+		EnumInfos:         file_proto_verification_options_proto_enumTypes,
 		MessageInfos:      file_proto_verification_options_proto_msgTypes,
 	}.Build()
 	File_proto_verification_options_proto = out.File

@@ -72,13 +72,7 @@ message VerifyAllWithBinaryName {
 // specified ones. It is possible to specify more than one digest of the same
 // format.
 message VerifyAllWithBinaryDigests {
-  // For every digest, provides a hint about the format. Right now only
-  // "sha2-256" is supported. Empty string is not permitted.
-  repeated string formats = 1;
-
-  // The actual digests - must have the same length as the formats field.
-  // A hex-encoding is assumed for all digests. Empty string is not permitted.
-  repeated string digests = 2;
+  repeated Digest digests = 1;
 }
 
 // Verifies that the repository coincides with the specified one, for all
@@ -97,11 +91,22 @@ message VerifyAllWithBuilderNames {
 // Verifies that the trusted builder is among the specified ones, for all
 // available provenances.
 message VerifyAllWithBuilderDigests {
-  // For every digest, provides a hint about the format. Right now only
-  // "sha2-256" is supported. Empty string is not permitted.
-  repeated string formats = 1;
+  repeated Digest digests = 1;
+}
 
-  // The actual digests - must have the same length as the formats field.
-  // A hex-encoding is assumed for all digests. Empty string is not permitted.
-  repeated string digests = 2;
+// Contains various digest formats for the same file.
+message Digest {
+  // The keys of the data map. NB: enums are not allowed in proto maps.
+  // Details: https://github.com/multiformats/multicodec/blob/master/table.csv
+  enum Type {
+    UNDEFINED = 0;
+    SHA1_HEX = 0x11;
+    SHA2_256_HEX = 0x12;
+  }
+
+  // Maps algorithm and encoding to the actual digest value, e.g. for type
+  // SHA2_256_HEX this could be
+  // "82aac1adbfe3ada1244c1f54b7c949519e1f048067d0c3b236b7ae048fc7e227"
+  // The map value is a function of the binary contents and the map key only.
+  map<int32, string> data = 1;
 }

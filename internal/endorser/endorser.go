@@ -58,8 +58,9 @@ func GenerateEndorsement(binaryName string, digests intoto.DigestSet, verOpts *p
 	err := verifier.Verify(provenanceIRs, &pb.VerificationOptions{
 		AllWithBinaryName: &pb.VerifyAllWithBinaryName{BinaryName: binaryName},
 		AllWithBinaryDigests: &pb.VerifyAllWithBinaryDigests{
-			Formats: []string{"sha2-256"},
-			Digests: []string{digests["sha2-256"]},
+			Digests: []*pb.Digest{
+				{Data: map[int32]string{int32(pb.Digest_SHA2_256_HEX): digests["sha2-256"]}},
+			},
 		},
 	})
 	if err != nil {

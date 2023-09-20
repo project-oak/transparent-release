@@ -81,13 +81,15 @@ func Verify(provenances []model.ProvenanceIR, verOpts *pb.VerificationOptions) e
 		for index, provenance := range provenances {
 			digest := provenance.BinarySHA256Digest()
 			found := false
-			for pos, f := range verOpts.AllWithBinaryDigests.Formats {
-				if f != "sha2-256" {
-					continue
-				}
-				if digest == verOpts.AllWithBinaryDigests.Digests[pos] {
-					found = true
-					break
+			for _, digests := range verOpts.AllWithBinaryDigests.Digests {
+				for f, d := range digests.Data {
+					if f != int32(pb.Digest_SHA2_256_HEX) {
+						continue
+					}
+					if digest == d {
+						found = true
+						break
+					}
 				}
 			}
 			if !found {
@@ -135,13 +137,15 @@ func Verify(provenances []model.ProvenanceIR, verOpts *pb.VerificationOptions) e
 				digest = ""
 			}
 			found := false
-			for pos, f := range verOpts.AllWithBuilderDigests.Formats {
-				if f != "sha2-256" {
-					continue
-				}
-				if digest == verOpts.AllWithBuilderDigests.Digests[pos] {
-					found = true
-					break
+			for _, digests := range verOpts.AllWithBuilderDigests.Digests {
+				for f, d := range digests.Data {
+					if f != int32(pb.Digest_SHA2_256_HEX) {
+						continue
+					}
+					if digest == d {
+						found = true
+						break
+					}
 				}
 			}
 			if !found {

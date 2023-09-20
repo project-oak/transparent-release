@@ -232,8 +232,11 @@ func TestVerify_BinaryDigestMatchSucceeds(t *testing.T) {
 	provenances := []model.ProvenanceIR{*provenance}
 	verOpts := pb.VerificationOptions{
 		AllWithBinaryDigests: &pb.VerifyAllWithBinaryDigests{
-			Formats: []string{"sha2-256", "whatever", "sha2-256"},
-			Digests: []string{"some_digest", "some_other_digest", binaryDigest},
+			Digests: []*pb.Digest{
+				{Data: map[int32]string{int32(pb.Digest_SHA2_256_HEX): "some_digest"}},
+				{Data: map[int32]string{int32(pb.Digest_SHA1_HEX): "some_other_digest"}},
+				{Data: map[int32]string{int32(pb.Digest_SHA2_256_HEX): binaryDigest}},
+			},
 		},
 	}
 
@@ -247,8 +250,10 @@ func TestVerify_BinaryDigestMismatchDetected(t *testing.T) {
 	provenances := []model.ProvenanceIR{*provenance}
 	verOpts := pb.VerificationOptions{
 		AllWithBinaryDigests: &pb.VerifyAllWithBinaryDigests{
-			Formats: []string{"sha2-256", "sha2-256"},
-			Digests: []string{"some_digest", builderDigest /* sic */},
+			Digests: []*pb.Digest{
+				{Data: map[int32]string{int32(pb.Digest_SHA2_256_HEX): "some_digest"}},
+				{Data: map[int32]string{int32(pb.Digest_SHA2_256_HEX): builderDigest /* sic */}},
+			},
 		},
 	}
 
@@ -313,8 +318,10 @@ func TestVerify_BuilderDigestMatchSucceeds(t *testing.T) {
 	provenances := []model.ProvenanceIR{*provenance}
 	verOpts := pb.VerificationOptions{
 		AllWithBuilderDigests: &pb.VerifyAllWithBuilderDigests{
-			Formats: []string{"sha2-256", "sha2-256"},
-			Digests: []string{builderDigest, "whatever"},
+			Digests: []*pb.Digest{
+				{Data: map[int32]string{int32(pb.Digest_SHA2_256_HEX): "some_digest"}},
+				{Data: map[int32]string{int32(pb.Digest_SHA2_256_HEX): builderDigest}},
+			},
 		},
 	}
 
@@ -328,8 +335,10 @@ func TestVerify_BuilderDigestMismatchDetected(t *testing.T) {
 	provenances := []model.ProvenanceIR{*provenance}
 	verOpts := pb.VerificationOptions{
 		AllWithBuilderDigests: &pb.VerifyAllWithBuilderDigests{
-			Formats: []string{"sha2-256", "sha2-512"},
-			Digests: []string{binaryDigest /* sic */, "whatever"},
+			Digests: []*pb.Digest{
+				{Data: map[int32]string{int32(pb.Digest_SHA2_256_HEX): binaryDigest /* sic */}},
+				{Data: map[int32]string{int32(pb.Digest_SHA1_HEX): "whatever"}},
+			},
 		},
 	}
 
