@@ -28,7 +28,7 @@ import (
 // Verify checks that the provenance conforms to expectations, returning a
 // list of errors whenever the verification failed.
 //
-//nolint:cyclop,gocognit,gocyclo
+//nolint:cyclop,gocognit,gocyclo,maintidx
 func Verify(provenances []model.ProvenanceIR, verOpts *pb.VerificationOptions) error {
 	if provenances == nil {
 		panic(fmt.Errorf("provenances must not be nil"))
@@ -78,6 +78,7 @@ func Verify(provenances []model.ProvenanceIR, verOpts *pb.VerificationOptions) e
 		}
 	}
 
+	//nolint:nestif
 	if verOpts.AllWithBinaryDigests != nil {
 		for index, provenance := range provenances {
 			digest := provenance.BinarySHA256Digest()
@@ -143,6 +144,7 @@ func Verify(provenances []model.ProvenanceIR, verOpts *pb.VerificationOptions) e
 		}
 	}
 
+	//nolint:nestif
 	if verOpts.AllWithBuilderDigests != nil {
 		for index, provenance := range provenances {
 			digest, err := provenance.BuilderImageSHA256Digest()
