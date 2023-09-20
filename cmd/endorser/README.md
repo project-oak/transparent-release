@@ -34,6 +34,6 @@ go run cmd/endorser/main.go \
 If the verification options should be kept in a file (for length reasons), then use
 ```bash
   ...
-  --verification_options="$(cat /tmp/ver_opts.textproto)"
+  --verification_options="$(</tmp/ver_opts.textproto)"
   ...
 ```
