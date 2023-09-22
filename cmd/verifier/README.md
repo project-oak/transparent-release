@@ -6,7 +6,15 @@ that it contains exactly one subject, containing a SHA256 digest and a binary na
 
 To verify a SLSA v0.2 provenance, run:
 
-```console
-$ go run cmd/verifier/main.go -provenance_path testdata/slsa_v02_provenance.json
-2023/04/21 14:33:47 Verification was successful.
+```bash
+go run cmd/verifier/main.go --provenance_path=testdata/slsa_v02_provenance.json
+```
+
+In case you want to add custom verifications on the provenances, just add verification
+options as inline textproto.
+
+```bash
+go run cmd/verifier/main.go \
+  --provenance_path=testdata/slsa_v02_provenance.json \
+  --verification_options="all_with_binary_name { binary_name: 'oak_functions_freestanding_bin'}"
 ```

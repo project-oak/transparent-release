@@ -1,0 +1,46 @@
+// Copyright 2023 The Project Oak Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package oak.release;
+
+option go_package = "proto/oak/release";
+
+// Contains various digest formats for the same underlying file.
+message Digest {
+  // The keys in the per-encoding maps. NB: enums are not allowed in proto
+  // maps. We support some permanent values from
+  // https://github.com/multiformats/multicodec/blob/master/table.csv
+  enum Type {
+    IDENTITY = 0;
+    SHA1 = 0x11;
+    SHA2_256 = 0x12;
+    SHA2_512 = 0x13;
+    SHA3_512 = 0x14;
+    SHA3_384 = 0x15;
+    SHA3_256 = 0x16;
+    SHA3_224 = 0x17;
+    SHA2_384 = 0x20;
+  }
+
+  // Maps algorithm to the actual raw digest value.
+  // The map value is a function of the underlying file and the map key only.
+  map<int32, bytes> binary = 1;
+
+  // Maps algorithm to the hex-encoded digest, e.g. for type SHA2_256
+  // this could be
+  // "82aac1adbfe3ada1244c1f54b7c949519e1f048067d0c3b236b7ae048fc7e227"
+  map<int32, string> hexadecimal = 2;
+}

@@ -1,4 +1,4 @@
-// Copyright 2022 The Project Oak Authors
+// Copyright 2022-2023 The Project Oak Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package main contains a command-line tool for verifying SLSA provenances.
 package main
 
 import (
@@ -22,12 +21,12 @@ import (
 
 	"github.com/project-oak/transparent-release/internal/model"
 	"github.com/project-oak/transparent-release/internal/verifier"
-	pb "github.com/project-oak/transparent-release/pkg/proto/verification"
 )
 
 func main() {
-	provenancePath := flag.String("provenance_path", "",
-		"Required - Path to a SLSA provenance file.")
+	provenancePath := flag.String("provenance_path", "", "Path to a single SLSA provenance file.")
+	verOptsTextproto := flag.String("verification_options", "",
+		"An instance of VerificationOptions as inline textproto.")
 	flag.Parse()
 
 	provenanceBytes, err := os.ReadFile(*provenancePath)
@@ -44,13 +43,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("couldn't map from %s to internal representation: %v", validatedProvenance, err)
 	}
-
-	provenanceVerifier := verifier.ProvenanceIRVerifier{
-		Got:  provenanceIR,
-		Want: &pb.ProvenanceReferenceValues{},
+	verOpts, err := verifier.ParseVerificationOptions(*verOptsTextproto)
+	if err != nil {
+		log.Fatalf("couldn't map parse verification options: %v", err)
 	}
-
-	if err := provenanceVerifier.Verify(); err != nil {
+	// We only process a single provenance, even though the verifier works on many.
+	if err := verifier.Verify([]model.ProvenanceIR{*provenanceIR}, verOpts); err != nil {
 		log.Fatalf("error when verifying the provenance: %v", err)
 	}
 

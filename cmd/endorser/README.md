@@ -1,40 +1,41 @@
 # Generating Endorsements
 
-This package provides a command line tool for generating endorsement statements for binaries.
+The *endorser* is a command line tool for verifying provenances, and, after successful verification, generating an endorsement statement for the binary in question.
 
-The tool takes as input the name and digest of the binary, and optionally a list of provenance URIs.
-In addition, a textproto file must be provided for specifying options for verifying the given
-provenances prior to endorsement generation. The resulting endorsement statement is stored in a path
-that can be customized via a dedicated input argument.
+Inputs:
+*  `--provenance_uris`: Zero or more provenances, as a comma-separated list of URIs. The tool retrieves the URIs and evaluates them
+*  `--verification_options`: Custom verification to run on the provenances, as a prerequisite to the endorsement generation. Optional - if not specified then no verifications are carried out. See the underlying [protocol buffer definition](../../proto/verification_options.proto)
+*  `--skip_verification`: If there is no intention to verify anything, must confirm by setting this flag
+*  `--binary_name`: The name of the binary
+*  `--binary_path`: Path to the binary file. Needed only to compute digests
 
-If no provenance URIs are provided, the tool generates a provenance-less endorsement statement if
-the given verification options allows that. For more information about verification options, see the
-[protobuf specification](../../proto/provenance_verification.proto).
+Outputs:
+*  `--output_path`: Where the endorsement (a JSON file) goes. Common example: `--output_path=endorsement.json`
 
-If a non-empty list of provenance URIs is provided, the tool downloads them, verifies them according
-to the options in the provided verification options file, and if the verification is successful
-generates an endorsement statement, with the given provenances listed in the endorsement statement
-as evidence (in its evidence field).
-
-Example execution without provenances:
+Here is a simple example which neither involves provenances nor verification:
 
 ```bash
 go run cmd/endorser/main.go \
- --binary_path=testdata/binary \
- --binary_name=stage0_bin \
- --verification_options=testdata/skip_verification.textproto
+  --binary_path=testdata/binary \
+  --binary_name=stage0_bin \
+  --skip_verification \
+  --output_path=/tmp/endorsement.json
 ```
 
-Example execution with a provenance URI from ent (for simplicity we pass in
-`testdata/skip_verification.textproto` for verification):
+A more involved example with a single provenance and some verification:
 
 ```bash
 go run cmd/endorser/main.go \
- --binary_path=testdata/binary \
- --binary_name=stage0_bin \
- --provenance_uris=https://ent-server-62sa4xcfia-ew.a.run.app/raw/sha2-256:94f2b47418b42dde64f678a9d348dde887bfe4deafc8b43f611240fee6cc750a \
- --verification_options=testdata/skip_verification.textproto
+  --binary_path=testdata/binary \
+  --binary_name=stage0_bin \
+  --provenance_uris=https://ent-server-62sa4xcfia-ew.a.run.app/raw/sha2-256:94f2b47418b42dde64f678a9d348dde887bfe4deafc8b43f611240fee6cc750a \
+  --verification_options="provenance_count_at_least { count: 1 } all_with_build_command {} all_with_binary_digests { digests { hexdecimal { key: 18 value: '70a4fae8cd01e8e509f0d29efe9cf810192ad9b606fcf66fb6c4cbfee40fd951'}}}" \
+  --output_path=/tmp/endorsement.json
 ```
 
-See [this comment](https://github.com/project-oak/oak/pull/4191#issuecomment-1643932356) as the
-source of the binary and provenance info.
+If the verification options should be kept in a file (for length reasons), then use
+```bash
+  ...
+  --verification_options="$(</tmp/ver_opts.textproto)"
+  ...
+```

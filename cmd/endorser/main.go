@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package main provides a command-line tool for generating an endorsement statement for a binary.
 package main
 
 import (
@@ -27,17 +26,18 @@ import (
 	"time"
 
 	"github.com/project-oak/transparent-release/internal/endorser"
+	"github.com/project-oak/transparent-release/internal/verifier"
 	"github.com/project-oak/transparent-release/pkg/claims"
 	"github.com/project-oak/transparent-release/pkg/intoto"
 )
 
 // ISO 8601 layout for representing input dates.
-const layout = "2006-01-02"
+const dateLayout = "2006-01-02"
 
 type provenanceURIsFlag []string
 
 func (f *provenanceURIsFlag) String() string {
-	return "URI for downloading a provenance"
+	return "Provenance URI"
 }
 
 func (f *provenanceURIsFlag) Set(value string) error {
@@ -45,60 +45,65 @@ func (f *provenanceURIsFlag) Set(value string) error {
 	return nil
 }
 
-type inputOptions struct {
-	binaryPath          string
-	binaryName          string
-	verificationOptions string
-	endorsementPath     string
-	notBefore           string
-	notAfter            string
-	provenanceURIs      provenanceURIsFlag
-}
+//nolint:gochecknoglobals
+var provenanceURIs provenanceURIsFlag
 
-func (i *inputOptions) init() {
-	flag.StringVar(&i.binaryPath, "binary_path", "",
-		"Location of the binary in the local file system. This is required for computing various digests.")
-	flag.StringVar(&i.binaryName, "binary_name", "",
-		"Name of the binary to endorse. Should match the name in provenances, if provenance URIs are provided.")
-	flag.StringVar(&i.verificationOptions, "verification_options", "",
-		"Path to a textproto file containing verification options.")
-	flag.StringVar(&i.endorsementPath, "endorsement_path", "endorsement.json",
-		"Output path to store the generated endorsement statement.")
-	flag.StringVar(&i.notBefore, "not_before", "",
-		"The date from which the endorsement is effective, formatted as YYYY-MM-DD. Defaults to 1 day after the issuance date.")
-	flag.StringVar(&i.notAfter, "not_after", "",
-		"The expiry date of the endorsement, formatted as YYYY-MM-DD. Defaults to 90 day after the issuance date.")
-	flag.Var(&i.provenanceURIs, "provenance_uris", "URIs of the provenances.")
-	flag.Parse()
-}
-
+//nolint:cyclop
 func main() {
-	opt := inputOptions{}
-	opt.init()
+	binaryName := flag.String("binary_name", "",
+		"Name of the binary to endorse. Must match the binary names in all provenances.")
+	binaryPath := flag.String("binary_path", "",
+		"Location of the binary in the local file system. Required only for computing digests.")
+	flag.Var(&provenanceURIs, "provenance_uris",
+		"Comma-separated URIs of zero or more provenances.")
+	verOptsTextproto := flag.String("verification_options", "",
+		"An instance of VerificationOptions as inline textproto.")
+	skipVerification := flag.Bool("skip_verification", false,
+		"Confirms that empty --verification_options is intended.")
+	notBefore := flag.String("not_before", "",
+		"The date from which the endorsement is effective, formatted as YYYY-MM-DD. Defaults to 1 day after the issuance date.")
+	notAfter := flag.String("not_after", "",
+		"The expiry date of the endorsement, formatted as YYYY-MM-DD. Defaults to 90 day after the issuance date.")
+	outputPath := flag.String("output_path", "",
+		"Full path to store the generated endorsement statement as JSON.")
+	flag.Parse()
 
-	digests, err := computeBinaryDigests(opt.binaryPath)
+	// Make sure required flags are set.
+	if len(*binaryName) == 0 {
+		log.Fatalf("--binary_name not set")
+	}
+	if len(*binaryPath) == 0 {
+		log.Fatalf("--binary_path not set")
+	}
+	if len(*outputPath) == 0 {
+		log.Fatalf("--output_path not set")
+	}
+	if *verOptsTextproto == "" && !*skipVerification {
+		log.Fatalf("--verification_options empty, use --skip_verification to overrule")
+	}
+	verOpts, err := verifier.ParseVerificationOptions(*verOptsTextproto)
+	if err != nil {
+		log.Fatalf("Couldn't map parse verification options: %v", err)
+	}
+
+	digests, err := computeBinaryDigests(*binaryPath)
 	if err != nil {
 		log.Fatalf("Failed parsing binaryDigest: %v", err)
 	}
 
-	validity, err := getClaimValidity(opt.notBefore, opt.notAfter)
+	validity, err := getClaimValidity(*notBefore, *notAfter)
 	if err != nil {
 		log.Fatalf("Failed creating claimValidity: %v", err)
 	}
 
-	verOpts, err := endorser.LoadTextprotoVerificationOptions(opt.verificationOptions)
-	if err != nil {
-		log.Fatalf("Failed loading the verification options from %s: %v", opt.verificationOptions, err)
-	}
-
-	provenances, err := endorser.LoadProvenances(opt.provenanceURIs)
+	provenances, err := endorser.LoadProvenances(provenanceURIs)
 	if err != nil {
 		log.Fatalf("Failed loading provenances: %v", err)
 	}
 
-	endorsement, err := endorser.GenerateEndorsement(opt.binaryName, *digests, verOpts, *validity, provenances)
+	endorsement, err := endorser.GenerateEndorsement(*binaryName, *digests, verOpts, *validity, provenances)
 	if err != nil {
-		log.Fatalf("Failed generating endorsement statement %v", err)
+		log.Fatalf("Failed to generate endorsement: %v", err)
 	}
 
 	bytes, err := json.MarshalIndent(endorsement, "", "    ")
@@ -109,14 +114,12 @@ func main() {
 	// Add a newline at the end of the file.
 	newline := byte('\n')
 	bytes = append(bytes, newline)
-	if err := os.WriteFile(opt.endorsementPath, bytes, 0600); err != nil {
+	if err := os.WriteFile(*outputPath, bytes, 0600); err != nil {
 		log.Fatalf("Failed writing the endorsement statement to file: %v", err)
 	}
-
-	log.Printf("The endorsement statement is successfully stored in %s", opt.endorsementPath)
 }
 
-func getClaimValidity(notBefore, notAfter string) (*claims.ClaimValidity, error) {
+func getClaimValidity(notBefore string, notAfter string) (*claims.ClaimValidity, error) {
 	// We only care about the date, but we want to store it as an
 	// RFC3339-encoded timestamp. So we need a Time object, but with only the
 	// date part.
@@ -142,7 +145,7 @@ func parseDateOrDefault(date string, value time.Time) (time.Time, error) {
 	if date == "" {
 		return value, nil
 	}
-	return time.Parse(layout, date)
+	return time.Parse(dateLayout, date)
 }
 
 func computeBinaryDigests(path string) (*intoto.DigestSet, error) {

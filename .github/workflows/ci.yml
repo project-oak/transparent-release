@@ -31,7 +31,8 @@ jobs:
             --binary_path=testdata/binary \
             --binary_name=stage0_bin \
             --provenance_uris=https://ent-server-62sa4xcfia-ew.a.run.app/raw/sha2-256:94f2b47418b42dde64f678a9d348dde887bfe4deafc8b43f611240fee6cc750a \
-            --verification_options=testdata/skip_verification.textproto
+            --verification_options="provenance_count_at_least { count: 1 }" \
+            --output_path=endorsement.json
 
   # TODO(#113): Find a better, and easier-to-navigate way to report coverage.
   # Generate coverage report for ./pkg/... and ./internal/... and upload the report as an html file.
