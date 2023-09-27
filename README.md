@@ -5,6 +5,7 @@
 
 The Transparent Release project builds on the idea of binary transparency and extends it in a few
 directions, as described below.
+See [Transparent Release defitions](https://github.com/project-oak/oak/blob/main/docs/definitions.md) for the generalised definitions for the terms and the process.
 
 ## Release Transparency
 
